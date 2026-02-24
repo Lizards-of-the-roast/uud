@@ -1,0 +1,7 @@
+CompileFlags:
+  Add:
+    - -I../../include
+    - -I_deps/lua-src/src
+    - -isystem_deps/sol2-src/include
+    - -stdlib=libc++
+    - -std=gnu++23

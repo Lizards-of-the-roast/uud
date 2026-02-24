@@ -1,0 +1,32 @@
+# https://zed0.co.uk/clang-format-configurator/
+BasedOnStyle: Google
+IndentWidth: 4
+ColumnLimit: 100
+AccessModifierOffset: -4
+
+Standard: Latest
+IncludeBlocks: Regroup
+SortIncludes: CaseSensitive
+# format includes so our library includes are always last, cleaner imo
+IncludeCategories:
+  - Regex: "<[a-z_]+>"
+    Priority: 1
+  - Regex: ".*"
+    Priority: 2
+  - Regex: "<cle/.*>"
+    Priority: 3
+
+BreakBeforeBraces: Attach
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+PointerAlignment: Left
+ReferenceAlignment: Left
+
+SpaceAfterCStyleCast: false
+SpaceAfterTemplateKeyword: true
+SpaceBeforeParens: ControlStatements
+SpacesInAngles: Never
+
+FixNamespaceComments: true
+ShortNamespaceLines: 0
