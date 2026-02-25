@@ -5,6 +5,18 @@ Brendan Egan, Matthew Conroy, Ian Fogarty and Thibault Wysocinski
 Client lead
 Matthew Conroy
 
+# Build
+depends on SDL3, SDL_TTF and SDL_image, each of these can be fetched if the CMakeLists.txt file has some lines uncommented
+```bash
+# debug
+cmake --preset debug
+cmake --build --preset debug
+
+# release
+cmake --preset release
+cmake --build --preset release
+```
+
 # file summary (thus far)
 ## defer.hpp
 defer statement made by:
