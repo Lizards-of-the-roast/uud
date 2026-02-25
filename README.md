@@ -35,11 +35,11 @@ loop for a game match
 loop for the main menu
 
 ## resources.cpp, resources.hpp
-hadles loading and unloading resources (textures, fonts, ect) from file path.
+handles loading and unloading resources (textures, fonts, ect) from file path.
 
 ## simp\_ui.cpp, simp\_ui.hpp
 core UI implementation.
-This is for autolayouts and useriteraction.
+This is for autolayouts and user-iteraction.
 
 ## state.cpp, state.hpp
 state structure definition
