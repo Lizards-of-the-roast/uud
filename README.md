@@ -1,5 +1,5 @@
 # Untap Upkeep Draw (UUD) Client
-A Hackaton project by
+A Hackathon project by
 Brendan Egan, Matthew Conroy, Ian Fogarty and Thibault Wysocinski
 
 Client lead
@@ -35,11 +35,11 @@ loop for a game match
 loop for the main menu
 
 ## resources.cpp, resources.hpp
-handles loading and unloading resources (textures, fonts, ect) from file path.
+handles loading and unloading resources (textures, fonts, etc) from file path.
 
 ## simp\_ui.cpp, simp\_ui.hpp
 core UI implementation.
-This is for autolayouts and user-iteraction.
+This is for autolayouts and user-interaction.
 
 ## state.cpp, state.hpp
 state structure definition
@@ -49,4 +49,4 @@ miscellaneous types
 
 ## widgets.cpp, widgets.hpp
 builder UI implementation.
-this is for buttons, toggles, sliders ect.
+this is for buttons, toggles, sliders etc.

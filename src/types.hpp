@@ -73,7 +73,7 @@ struct G2
     T y;
 
     T Dot(G2<T> v) const { return this->x * v.x + this->y * v.y; }
-    T Lenght(void) const { return SDL_sqrt((float)this->Dot(*this)); }
+    T Length(void) const { return SDL_sqrt((float)this->Dot(*this)); }
 
     void operator=(T s) { *this = {s, s}; return; }
     T &operator[](int i)

@@ -51,19 +51,24 @@ int main(void)
 
     SDL_SetRenderDrawBlendMode(state.renderer, SDL_BLENDMODE_BLEND);
 
-    //TODO(Matt): maybe remove the need to do this :)
-    state.texture.renderer = state.renderer;
-
     // Enable vsync on SDL_RenderPresent
     // 1: sync on every frame
     SDL_SetRenderVSync(state.renderer, 1);
 
 
-    // TTF
-
+    // TTF 
     if (!TTF_Init())
     {
         std::cerr << "ERROR: couldnt init SDL_TTF: " << SDL_GetError() << '\n';
+        return 1;
+    }
+
+    defer (TTF_Quit());
+
+    // fail so ui can assume its not null
+    if (!state.font[FONT_BELEREN_BOLD_PATH])
+    {
+        std::cerr << "couldnt load font '" << FONT_BELEREN_BOLD_PATH << "': " << SDL_GetError() << '\n';
         return 1;
     }
 

@@ -1,14 +1,16 @@
 #ifndef _INTRO_HPP_
 #define _INTRO_HPP_
 
+#include <SDL3/SDL_render.h>
+
 /*
 Fade In to single centered texture
 ARGS:
     texture: valid texture
-    start_time: start time in miliseconds returned by SDL_GetTicks();
+    start_time: start time in milliseconds returned by SDL_GetTicks();
     bg: background color
-    fade_time: ainimation time for fade in (seconds)
-    dely_time: time to wait after fade in before (seconds)
+    fade_time: animation time for fade in (seconds)
+    delay_time: time to wait after fade in before (seconds)
 RETURNS:
     false: on animating
     true: on done

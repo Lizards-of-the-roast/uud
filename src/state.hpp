@@ -2,7 +2,6 @@
 #define _STATE_HPP_
 
 #include "resources.hpp"
-#include "widgets.hpp"
 
 #define RES_PATH "./res/"
 #define LOGO_PATH RES_PATH"logo/"
@@ -16,8 +15,8 @@
 #define FONT_MATRIX_BOLD_PATH               FONT_PATH"Matrix-Bold.ttf"
 #define FONT_MPLANTIN_BOLD_ITALIC_PATH      FONT_PATH"MPlantin-BoldItalic.ttf"
 #define FONT_MPLANTIN_BOLD_PATH             FONT_PATH"MPlantin-Bold.ttf"
-#define FONT_FONT_MPLANTIN_ITALIC_PATH      FONT_PATH"MPlantin-Italic.ttf"
-#define FONT_FONT_MPLANTIN_REGULAR_PATH     FONT_PATH"MPlantin-Regular.ttf"
+#define FONT_MPLANTIN_ITALIC_PATH      FONT_PATH"MPlantin-Italic.ttf"
+#define FONT_MPLANTIN_REGULAR_PATH     FONT_PATH"MPlantin-Regular.ttf"
 #define FONT_NDPMTG_PATH                    FONT_PATH"NDPMTG.ttf"
 
 #define TEXTURE_PATH RES_PATH"textures/"

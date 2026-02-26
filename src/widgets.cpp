@@ -1,7 +1,11 @@
 #include "widgets.hpp"
 
-#include "state.hpp"
-
+static void Widget_Draw_Label_Impl(Widget_Context *ctx, UI_Box *box, Widget_Data *data);
+static void Widget_Draw_Button_Impl(Widget_Context *ctx, UI_Box *box, Widget_Data *data);
+static void Widget_Draw_Toggle_Impl(Widget_Context *ctx, UI_Box *box, Widget_Data *data);
+static void Widget_Draw_Slider_Impl(Widget_Context *ctx, UI_Box *box, Widget_Data *data);
+static void Widget_Draw_Textbox_Impl(Widget_Context *ctx, UI_Box *box, Widget_Data *data);
+static void Widget_Draw_Div_Impl(Widget_Context *ctx, UI_Box *box, Widget_Data *data);
 
 Widget_Context::Widget_Context(SDL_Renderer *renderer, UI_Context *context)
 {
@@ -33,12 +37,34 @@ Widget_Data::Widget_Data(Widget_Context *ctx, Widget_Type type, Widget_Union u)
     this->style = (ctx->styles.size())
                 ? ctx->styles.top()
                 : ctx->default_style;
-    this->flags = (ctx->defualt_flags_override.size())
-                ? ctx->defualt_flags_override.top()
+    this->flags = (ctx->default_flags_override.size())
+                ? ctx->default_flags_override.top()
                 : 0xFF;
     this->texture = NULL;
     this->type = type;
     this->u = u;
+    this->draw_fn = Widget_Draw_Div_Impl;
+    switch (type)
+    {
+        case WIDGET_TYPE_LABEL:
+            this->draw_fn = Widget_Draw_Label_Impl;
+            break;
+        case WIDGET_TYPE_BUTTON:
+            this->draw_fn = Widget_Draw_Button_Impl;
+            break;
+        case WIDGET_TYPE_TOGGLE:
+            this->draw_fn = Widget_Draw_Toggle_Impl;
+            break;
+        case WIDGET_TYPE_SLIDER:
+            this->draw_fn = Widget_Draw_Slider_Impl;
+            break;
+        case WIDGET_TYPE_TEXTBOX:
+            this->draw_fn = Widget_Draw_Textbox_Impl;
+            break;
+        case WIDGET_TYPE_DIV:
+            this->draw_fn = Widget_Draw_Div_Impl;
+            break;
+    }
 }
 Widget_Data::~Widget_Data()
 {
@@ -150,8 +176,8 @@ UI_Signal Widget_Context::Div_Begin(std::optional<Rect> area, const std::source_
 
     /*
     sig.box->userdata = Widget_Data{
-        .flags = (this->defualt_flags_override.size())
-               ? this->defualt_flags_override.top()
+        .flags = (this->default_flags_override.size())
+               ? this->default_flags_override.top()
                : 0xFF,
         .type = WIDGET_TYPE_DIV
     };
@@ -222,7 +248,17 @@ UI_Signal Widget_Context::Button(std::string label, std::optional<Rect> area, st
     );
     if (area.has_value()) ui->sizes.pop();
 
-    sig.box->userdata = Widget_Data( this, WIDGET_TYPE_BUTTON, {} );
+    if (Widget_Data *data = std::any_cast<Widget_Data>(&sig.box->userdata);
+        data && data->type == WIDGET_TYPE_BUTTON)
+    {
+        data->style = (this->styles.size()) ? this->styles.top() : this->default_style;
+        data->flags = (this->default_flags_override.size()) ? this->default_flags_override.top() : 0xFF;
+    }
+    else
+    {
+        sig.box->userdata = Widget_Data(this, WIDGET_TYPE_BUTTON, {});
+    }
+
     return sig;
 }
 
@@ -251,8 +287,18 @@ UI_Signal Widget_Context::Toggle(bool *toggle, std::string label, std::optional<
     if (sig.flags & UI_SIG_RELEASED)
          *toggle = !*toggle;
 
-    //sig.box->userdata = Widget_Toggle_Data{*toggle};
-    sig.box->userdata = Widget_Data( this, WIDGET_TYPE_TOGGLE, (Widget_Union)Widget_Toggle_Data{*toggle} );
+    if (Widget_Data *data = std::any_cast<Widget_Data>(&sig.box->userdata);
+        data && data->type == WIDGET_TYPE_TOGGLE)
+    {
+        data->style = (this->styles.size()) ? this->styles.top() : this->default_style;
+        data->flags = (this->default_flags_override.size()) ? this->default_flags_override.top() : 0xFF;
+        data->u.toggle.toggle_state = *toggle;
+    }
+    else
+    {
+        sig.box->userdata = Widget_Data(this, WIDGET_TYPE_TOGGLE, (Widget_Union)Widget_Toggle_Data{*toggle});
+    }
+
     return sig;
 }
 UI_Signal Widget_Context::Slider(float *value, float min, float max, Widget_Slider_Dir dir, std::string label, std::optional<Rect> area, std::optional<std::string> id_override, const std::source_location source_loc)
@@ -305,7 +351,17 @@ UI_Signal Widget_Context::Slider(float *value, float min, float max, Widget_Slid
     d.u.slider = Widget_Slider_Data{*value, dir, min, max};
     sig.box->userdata = d;
     */
-    sig.box->userdata = Widget_Data( this, WIDGET_TYPE_SLIDER, Widget_Union{ .slider = {*value, dir, min, max} } );
+    if (Widget_Data *data = std::any_cast<Widget_Data>(&sig.box->userdata);
+        data && data->type == WIDGET_TYPE_SLIDER)
+    {
+        data->style = (this->styles.size()) ? this->styles.top() : this->default_style;
+        data->flags = (this->default_flags_override.size()) ? this->default_flags_override.top() : 0xFF;
+        data->u.slider = Widget_Slider_Data{*value, dir, min, max};
+    }
+    else
+    {
+        sig.box->userdata = Widget_Data(this, WIDGET_TYPE_SLIDER, Widget_Union{ .slider = {*value, dir, min, max} });
+    }
 
     return sig;
 }
@@ -332,7 +388,17 @@ UI_Signal Widget_Context::Textbox(std::string init_label, std::optional<Rect> ar
     );
     if (area.has_value()) ui->sizes.pop();
 
-    sig.box->userdata = Widget_Data( this, WIDGET_TYPE_TEXTBOX, {} );
+    if (Widget_Data *data = std::any_cast<Widget_Data>(&sig.box->userdata);
+        data && data->type == WIDGET_TYPE_TEXTBOX)
+    {
+        data->style = (this->styles.size()) ? this->styles.top() : this->default_style;
+        data->flags = (this->default_flags_override.size()) ? this->default_flags_override.top() : 0xFF;
+    }
+    else
+    {
+        sig.box->userdata = Widget_Data(this, WIDGET_TYPE_TEXTBOX, {});
+    }
+    
     return sig;
 }
 
@@ -380,6 +446,42 @@ bool Widget_Draw_Text( TTF_Text *text, Rect area, G2<Alignment> alignment )
 
     TTF_DrawRendererText(text, pos.x, pos.y);
     return true;
+}
+
+static void Widget_Draw_Label_Impl(Widget_Context *ctx, UI_Box *box, Widget_Data *data)
+{
+    (void)ctx;
+    (void)box;
+    (void)data;
+}
+
+static void Widget_Draw_Button_Impl(Widget_Context *ctx, UI_Box *box, Widget_Data *data)
+{
+    (void)ctx;
+    (void)box;
+    (void)data;
+}
+
+static void Widget_Draw_Toggle_Impl(Widget_Context *ctx, UI_Box *box, Widget_Data *data)
+{
+    ctx->Toggle_Draw(box, data);
+}
+
+static void Widget_Draw_Slider_Impl(Widget_Context *ctx, UI_Box *box, Widget_Data *data)
+{
+    ctx->Slider_Draw(box, data);
+}
+
+static void Widget_Draw_Textbox_Impl(Widget_Context *ctx, UI_Box *box, Widget_Data *data)
+{
+    ctx->Textbox_Draw(box, data);
+}
+
+static void Widget_Draw_Div_Impl(Widget_Context *ctx, UI_Box *box, Widget_Data *data)
+{
+    (void)ctx;
+    (void)box;
+    (void)data;
 }
 
 void Widget_Context::Draw(UI_Box *box)
@@ -430,26 +532,8 @@ void Widget_Context::Draw(UI_Box *box)
     Draw_Rect(renderer, box->layout_box, 1);
     */
 
-    switch (data->type)
-    {
-        case WIDGET_TYPE_LABEL:
-            //this->Label_Draw(box, data);
-            break;
-        case WIDGET_TYPE_BUTTON:
-            //this->Button_Draw(box, data);
-            break;
-        case WIDGET_TYPE_TOGGLE:
-            this->Toggle_Draw(box, data);
-            break;
-        case WIDGET_TYPE_SLIDER:
-            this->Slider_Draw(box, data);
-            break;
-        case WIDGET_TYPE_TEXTBOX:
-            this->Textbox_Draw(box, data);
-            break;
-        case WIDGET_TYPE_DIV:
-            break;
-    }
+    if (data->draw_fn)
+        data->draw_fn(this, box, data);
 
     if (data->flags & WIDGET_FLAG_DRAW_TEXT)
     {

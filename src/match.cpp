@@ -1,6 +1,7 @@
 #include <SDL3/SDL.h>
 #include <SDL3_image/SDL_image.h>
 #include <SDL3_ttf/SDL_ttf.h>
+#include <array>
 
 #include "state.hpp"
 #include "defer.hpp"
@@ -18,6 +19,15 @@ bool Match(void)
     for (Widget_Style &s : w.default_style)
         s.background.a = 0xFF*0.9;
     */
+
+    SDL_Texture *crack_texture = state.texture[TEXTURE_PATH"gimp_crack.png"];
+    SDL_Texture *card_texture = state.texture[TEXTURE_CARD_PATH];
+    TTF_Font *match_font = state.font[FONT_BELEREN_BOLD_PATH];
+    TTF_SetFontSize(match_font, 30);
+
+    static const std::array<std::string, 7> card_ids = {
+        "card 0", "card 1", "card 2", "card 3", "card 4", "card 5", "card 6",
+    };
 
     for (;;)
     {
@@ -37,13 +47,13 @@ bool Match(void)
             }
         }
 
-        SDL_RenderTextureTiled(state.renderer, state.texture[TEXTURE_PATH"gimp_crack.png"], NULL, 1.0f, NULL);
+        if (crack_texture)
+            SDL_RenderTextureTiled(state.renderer, crack_texture, NULL, 1.0f, NULL);
 
         ui.Begin();
 
 
-        ui.fonts.push(state.font[FONT_BELEREN_BOLD_PATH]);
-        TTF_SetFontSize(state.font[FONT_BELEREN_BOLD_PATH], 30);
+        ui.fonts.push(match_font);
         defer (ui.fonts.pop());
 
         //hand
@@ -64,8 +74,7 @@ bool Match(void)
             int hovered = INT32_MAX;
             for (int i = 0; i < 7; i++)
             {
-                std::string name = "card "+std::to_string(i);
-                UI_Signal button = w.Card(state.texture[TEXTURE_CARD_PATH], {}, name);
+                UI_Signal button = w.Card(card_texture, {}, card_ids[i]);
                 if (button.flags & (UI_SIG_HOVERING | UI_SIG_LEFT_DOWN) )
                 {
                     hovered = i;
@@ -76,7 +85,7 @@ bool Match(void)
         }
 
         //w.Button("library", Rect{100.0f, state.window_height*0.66f - 200.0f, 120, 200});
-        w.Card(state.texture[TEXTURE_CARD_PATH], Rect{100.0f, state.window_height*0.66f - card_height, card_width, card_height});
+        w.Card(card_texture, Rect{100.0f, state.window_height*0.66f - card_height, card_width, card_height});
 
         ui.End();
 
@@ -89,24 +98,28 @@ bool Match(void)
             V2 box_pos = (V2)(active->area.pos() + active->area.size()/2);
 
             V2 v = (V2)(box_pos - ui.mouse_pos);
-            V2 v_perp_a = (V2)(V2{-v.y, v.x} / v.Lenght());
-            V2 v_perp_b = (V2)(V2{v.y, -v.x} / v.Lenght());
+            float len = v.Length();
 
-            float width = active->area.w/2;
+            // fixes div by 0 when dragged from center
+            if (len > 0.001f)
+            {
+                V2 v_perp_a = (V2)(V2{-v.y, v.x} / len);
+                V2 v_perp_b = (V2)(V2{v.y, -v.x} / len);
 
-            SDL_SetRenderDrawColor( state.renderer, 0xFF, 0x00, 0x00, 0xFF);
-            SDL_RenderLine( state.renderer,
-                            box_pos.x + v_perp_a.x*width,
-                            box_pos.y + v_perp_a.y*width,
-                            ui.mouse_pos.x,
-                            ui.mouse_pos.y
-            );
-            SDL_RenderLine( state.renderer,
-                            box_pos.x + v_perp_b.x*width,
-                            box_pos.y + v_perp_b.y*width,
-                            ui.mouse_pos.x,
-                            ui.mouse_pos.y
-            );
+                float width = active->area.w / 2;
+
+                SDL_SetRenderDrawColor(state.renderer, 0xFF, 0x00, 0x00, 0xFF);
+                SDL_RenderLine(state.renderer,
+                        box_pos.x + v_perp_a.x * width,
+                        box_pos.y + v_perp_a.y * width,
+                        ui.mouse_pos.x,
+                        ui.mouse_pos.y);
+                SDL_RenderLine(state.renderer,
+                        box_pos.x + v_perp_b.x * width,
+                        box_pos.y + v_perp_b.y * width,
+                        ui.mouse_pos.x,
+                        ui.mouse_pos.y);
+            }
 
             V2 drop_size = active->area.size();
             V2 drop_pos = (V2)(ui.mouse_pos - active->area.size()/2);
@@ -117,9 +130,12 @@ bool Match(void)
                 drop_size.y
             };
             //SDL_RenderRect( state.renderer, &drop_rect);
-            SDL_SetTextureAlphaMod(state.texture[TEXTURE_CARD_PATH], 0xFF*0.7);
-            SDL_RenderTexture( state.renderer, state.texture[TEXTURE_CARD_PATH], NULL, &drop_rect);
-            SDL_SetTextureAlphaMod(state.texture[TEXTURE_CARD_PATH], 0xFF);
+            if (card_texture)
+            {
+                SDL_SetTextureAlphaMod(card_texture, 0xFF*0.7);
+                SDL_RenderTexture(state.renderer, card_texture, NULL, &drop_rect);
+                SDL_SetTextureAlphaMod(card_texture, 0xFF);
+            }
         }
 
         SDL_RenderPresent(state.renderer);

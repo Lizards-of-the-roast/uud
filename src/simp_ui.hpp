@@ -21,7 +21,6 @@ struct UI_Box;
 struct UI_Context;
 struct UI_Size;
 
-//TODO, account for non-fitting siblings with UI_SIZE_FIT
 enum UI_Size_Type
 {
     UI_SIZE_PIXELS            = 0x01 << 0,
@@ -31,8 +30,8 @@ enum UI_Size_Type
     UI_SIZE_TEXT_CONTENT      = 0x01 << 4,
 
     UI_SIZE_STANDALONE         = UI_SIZE_PIXELS | UI_SIZE_TEXT_CONTENT,
-    UI_SIZE_UPWARD_DEPENDANT   = UI_SIZE_PERCENT_OF_PARENT | UI_SIZE_FIT,
-    UI_SIZE_DOWNWARD_DEPENDANT = UI_SIZE_CHILD_SUM,
+    UI_SIZE_UPWARD_DEPENDENT   = UI_SIZE_PERCENT_OF_PARENT | UI_SIZE_FIT,
+    UI_SIZE_DOWNWARD_DEPENDENT = UI_SIZE_CHILD_SUM,
 };
 struct UI_Size
 {
@@ -137,11 +136,11 @@ enum
     UI_SIG_X1_DOUBLE_CLICKED      = (UI_Signal_Flags)0x01 << 23,
     UI_SIG_X2_DOUBLE_CLICKED      = (UI_Signal_Flags)0x01 << 24,
 
-    UI_SIG_LEFT_TRIPPLE_CLICKED   = (UI_Signal_Flags)0x01 << 25,
-    UI_SIG_MIDDLE_TRIPPLE_CLICKED = (UI_Signal_Flags)0x01 << 26,
-    UI_SIG_RIGHT_TRIPPLE_CLICKED  = (UI_Signal_Flags)0x01 << 27,
-    UI_SIG_X1_TRIPPLE_CLICKED     = (UI_Signal_Flags)0x01 << 28,
-    UI_SIG_X2_TRIPPLE_CLICKED     = (UI_Signal_Flags)0x01 << 29,
+    UI_SIG_LEFT_TRIPLE_CLICKED   = (UI_Signal_Flags)0x01 << 25,
+    UI_SIG_MIDDLE_TRIPLE_CLICKED = (UI_Signal_Flags)0x01 << 26,
+    UI_SIG_RIGHT_TRIPLE_CLICKED  = (UI_Signal_Flags)0x01 << 27,
+    UI_SIG_X1_TRIPLE_CLICKED     = (UI_Signal_Flags)0x01 << 28,
+    UI_SIG_X2_TRIPLE_CLICKED     = (UI_Signal_Flags)0x01 << 29,
 
     UI_SIG_HOVERING               = (UI_Signal_Flags)0x01 << 30,
     UI_SIG_MOUSE_OVER             = (UI_Signal_Flags)0x01 << 31,
@@ -153,7 +152,7 @@ enum
     UI_SIG_RELEASED        = UI_SIG_LEFT_RELEASED        | UI_SIG_MIDDLE_RELEASED        | UI_SIG_RIGHT_RELEASED        | UI_SIG_X1_RELEASED        | UI_SIG_X2_RELEASED,
     UI_SIG_CLICKED         = UI_SIG_LEFT_CLICKED         | UI_SIG_MIDDLE_CLICKED         | UI_SIG_RIGHT_CLICKED         | UI_SIG_X1_CLICKED         | UI_SIG_X2_CLICKED,
     UI_SIG_DOUBLE_CLICKED  = UI_SIG_LEFT_DOUBLE_CLICKED  | UI_SIG_MIDDLE_DOUBLE_CLICKED  | UI_SIG_RIGHT_DOUBLE_CLICKED  | UI_SIG_X1_DOUBLE_CLICKED  | UI_SIG_X2_DOUBLE_CLICKED,
-    UI_SIG_TRIPPLE_CLICKED = UI_SIG_LEFT_TRIPPLE_CLICKED | UI_SIG_MIDDLE_TRIPPLE_CLICKED | UI_SIG_RIGHT_TRIPPLE_CLICKED | UI_SIG_X1_TRIPPLE_CLICKED | UI_SIG_X2_TRIPPLE_CLICKED,
+    UI_SIG_TRIPLE_CLICKED = UI_SIG_LEFT_TRIPLE_CLICKED | UI_SIG_MIDDLE_TRIPLE_CLICKED | UI_SIG_RIGHT_TRIPLE_CLICKED | UI_SIG_X1_TRIPLE_CLICKED | UI_SIG_X2_TRIPLE_CLICKED,
 };
 
 struct UI_Signal
@@ -167,7 +166,7 @@ struct UI_Signal
 typedef Uint16 UI_Box_Flags;
 enum
 {
-    // Interation
+    // Interaction
     UI_BOX_FLAG_CLICKABLE          = 0x01 << 0,
     UI_BOX_FLAG_TEXTINPUT          = 0x01 << 1,
     UI_BOX_FLAG_FOCUS_HOT          = 0x01 << 2,
@@ -176,7 +175,7 @@ enum
     UI_BOX_FLAG_VIEW_SCROLL_Y      = 0x01 << 5,
 
     // Layout
-    UI_BOX_FLAG_FLOATING_X         = 0x01 << 6, // Fixed X, layout at most positions relitive to parent
+    UI_BOX_FLAG_FLOATING_X         = 0x01 << 6, // Fixed X, layout at most positions relative to parent
     UI_BOX_FLAG_FLOATING_Y         = 0x01 << 7,
     UI_BOX_FLAG_SKIP_VIEW_OFFSET_X = 0x01 << 8,
     UI_BOX_FLAG_SKIP_VIEW_OFFSET_Y = 0x01 << 9,
@@ -202,9 +201,9 @@ struct UI_Box
     struct UI_Box *parent, *next_sibling, *prev_sibling,*first_child, *last_child;
     size_t child_count;
 
-    // List for different itterations of the same box call (same line of code, same frame)
-    //struct UI_Box *next_iteration, *prev_iteration;
-    //size_t iteration;
+    UI_Box *next_iteration, *prev_iteration;
+    size_t iteration;
+    size_t source_key;
 
     UI_ID id;
 
@@ -214,14 +213,17 @@ struct UI_Box
     basically fixed_pos but stable in algorithm
     */
     Rect layout_box;
-    //the actuall rect of the box
+    //the actual rect of the box
     Rect area;
 
     G2<UI_Size> size;
     UI_Margin margin;
     V2 offset;
     V2 min_size;
-    int child_layout_axis;
+    int child_layout_axis; 
+
+    bool has_clip_ancestor;
+    Rect clip_ancestor_rect;
 
     V2 fixed_position; //for internal use
     V2 fixed_size; //for internal use
@@ -259,7 +261,7 @@ struct UI_Box
 
         RETURNS:
             UI_Box * - neighbor or NULL
-            int      - n, verticle displacement in the tree
+            int      - n, vertical displacement in the tree
                         +n means it moved up n times -1 means it moved down
     */
     std::tuple< UI_Box *, int > Neighbor_Next();
@@ -270,13 +272,13 @@ struct UI_Box
 
         RETURNS:
             UI_Box * - neighbor or NULL
-            int      - n, verticle displacement in the tree
+            int      - n, vertical displacement in the tree
                         +n means it moved up n times -1 means it moved down
     */
     std::tuple< UI_Box *, int > Neighbor_Prev();
 
     /*
-        Get a UI_Signal from box, containing all iteraction with UI element
+        Get a UI_Signal from box, containing all interaction with UI element
 
         ARGS:
             ctx - UI_Context that owns this box
@@ -304,6 +306,9 @@ struct UI_Context
 {
     std::unordered_map<UI_ID, UI_Box *> boxes;
 
+    std::unordered_map<size_t, size_t> source_iteration_counter;
+    std::unordered_map<size_t, UI_Box *> last_iteration_box;
+
     UI_ID hot;
     UI_ID active;
     UI_ID focused; //for text
@@ -313,6 +318,9 @@ struct UI_Context
     // downside: memory isnt 'packed' (cache misses)
     // upside: simple, and since this is a tree no memory gaps
     std::vector<UI_Box *> leafs;
+
+    std::vector<UI_Box *> box_pool;
+    std::vector<UI_Box *> free_boxes;
 
     std::stack<UI_Box *> parents;
     std::stack<G2<Alignment>> label_alignments;
@@ -405,6 +413,8 @@ struct UI_Context
     Layout_It_Range Layout_It(void);
 
     UI_Box *Get_Box(UI_ID id);
+    UI_Box *Alloc_Box();
+    void Free_Box(UI_Box *box);
 
     /*
         Input events from SDL to allow the ui_context to get state
@@ -459,10 +469,10 @@ struct UI_Context
     void End();
 
     void Layout_Calc_Standalone(void);
-    void Layout_Calc_Upwards_Dependant(void);
+    void Layout_Calc_Upwards_Dependent(void);
     void Layout_Calc_Downwards_Dependant(void);
     void Layout_Solve_Violation(void);
-    void Layout_Comp_Relitive(void);
+    void Layout_Comp_Relative(void);
     void Layout_Compute(void);
 };
 

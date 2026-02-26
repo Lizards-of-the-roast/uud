@@ -7,11 +7,6 @@
 #define DIV_O(CTX, ...) for (int _i_ = ((CTX)->Div_Begin( __VA_ARGS__), 0); !_i_; _i_++, (CTX)->Div_End())
 #define DIV(CTX) for (int _i_ = ((CTX)->Div_Begin(), 0); !_i_; _i_++, (CTX)->Div_End())
 
-/*
-TODO: maybe use a Widget_Base with virtual void draw(...)
-*/
-
-
 enum Widget_Type
 {
     WIDGET_TYPE_DIV,
@@ -71,6 +66,9 @@ enum Widget_Style_State
 };
 
 struct Widget_Context;
+struct Widget_Data;
+typedef void (*Widget_Draw_Fn)(Widget_Context *ctx, UI_Box *box, Widget_Data *data);
+
 struct Widget_Data
 {
     std::array<Widget_Style, WIDGET_STYLE_COUNT> style;
@@ -80,6 +78,7 @@ struct Widget_Data
 
     Widget_Type type;
     Widget_Union u;
+    Widget_Draw_Fn draw_fn;
 
     Widget_Data(Widget_Context *ctx, Widget_Type type, Widget_Union u);
     ~Widget_Data();
@@ -94,7 +93,7 @@ struct Widget_Context
     //stack data
     std::stack<std::array<Widget_Style, WIDGET_STYLE_COUNT>> styles;
     std::array<Widget_Style, WIDGET_STYLE_COUNT> default_style;
-    std::stack<Widget_Flags> defualt_flags_override;
+    std::stack<Widget_Flags> default_flags_override;
 
     //UI_Elements
 
@@ -113,7 +112,7 @@ struct Widget_Context
 
     Widget_Context(SDL_Renderer *renderer, UI_Context *context);
 
-    //Renderering
+    //Rendering
     void Draw();
     void Draw(UI_Box *box);
 

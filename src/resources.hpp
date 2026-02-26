@@ -14,12 +14,11 @@ struct Texture_Resource
 {
     std::unordered_map<std::string, SDL_Texture *> map;
     SDL_Texture *NULL_texture;
-    SDL_Renderer *renderer;
 
     // Cant use a constructor without State state = {0} style zii
     ~Texture_Resource();
 
-    bool Destroy(std::string key);
+    bool Destroy(const std::string &key);
 
     SDL_Texture * & operator[](const std::string &key);
 };
@@ -32,7 +31,7 @@ struct Font_Resource
     // Cant use a constructor without State state = {0} style zii
     ~Font_Resource();
 
-    bool Destroy(std::string key);
+    bool Destroy(const std::string &key);
 
     TTF_Font * & operator[](const std::string &key);
 };

@@ -1,4 +1,3 @@
-#include <iostream>
 #include <SDL3/SDL.h>
 #include <SDL3_image/SDL_image.h>
 #include <SDL3_ttf/SDL_ttf.h>
@@ -43,6 +42,10 @@ bool Main_Menu(void)
     for (Widget_Style &s : w.default_style)
         s.background.a = 0xFF*0.9;
 
+    SDL_Texture *bg = state.texture[TEXTURE_BG_PATH];
+    TTF_Font *menu_font = state.font[FONT_BELEREN_BOLD_PATH];
+    TTF_SetFontSize(menu_font, 30);
+
     Menu_Tab tab = TAB_NONE;
 
     for (;;)
@@ -66,9 +69,26 @@ bool Main_Menu(void)
         SDL_SetRenderDrawColor(state.renderer, 0x00, 0x18, 0x18, 0xFF);
         SDL_RenderClear(state.renderer);
 
-        SDL_Texture *bg = state.texture[TEXTURE_BG_PATH];
-        SDL_FRect dst = {(float)state.window_width / 2.0f - (float)bg->w / 2.0f,(float)state.window_height / 2.0f - (float)bg->h / 2.0f, (float)bg->w, (float)bg->h};
-        SDL_RenderTexture(state.renderer, bg, NULL, &dst);
+        if (bg)
+        {
+            float bg_w = 0.0f;
+            float bg_h = 0.0f;
+            if (SDL_GetTextureSize(bg, &bg_w, &bg_h))
+            {
+                SDL_FRect dst = {
+                    (float)state.window_width / 2.0f - bg_w / 2.0f,
+                    (float)state.window_height / 2.0f - bg_h / 2.0f,
+                    bg_w,
+                    bg_h
+                };
+                
+                SDL_RenderTexture(state.renderer, bg, NULL, &dst);
+            }   
+            else
+            {
+                SDL_Log("failed to get bg size: %s", SDL_GetError());
+            }
+        }
 
         ui.Begin();
 
@@ -84,8 +104,7 @@ bool Main_Menu(void)
             ui.sizes.push({ UI_Size_Fit(), UI_Size_Fit() });
             defer (ui.sizes.pop());
 
-            ui.fonts.push(state.font[FONT_BELEREN_BOLD_PATH]);
-            TTF_SetFontSize(state.font[FONT_BELEREN_BOLD_PATH], 30);
+            ui.fonts.push(menu_font);
             defer (ui.fonts.pop());
 
             const float val = 20.0f;
@@ -142,8 +161,7 @@ bool Main_Menu(void)
                     div->child_layout_axis = 1;
                     div->elem_align = UI_ALIGN_CENTER;
 
-                    ui.fonts.push(state.font[FONT_BELEREN_BOLD_PATH]);
-                    TTF_SetFontSize(state.font[FONT_BELEREN_BOLD_PATH], 30);
+                    ui.fonts.push(menu_font);
                     defer (ui.fonts.pop());
 
                     ui.label_alignments.push({UI_ALIGN_CENTER, UI_ALIGN_CENTER});
@@ -179,8 +197,7 @@ bool Main_Menu(void)
                     ui.sizes.push({ UI_Size_Text(50), UI_Size_Text(50) });
                     defer (ui.sizes.pop());
 
-                    ui.fonts.push(state.font[FONT_BELEREN_BOLD_PATH]);
-                    TTF_SetFontSize(state.font[FONT_BELEREN_BOLD_PATH], 30);
+                    ui.fonts.push(menu_font);
                     defer (ui.fonts.pop());
 
                     UI_Signal label = w.Label(
@@ -199,8 +216,7 @@ bool Main_Menu(void)
                     ui.sizes.push({ UI_Size_Text(50), UI_Size_Text(50) });
                     defer (ui.sizes.pop());
 
-                    ui.fonts.push(state.font[FONT_BELEREN_BOLD_PATH]);
-                    TTF_SetFontSize(state.font[FONT_BELEREN_BOLD_PATH], 30);
+                    ui.fonts.push(menu_font);
                     defer (ui.fonts.pop());
 
                     UI_Signal label = w.Label(
@@ -219,8 +235,7 @@ bool Main_Menu(void)
                     ui.sizes.push({ UI_Size_Text(50), UI_Size_Text(50) });
                     defer (ui.sizes.pop());
 
-                    ui.fonts.push(state.font[FONT_BELEREN_BOLD_PATH]);
-                    TTF_SetFontSize(state.font[FONT_BELEREN_BOLD_PATH], 30);
+                    ui.fonts.push(menu_font);
                     defer (ui.fonts.pop());
 
                     UI_Signal label = w.Label(

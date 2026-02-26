@@ -2,7 +2,7 @@
 
 #include "defer.hpp"
 
-#include <stdexcept>
+#include <SDL3/SDL_timer.h>
 
 UI_Box::~UI_Box()
 {
@@ -60,6 +60,10 @@ UI_Context::UI_Context(SDL_Window *window, TTF_TextEngine *text_engine)
     // If weird stuff is happening with context its because I didnt
     // list out every single member and `= 0` them
     boxes = {};
+    source_iteration_counter = {};
+    last_iteration_box = {};
+    box_pool = {};
+    free_boxes = {};
     hot = {};
     active = {};
     focused = {};
@@ -98,22 +102,45 @@ UI_Context::UI_Context(SDL_Window *window, TTF_TextEngine *text_engine)
     */
 
 }
+
 UI_Context::~UI_Context()
 {
-    for (const auto& [id, box] : this->boxes)
+    for (UI_Box *box : this->box_pool)
         delete box;
+}
+
+UI_Box *UI_Context::Alloc_Box()
+{
+    UI_Box *box = NULL;
+
+    if (!this->free_boxes.empty())
+    {
+        box = this->free_boxes.back();
+        this->free_boxes.pop_back();
+        box->~UI_Box();
+        new (box) UI_Box{};
+        return box;
+    }
+
+    box = new UI_Box{};
+    this->box_pool.push_back(box);
+    return box;
+}
+
+void UI_Context::Free_Box(UI_Box *box)
+{
+    if (!box) return;
+    box->~UI_Box();
+    new (box) UI_Box{};
+    this->free_boxes.push_back(box);
 }
 
 UI_Box *UI_Context::Get_Box(UI_ID id)
 {
-    UI_Box *box = NULL;
-    try {
-        box = this->boxes.at(id);
-    }
-    catch (std::out_of_range &e) {
-        box = NULL;
-    }
-    return box;
+    if (auto it = this->boxes.find(id); it != this->boxes.end())
+        return it->second;
+
+    return NULL;
 }
 
 void UI_Context::Pass_Event(SDL_Event event)
@@ -154,11 +181,7 @@ void UI_Context::Pass_Event(SDL_Event event)
             if (!this->focused)
                 break;
 
-            UI_Box *box = NULL;
-            try {
-                box = this->boxes.at(this->focused);
-            }
-            catch (std::out_of_range &e) {}
+            UI_Box *box = this->Get_Box(this->focused);
 
             if (!box || !(box->flags & UI_BOX_FLAG_TEXTINPUT))
                 break;
@@ -178,11 +201,7 @@ void UI_Context::Pass_Event(SDL_Event event)
             if (!this->focused)
                 break;
 
-            UI_Box *box = NULL;
-            try {
-                box = this->boxes.at(this->focused);
-            }
-            catch (std::out_of_range &e) {}
+            UI_Box *box = this->Get_Box(this->focused);
 
             if (!box || !(box->flags & UI_BOX_FLAG_TEXTINPUT))
                 break;
@@ -220,53 +239,65 @@ UI_Signal UI_Context::Box_Make(
     const std::source_location source_loc
 )
 {
-
     size_t id = 0;
+    size_t source_key = 0;
+    size_t iteration = 0;
     UI_Box *box = NULL;
     bool box_exists = false;
 
     if (id_override.has_value())
     {
         id = std::hash<std::string>{}(id_override.value());
-        try {
-            box = this->boxes.at(id);
+        source_key = id;
+        iteration = 0;
+        if (auto it = this->boxes.find(id); it != this->boxes.end())
+        {
+            box = it->second;
             box_exists = true;
-        }
-        catch (std::out_of_range &e) {
-            box_exists = false;
         }
     }
     else
     {
+        source_key = std::hash<std::string>{}(
+            std::string(source_loc.file_name()) + "::"
+            + std::to_string(source_loc.line()) + ":"
+            + std::to_string(source_loc.column())
+        );
 
-        for (int i = 0;;i += 1)
+        iteration = this->source_iteration_counter[source_key]++;
+        id = std::hash<std::string>{}(
+            std::to_string(source_key) + "#" + std::to_string(iteration)
+        );
+
+        if (auto it = this->boxes.find(id); it != this->boxes.end())
         {
-            id = std::hash<std::string>{}(
-                (std::string)source_loc.file_name() + "::" + std::to_string(source_loc.line()) + std::to_string(i)
-            );
-            try {
-                box = this->boxes.at(id);
-                box_exists = true;
-                if (box->frame_last_touched != this->frame) break;
-            }
-            catch (std::out_of_range &e) {
-                box_exists = false;
-                break;
-            }
+            box = it->second;
+            box_exists = true;
         }
     }
 
     if (!box_exists)
     {
-        //TODO: use allocator
-        box = new UI_Box;
-        *box = UI_Box{};
+        box = this->Alloc_Box();
         this->boxes[id] = box;
         box->id = id;
         box->frame_created = this->frame;
-        //TODO: iteration stuff
     }
+
     box->frame_last_touched = this->frame;
+
+    box->next_iteration = NULL;
+    box->prev_iteration = NULL;
+    box->iteration = iteration;
+    box->source_key = source_key;
+
+    if (auto it = this->last_iteration_box.find(source_key); it != this->last_iteration_box.end() && it->second != box)
+    {
+        box->prev_iteration = it->second;
+        it->second->next_iteration = box;
+    }
+    
+    this->last_iteration_box[source_key] = box;
 
     // set flags
     box->flags = flags;
@@ -333,6 +364,9 @@ void UI_Context::Begin()
 
     //Events?
 
+    this->source_iteration_counter.clear();
+    this->last_iteration_box.clear();
+
     std::vector<UI_ID> deletion_list;
 
     // Prune old boxes and clear tree
@@ -341,25 +375,25 @@ void UI_Context::Begin()
         if (box == &this->root) continue;
         if (this->frame - box->frame_last_touched > 1)
         {
-            delete box;
+            this->Free_Box(box);
             deletion_list.push_back(id);
             continue;
-            //cant erase id while iterating the same map
         }
 
-        box->first_child = box->last_child
-        = box->prev_sibling = box->next_sibling = NULL;
+        box->first_child = box->last_child= box->prev_sibling = box->next_sibling = NULL;
         box->child_count = 0;
     }
     for (UI_ID id : deletion_list)
+    {
         this->boxes.erase(id);
+    }
     this->root = {};
     this->root.fixed_size = V2{this->window_width, this->window_height};
     this->root.size.x.value = this->window_width;
     this->root.size.y.value = this->window_height;
     this->root.area = Rect{
-        0,0,
-        this->window_width, this->window_height
+    0,0,
+    this->window_width, this->window_height
     };
     this->root.layout_box = this->root.area;
 
@@ -371,12 +405,7 @@ void UI_Context::End()
 {
     if (this->mouse_up_buttons && this->focused)
     {
-        UI_Box *focused = NULL;
-        try {
-            focused = this->boxes.at(this->focused);
-        }
-        catch (std::out_of_range &e) {
-        }
+        UI_Box *focused = this->Get_Box(this->focused);
         if (focused && !(focused->signal_last.flags & UI_SIG_MOUSE_OVER))
         {
             SDL_StopTextInput(this->window);
@@ -485,6 +514,31 @@ static const int SDL_Button_Flag_To_Sig_Flag( SDL_MouseButtonFlags buttons, UI_S
     return result;
 }
 
+static bool UI_Is_Multi_Click(
+    const UI_Mouse_State &newer,
+    const UI_Mouse_State &older,
+    Uint64 max_gap_ms,
+    float max_dist_px
+)
+{
+    if (!newer.timestamp || !older.timestamp) return false;
+    if (newer.timestamp < older.timestamp) return false;
+    if (newer.timestamp - older.timestamp > max_gap_ms) return false;
+
+    if (newer.box != older.box) return false;
+    if (newer.buttons != older.buttons) return false;
+
+    V2 d = V2 {
+        newer.pos.x - older.pos.x,
+        newer.pos.y - older.pos.y
+    };
+
+    if (SDL_fabsf(d.x) > max_dist_px) return false;
+    if (SDL_fabsf(d.y) > max_dist_px) return false;
+
+    return true;
+}
+
 UI_Signal UI_Box::Signal(UI_Context *ctx)
 {
     if (this == &ctx->root) return {};
@@ -535,7 +589,8 @@ UI_Signal UI_Box::Signal(UI_Context *ctx)
             ctx->hot = this->id;
             ctx->active = this->id;
 
-            //TODO: check timestamps for double and tripple click
+            const Uint64 multi_click_window_ms = 250;
+            const float multi_click_slop_px = 6.0f;
 
             sig.flags |= SDL_Button_Flag_To_Sig_Flag(ctx->mouse_down_buttons, UI_SIG_LEFT_PRESSED);
 
@@ -544,8 +599,20 @@ UI_Signal UI_Box::Signal(UI_Context *ctx)
                 .frame = ctx->frame,
                 .pos = ctx->mouse_pos,
                 .buttons = ctx->mouse_down_buttons,
-                .timestamp = 0,
+                .timestamp = SDL_GetTicks(),
             };
+
+            const UI_Mouse_State prev = ctx->mouse_history[-1];
+            const UI_Mouse_State prev2 = ctx->mouse_history[-2];
+
+            bool is_double_click = UI_Is_Multi_Click(mouse_state, prev, multi_click_window_ms, multi_click_slop_px);
+            bool is_triple_click = is_double_click && UI_Is_Multi_Click(prev, prev2, multi_click_window_ms, multi_click_slop_px);
+
+            if (is_double_click)
+                sig.flags |= SDL_Button_Flag_To_Sig_Flag(ctx->mouse_down_buttons, UI_SIG_LEFT_DOUBLE_CLICKED);
+            if (is_triple_click)
+                sig.flags |= SDL_Button_Flag_To_Sig_Flag(ctx->mouse_down_buttons, UI_SIG_LEFT_TRIPLE_CLICKED);
+
             ctx->mouse_history.Push_Front(mouse_state);
         }
 
@@ -579,15 +646,8 @@ UI_Signal UI_Box::Signal(UI_Context *ctx)
     {
         sig.flags |= UI_SIG_MOUSE_OVER;
 
-        bool has_hot = false;
-        UI_Box *hot = NULL;
-        try {
-            hot = ctx->boxes.at(ctx->hot);
-            has_hot = true;
-        }
-        catch (std::out_of_range &e) {
-            has_hot = false;
-        }
+        UI_Box *hot = ctx->Get_Box(ctx->hot);
+        bool has_hot = (hot != NULL);
 
         if (this->flags & UI_BOX_FLAG_CLICKABLE
         && (!has_hot || hot->frame_last_touched != ctx->frame || ctx->hot == this->id)
@@ -641,19 +701,21 @@ UI_Context::Render_It_Range::Iterator UI_Context::Render_It_Range::end()
 
 static Rect Get_Clip_Rect( UI_Box *box)
 {
-    //TODO: store clip rect of cliping last parent
-    return (box->parent) ? box->area.Intersection(box->parent->area) : box->area;
-    //return (box->parent && box->parent->flags & UI_BOX_FLAG_CLIP) ? box->area.Intersection(box->parent->area) : box->area;
+    if (box->has_clip_ancestor)
+        return box->area.Intersection(box->clip_ancestor_rect);
+
+    return box->area;
 }
 UI_Box *UI_Context::Render_It_Range::Iterator::operator*()
 {
-    if (this->pop_stack.size() > 0 && this->pop_stack.top() <= this->level)
+    // deep tree unwinds
+    while (this->pop_stack.size() > 0 && this->pop_stack.top() <= this->level)
     {
         ctx->clip_stack.pop();
         if (ctx->clip_stack.size())
-            SDL_SetRenderClipRect( this->renderer, &ctx->clip_stack.top() );
+            SDL_SetRenderClipRect(this->renderer, &ctx->clip_stack.top());
         else
-            SDL_SetRenderClipRect( this->renderer, NULL );
+            SDL_SetRenderClipRect(this->renderer, NULL);
         this->pop_stack.pop();
     }
 
@@ -744,34 +806,74 @@ void UI_Context::Layout_Calc_Standalone(void)
             break;
     }
 }
-void UI_Context::Layout_Calc_Upwards_Dependant(void)
+void UI_Context::Layout_Calc_Upwards_Dependent(void)
 {
-    for (UI_Box *box : this->Layout_It()) for (int i = 0; i<2; i++) switch(box->size[i].type)
+    // % of parent
+    for (UI_Box *box : this->Layout_It()) for (int i = 0; i < 2; i++)
     {
-        case UI_SIZE_PERCENT_OF_PARENT:
+        if (box->size[i].type != UI_SIZE_PERCENT_OF_PARENT)
+            continue;
+
+        for (UI_Box *p = box->parent; p; p = p->parent)
         {
-            for (UI_Box *p = box->parent; p; p = p->parent)
+            if (p->fixed_size[i] > 0.0f)
             {
-                if (p->fixed_size[i]) //NOTE: maybe use std::optional
-                {
-                    box->fixed_size[i] = p->fixed_size[i] * box->size[i].value;
-                    break;
-                }
-            }
-            break;
-        }
-        case UI_SIZE_FIT:
-        {
-            for (UI_Box *p = box->parent; p; p = p->parent) if (p->fixed_size[i])
-            {
-                if (p->child_layout_axis == i)
-                    box->fixed_size[i] = p->fixed_size[i] / (float)p->child_count;
-                else
-                    box->fixed_size[i] = p->fixed_size[i];
+                box->fixed_size[i] = p->fixed_size[i] * box->size[i].value;
                 break;
             }
         }
-        default: break;
+    }
+
+    // fit fb
+    for (UI_Box *box : this->Layout_It()) for (int i = 0; i < 2; i++)
+    {
+        if (box->size[i].type != UI_SIZE_FIT)
+            continue;
+
+        for (UI_Box *p = box->parent; p; p = p->parent)
+        {
+            if (p->fixed_size[i] <= 0.0f)
+                continue;
+
+            if (p->child_layout_axis != i)
+                box->fixed_size[i] = p->fixed_size[i];
+
+            break;
+        }
+    }
+
+    // siblings get space first
+    for (UI_Box *parent : this->Layout_It()) for (int i = 0; i < 2; i++)
+    {
+        if (parent->child_layout_axis != i) continue;
+        if (parent->fixed_size[i] <= 0.0f) continue;
+
+        float used_by_non_fit = 0.0f;
+        int fit_count = 0;
+
+        for (UI_Box *child = parent->first_child; child; child = child->next_sibling)
+        {
+            if (child->flags & (UI_BOX_FLAG_FLOATING_X << i))
+                continue;
+
+            if (child->size[i].type == UI_SIZE_FIT)
+                fit_count += 1;
+            else
+                used_by_non_fit += child->fixed_size[i];
+        }
+
+        if (fit_count <= 0) continue;
+
+        const float remaining = SDL_max(0.0f, parent->fixed_size[i] - used_by_non_fit);
+        const float each_fit = remaining / (float)fit_count;
+
+        for (UI_Box *child = parent->first_child; child; child = child->next_sibling)
+        {
+            if (child->flags & (UI_BOX_FLAG_FLOATING_X << i))
+                continue;
+            if (child->size[i].type == UI_SIZE_FIT)
+                child->fixed_size[i] = each_fit;
+        }
     }
 }
 
@@ -799,7 +901,7 @@ void UI_Context::Layout_Calc_Downwards_Dependant(void)
                     UI_Box *last_downward_dependant_child = NULL;
                     for (UI_Box *child = box->last_child; child; child = child->prev_sibling)
                     {
-                        if (child->size[i].type & UI_SIZE_DOWNWARD_DEPENDANT)
+                        if (child->size[i].type & UI_SIZE_DOWNWARD_DEPENDENT)
                             last_downward_dependant_child = child;
                         if (child == last_box) break;
                     }
@@ -864,34 +966,30 @@ void UI_Context::Layout_Solve_Violation(void)
             }
 
             float violation = total_size - box->fixed_size[i];
+
             if (violation > 0 && total_weighted_size > 0)
             {
-                float child_fixup_sum = 0;
-                float *child_fixup = (float*)SDL_malloc(sizeof(float) * box->child_count);
-                defer (SDL_free(child_fixup));
-                
-                // first pass, get child_fixups
+                static thread_local std::vector<float> child_fixup;
+                child_fixup.assign(box->child_count, 0.0f);
                 int idx = 0;
+
                 for (UI_Box *child = box->first_child; child; child = child->next_sibling, idx++)
                 {
                     if (child->flags & (UI_BOX_FLAG_FLOATING_X << i))
                         continue;
-                    //- -- - -- - -- -
-                    child_fixup[i] = SDL_max(0, child->fixed_size[i]);
-                    child_fixup_sum += child_fixup[i];
+
+                    child_fixup[idx] = SDL_max(0.0f, child->fixed_size[i]);
                 }
 
-                // second pass, actually fixup this time
                 idx = 0;
+                const float fixup_pct = violation / total_weighted_size;
                 for (UI_Box *child = box->first_child; child; child = child->next_sibling, idx++)
                 {
                     if (child->flags & (UI_BOX_FLAG_FLOATING_X << i))
                         continue;
 
-                    float fixup_pct = violation / total_weighted_size;
                     child->fixed_size[i] -= child_fixup[idx] * fixup_pct;
                 }
-
             }
         }
 
@@ -916,7 +1014,7 @@ static void Apply_Margin( Rect *r, UI_Margin margin )
     r->h -= margin.bottom;
 }
 
-void UI_Context::Layout_Comp_Relitive(void)
+void UI_Context::Layout_Comp_Relative(void)
 {
     for (UI_Box *box : this->Layout_It()) for (int i = 0; i<2; i++)
     {
@@ -975,11 +1073,7 @@ void UI_Context::Layout_Comp_Relitive(void)
             child->position_delta[i] = original_position - child->layout_box[i];
 
         }
-        //TODO: should this not be [i]?
-        /*
-        box->view_bounds.x = bounds;
-        box->view_bounds.y = bounds;
-        */
+
         box->view_bounds[i] = bounds;
 
         // apply margin / offset
@@ -989,6 +1083,27 @@ void UI_Context::Layout_Comp_Relitive(void)
 
         box->area.x += box->offset.x;
         box->area.y += box->offset.y;
+
+        // cache nearest clipping ancestor
+        if (box == &this->root || !box->parent)
+        {
+            box->has_clip_ancestor = false;
+        }
+        else if (box->parent->flags & UI_BOX_FLAG_CLIP)
+        {
+            if (box->parent->has_clip_ancestor)
+                box->clip_ancestor_rect = box->parent->area.Intersection(box->parent->clip_ancestor_rect);
+            else
+                box->clip_ancestor_rect = box->parent->area;
+
+            box->has_clip_ancestor = true;
+        }
+        else
+        {
+            box->has_clip_ancestor = box->parent->has_clip_ancestor;
+            if (box->has_clip_ancestor)
+                box->clip_ancestor_rect = box->parent->clip_ancestor_rect;
+        }
     }
 
 }
@@ -1001,7 +1116,7 @@ void UI_Context::Layout_Compute(void)
 
     // Calculate "Upwards-dependant" sizes
     //     sizes that depend only on widgets above
-    this->Layout_Calc_Upwards_Dependant();
+    this->Layout_Calc_Upwards_Dependent();
 
     // Calculate “downwards-dependent” sizes
     //     sizes that depend only on widgets below
@@ -1012,6 +1127,5 @@ void UI_Context::Layout_Compute(void)
     this->Layout_Solve_Violation();
 
     // compute the relative positions
-    this->Layout_Comp_Relitive();
+    this->Layout_Comp_Relative();
 }
-
