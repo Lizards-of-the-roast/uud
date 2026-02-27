@@ -8,38 +8,48 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # SDL fixes
-set(SDL_X11_XTEST OFF CACHE BOOL "" FORCE)
-set(SDLIMAGE_PNG_SHARED OFF CACHE BOOL "" FORCE)
-set(SDLIMAGE_DEPS_SHARED OFF CACHE BOOL "" FORCE)
 
-FetchContent_Declare(
-  SDL3
-  GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
-  GIT_TAG release-3.4.2
-  GIT_SHALLOW TRUE
-  GIT_SUBMODULES ""
-  GIT_SUBMODULES_RECURSE FALSE
-)
+find_package(SDL3 QUIET)
+if (NOT SDL3_FOUND)
+    set(SDL_X11_XTEST OFF CACHE BOOL "" FORCE)
+    FetchContent_Declare(
+      SDL3
+      GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
+      GIT_TAG release-3.4.2
+      GIT_SHALLOW TRUE
+      GIT_SUBMODULES ""
+      GIT_SUBMODULES_RECURSE FALSE
+    )
+    FetchContent_MakeAvailable(SDL3)
+endif()
 
-FetchContent_Declare(
-  SDL3_ttf
-  GIT_REPOSITORY https://github.com/libsdl-org/SDL_ttf.git
-  GIT_TAG release-3.2.2
-  GIT_SHALLOW TRUE
-  GIT_SUBMODULES ""
-  GIT_SUBMODULES_RECURSE FALSE
-)
+find_package(SDL3_ttf QUIET)
+if (NOT SDL3_ttf_FOUND)
+    FetchContent_Declare(
+      SDL3_ttf
+      GIT_REPOSITORY https://github.com/libsdl-org/SDL_ttf.git
+      GIT_TAG release-3.2.2
+      GIT_SHALLOW TRUE
+      GIT_SUBMODULES ""
+      GIT_SUBMODULES_RECURSE FALSE
+    )
+    FetchContent_MakeAvailable(SDL3_ttf)
+endif()
 
-FetchContent_Declare(
-  SDL3_image
-  GIT_REPOSITORY https://github.com/libsdl-org/SDL_image.git
-  GIT_TAG release-3.4.0
-  GIT_SHALLOW TRUE
-  GIT_SUBMODULES ""
-  GIT_SUBMODULES_RECURSE FALSE
-)
-
-FetchContent_MakeAvailable(SDL3 SDL3_ttf SDL3_image)
+find_package(SDL3_image QUIET)
+if (NOT SDL3_image_FOUND)
+    set(SDLIMAGE_PNG_SHARED OFF CACHE BOOL "" FORCE)
+    set(SDLIMAGE_DEPS_SHARED OFF CACHE BOOL "" FORCE)
+    FetchContent_Declare(
+      SDL3_image
+      GIT_REPOSITORY https://github.com/libsdl-org/SDL_image.git
+      GIT_TAG release-3.4.0
+      GIT_SHALLOW TRUE
+      GIT_SUBMODULES ""
+      GIT_SUBMODULES_RECURSE FALSE
+    )
+    FetchContent_MakeAvailable(SDL3_image)
+endif()
 
 add_executable(uud
   src/main.cpp
