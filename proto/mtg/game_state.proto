@@ -1,0 +1,245 @@
+syntax = "proto3";
+package mtg.proto;
+
+import "mtg/common.proto";
+import "cle/card.proto";
+
+message PermanentState {
+    uint64 permanent_id = 1;
+    cle.proto.CardData card = 2;
+    uint64 controller_id = 3;
+    uint64 owner_id = 4;
+    bool tapped = 5;
+    repeated Counter counters = 6;
+    int32 damage_marked = 7;
+    bool summoning_sick = 8;
+    repeated string granted_keywords = 9;
+    int32 power_modifier = 10;
+    int32 toughness_modifier = 11;
+    optional uint64 attached_to = 12;
+    repeated uint64 attachments = 13;
+    bool is_token = 14;
+}
+
+message StackEntry {
+    uint64 entry_id = 1;
+    oneof source {
+        cle.proto.CardData spell = 2;
+        string ability_description = 3;
+    }
+    uint64 controller_id = 4;
+    repeated uint64 targets = 5;
+}
+
+message PlayerState {
+    uint64 player_id = 1;
+    string username = 2;
+    int32 life_total = 3;
+    int32 poison_counters = 4;
+    ManaPoolProto mana_pool = 5;
+    int32 hand_count = 6;
+    int32 library_count = 7;
+    repeated cle.proto.CardData hand = 8;
+    repeated PermanentState battlefield = 9;
+    repeated cle.proto.CardData graveyard = 10;
+    repeated cle.proto.CardData exile = 11;
+    bool has_priority = 12;
+    int32 lands_played_this_turn = 13;
+}
+
+message GameSnapshot {
+    string game_id = 1;
+    Phase current_phase = 2;
+    uint64 active_player_id = 3;
+    uint64 priority_player_id = 4;
+    int32 turn_number = 5;
+    repeated PlayerState players = 6;
+    repeated StackEntry stack = 7;
+}
+
+// Events streamed to clients
+message GameEvent {
+    string game_id = 1;
+    uint64 sequence_number = 2;
+    oneof event {
+        CardDrawnEvent card_drawn = 10;
+        CardPlayedEvent card_played = 11;
+        PermanentDestroyedEvent permanent_destroyed = 12;
+        DamageDealtEvent damage_dealt = 13;
+        LifeChangedEvent life_changed = 14;
+        PhaseChangedEvent phase_changed = 15;
+        PriorityChangedEvent priority_changed = 16;
+        AttackDeclaredEvent attack_declared = 17;
+        BlockDeclaredEvent block_declared = 18;
+        SpellResolvedEvent spell_resolved = 19;
+        AbilityActivatedEvent ability_activated = 20;
+        TriggerFiredEvent trigger_fired = 21;
+        TokenCreatedEvent token_created = 22;
+        ZoneTransferEvent zone_transfer = 23;
+        CounterChangedEvent counter_changed = 24;
+        ManaAddedEvent mana_added = 25;
+        GameOverEvent game_over = 26;
+        ActionPrompt action_prompt = 27;
+        GameSnapshotEvent snapshot = 28;
+    }
+}
+
+// Event sub-messages
+message CardDrawnEvent {
+    uint64 player_id = 1;
+    cle.proto.CardData card = 2;
+}
+
+message CardPlayedEvent {
+    uint64 player_id = 1;
+    cle.proto.CardData card = 2;
+}
+
+message PermanentDestroyedEvent {
+    uint64 permanent_id = 1;
+    string card_name = 2;
+}
+
+message DamageDealtEvent {
+    uint64 source_id = 1;
+    uint64 target_id = 2;
+    int32 amount = 3;
+}
+
+message LifeChangedEvent {
+    uint64 player_id = 1;
+    int32 new_total = 2;
+    int32 delta = 3;
+}
+
+message PhaseChangedEvent {
+    Phase new_phase = 1;
+    uint64 active_player_id = 2;
+    int32 turn_number = 3;
+}
+
+message PriorityChangedEvent {
+    uint64 player_id = 1;
+}
+
+message AttackDeclaredEvent {
+    uint64 attacker_id = 1;
+    uint64 defending_player_id = 2;
+}
+
+message BlockDeclaredEvent {
+    uint64 blocker_id = 1;
+    uint64 attacker_id = 2;
+}
+
+message SpellResolvedEvent {
+    uint64 stack_entry_id = 1;
+    string card_name = 2;
+}
+
+message AbilityActivatedEvent {
+    uint64 permanent_id = 1;
+    string ability_text = 2;
+}
+
+message TriggerFiredEvent {
+    uint64 source_id = 1;
+    string trigger_type = 2;
+}
+
+message TokenCreatedEvent {
+    PermanentState token = 1;
+}
+
+message ZoneTransferEvent {
+    uint64 card_id = 1;
+    ZoneType from_zone = 2;
+    ZoneType to_zone = 3;
+    uint64 player_id = 4;
+}
+
+message CounterChangedEvent {
+    uint64 permanent_id = 1;
+    string counter_type = 2;
+    int32 new_count = 3;
+    int32 delta = 4;
+}
+
+message ManaAddedEvent {
+    uint64 player_id = 1;
+    string color = 2;
+    int32 amount = 3;
+}
+
+message GameOverEvent {
+    uint64 winner_id = 1;
+    string reason = 2;
+}
+
+message GameSnapshotEvent {
+    GameSnapshot snapshot = 1;
+}
+
+// Prompts sent to players requiring a decision
+message ActionPrompt {
+    uint64 player_id = 1;
+    string prompt_id = 2;
+    oneof prompt_type {
+        PriorityPrompt priority = 10;
+        TargetPrompt target = 11;
+        ModeChoicePrompt mode_choice = 12;
+        YesNoPrompt yes_no = 13;
+        AttackerPrompt attackers = 14;
+        BlockerPrompt blockers = 15;
+        DiscardPrompt discard = 16;
+        ColorChoicePrompt color_choice = 17;
+        CreatureTypePrompt creature_type = 18;
+        ManaPaymentPrompt mana_payment = 19;
+    }
+}
+
+message PriorityPrompt {
+    repeated string legal_actions = 1;
+    repeated uint64 castable_card_ids = 2;
+    repeated uint64 activatable_permanent_ids = 3;
+    bool can_play_land = 4;
+}
+
+message TargetPrompt {
+    string filter = 1;
+    repeated uint64 legal_targets = 2;
+}
+
+message ModeChoicePrompt {
+    int32 min_choices = 1;
+    int32 max_choices = 2;
+    repeated string modes = 3;
+}
+
+message YesNoPrompt {
+    string question = 1;
+}
+
+message AttackerPrompt {
+    repeated uint64 eligible_attackers = 1;
+    repeated uint64 defending_players = 2;
+}
+
+message BlockerPrompt {
+    repeated uint64 eligible_blockers = 1;
+    repeated uint64 attacking_creatures = 2;
+}
+
+message DiscardPrompt {
+    int32 count = 1;
+    repeated cle.proto.CardData hand = 2;
+}
+
+message ColorChoicePrompt {}
+
+message CreatureTypePrompt {}
+
+message ManaPaymentPrompt {
+    string cost_description = 1;
+    ManaPoolProto available = 2;
+}

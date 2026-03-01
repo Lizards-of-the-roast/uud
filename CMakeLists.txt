@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.30.0)
-project(UUD_Client LANGUAGES CXX)
+project(UUD_Client LANGUAGES CXX C)
 
 include(FetchContent)
 
@@ -7,69 +7,123 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# SDL fixes
-
-find_package(SDL3 QUIET)
-if (NOT SDL3_FOUND)
-    set(SDL_X11_XTEST OFF CACHE BOOL "" FORCE)
-    FetchContent_Declare(
-      SDL3
-      GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
-      GIT_TAG release-3.4.2
-      GIT_SHALLOW TRUE
-      GIT_SUBMODULES ""
-      GIT_SUBMODULES_RECURSE FALSE
+# symlink compile_commands.json for sdl and other libraries intellisense
+if(CMAKE_EXPORT_COMPILE_COMMANDS)
+    execute_process(
+        COMMAND ${CMAKE_COMMAND} -E create_symlink
+        ${CMAKE_BINARY_DIR}/compile_commands.json
+        ${CMAKE_SOURCE_DIR}/compile_commands.json
     )
-    FetchContent_MakeAvailable(SDL3)
 endif()
 
-find_package(SDL3_ttf QUIET)
-if (NOT SDL3_ttf_FOUND)
-    FetchContent_Declare(
-      SDL3_ttf
-      GIT_REPOSITORY https://github.com/libsdl-org/SDL_ttf.git
-      GIT_TAG release-3.2.2
-      GIT_SHALLOW TRUE
-      GIT_SUBMODULES ""
-      GIT_SUBMODULES_RECURSE FALSE
-    )
-    FetchContent_MakeAvailable(SDL3_ttf)
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+
+include(IncludeSDL3)
+include(IncludeGrpc)
+
+set(CLIENT_PROTO_DIR "${CMAKE_CURRENT_SOURCE_DIR}/proto")
+set(CLIENT_PROTO_GEN_DIR "${CMAKE_CURRENT_BINARY_DIR}/proto_gen")
+
+set(_PROTOC $<TARGET_FILE:protobuf::protoc>)
+if(TARGET gRPC::grpc_cpp_plugin)
+    set(_GRPC_CPP_PLUGIN $<TARGET_FILE:gRPC::grpc_cpp_plugin>)
+    set(_GRPC_CPP_PLUGIN_DEP gRPC::grpc_cpp_plugin)
+else()
+    set(_GRPC_CPP_PLUGIN $<TARGET_FILE:grpc_cpp_plugin>)
+    set(_GRPC_CPP_PLUGIN_DEP grpc_cpp_plugin)
 endif()
 
-find_package(SDL3_image QUIET)
-if (NOT SDL3_image_FOUND)
-    set(SDLIMAGE_PNG_SHARED OFF CACHE BOOL "" FORCE)
-    set(SDLIMAGE_DEPS_SHARED OFF CACHE BOOL "" FORCE)
-    FetchContent_Declare(
-      SDL3_image
-      GIT_REPOSITORY https://github.com/libsdl-org/SDL_image.git
-      GIT_TAG release-3.4.0
-      GIT_SHALLOW TRUE
-      GIT_SUBMODULES ""
-      GIT_SUBMODULES_RECURSE FALSE
-    )
-    FetchContent_MakeAvailable(SDL3_image)
-endif()
+# cle proto
+set(CLE_PROTO_SRC "${CLIENT_PROTO_GEN_DIR}/cle/card.pb.cc")
+set(CLE_PROTO_HDR "${CLIENT_PROTO_GEN_DIR}/cle/card.pb.h")
 
-add_executable(uud
-  src/main.cpp
-  src/menu.cpp
-  src/resources.cpp
-  src/intro.cpp
-  src/state.cpp
-  src/simp_ui.cpp
-  src/widgets.cpp
-  src/match.cpp
+add_custom_command(
+    OUTPUT "${CLE_PROTO_SRC}" "${CLE_PROTO_HDR}"
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${CLIENT_PROTO_GEN_DIR}/cle"
+    COMMAND ${_PROTOC}
+    --cpp_out="${CLIENT_PROTO_GEN_DIR}"
+    -I "${CLIENT_PROTO_DIR}"
+    "${CLIENT_PROTO_DIR}/cle/card.proto"
+    DEPENDS "${CLIENT_PROTO_DIR}/cle/card.proto" protobuf::protoc
+    COMMENT "Generating protobuf for cle/card.proto"
 )
 
+add_library(cle_proto_client STATIC "${CLE_PROTO_SRC}")
+target_include_directories(cle_proto_client PUBLIC "${CLIENT_PROTO_GEN_DIR}")
+target_link_libraries(cle_proto_client PUBLIC protobuf::libprotobuf)
+target_compile_options(cle_proto_client PRIVATE -w)
+
+# game server protos
+set(MTG_PROTO_FILES
+    "${CLIENT_PROTO_DIR}/mtg/common.proto"
+    "${CLIENT_PROTO_DIR}/mtg/game_state.proto"
+    "${CLIENT_PROTO_DIR}/mtg/game_service.proto"
+    "${CLIENT_PROTO_DIR}/mtg/auth_service.proto"
+    "${CLIENT_PROTO_DIR}/mtg/matchmaking_service.proto"
+)
+
+set(MTG_PROTO_SRCS "")
+
+foreach(proto_file ${MTG_PROTO_FILES})
+    get_filename_component(proto_name "${proto_file}" NAME_WE)
+    file(RELATIVE_PATH proto_rel "${CLIENT_PROTO_DIR}" "${proto_file}")
+    get_filename_component(proto_rel_dir "${proto_rel}" DIRECTORY)
+
+    set(pb_src "${CLIENT_PROTO_GEN_DIR}/${proto_rel_dir}/${proto_name}.pb.cc")
+    set(pb_hdr "${CLIENT_PROTO_GEN_DIR}/${proto_rel_dir}/${proto_name}.pb.h")
+    set(grpc_src "${CLIENT_PROTO_GEN_DIR}/${proto_rel_dir}/${proto_name}.grpc.pb.cc")
+    set(grpc_hdr "${CLIENT_PROTO_GEN_DIR}/${proto_rel_dir}/${proto_name}.grpc.pb.h")
+
+    add_custom_command(
+        OUTPUT "${pb_src}" "${pb_hdr}" "${grpc_src}" "${grpc_hdr}"
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${CLIENT_PROTO_GEN_DIR}/${proto_rel_dir}"
+        COMMAND ${_PROTOC}
+        --cpp_out="${CLIENT_PROTO_GEN_DIR}"
+        --grpc_out="${CLIENT_PROTO_GEN_DIR}"
+        --plugin=protoc-gen-grpc=${_GRPC_CPP_PLUGIN}
+        -I "${CLIENT_PROTO_DIR}"
+        "${proto_file}"
+        DEPENDS "${proto_file}" protobuf::protoc ${_GRPC_CPP_PLUGIN_DEP}
+        COMMENT "Generating protobuf and grpc for ${proto_rel}"
+    )
+
+    list(APPEND MTG_PROTO_SRCS "${pb_src}" "${grpc_src}")
+endforeach()
+
+add_library(mtg_proto_client STATIC ${MTG_PROTO_SRCS})
+target_include_directories(mtg_proto_client PUBLIC "${CLIENT_PROTO_GEN_DIR}")
+if(TARGET gRPC::grpc++)
+    target_link_libraries(mtg_proto_client PUBLIC protobuf::libprotobuf gRPC::grpc++ cle_proto_client)
+else()
+    target_link_libraries(mtg_proto_client PUBLIC protobuf::libprotobuf grpc++ cle_proto_client)
+endif()
+target_compile_options(mtg_proto_client PRIVATE -w)
+
+add_executable(uud
+    src/main.cpp
+    src/core/resources.cpp
+    src/core/state.cpp
+    src/scenes/intro/intro.cpp
+    src/scenes/menu/menu.cpp
+    src/scenes/match/match.cpp
+    src/ui/ui_box.cpp
+    src/ui/ui_context.cpp
+    src/ui/ui_layout.cpp
+    src/ui/widgets.cpp
+    src/ui/widget_draw.cpp
+)
+
+target_include_directories(uud PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+
 target_link_libraries(uud
-  PRIVATE
-  SDL3
-  SDL3_image
-  SDL3_ttf
+    PRIVATE
+    SDL3
+    SDL3_image
+    SDL3_ttf
+    mtg_proto_client
 )
 
 set_property(TARGET uud PROPERTY CXX_STANDARD 23)
-target_compile_options(uud PRIVATE -Wall -Wpedantic)
+target_compile_options(uud PRIVATE -Wall -Werror -Wpedantic)
 
 file(COPY res DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
