@@ -75,15 +75,15 @@ int main(void) {
     for (;;) {
         switch (state.scene) {
             case Scene::Intro:  // Maybe this should be the same as main_menu
-                if (!Intro())
+                if (!Scene_Intro())
                     return 1;
                 break;
             case Scene::Main_Menu:
-                if (!Main_Menu())
+                if (!Scene_Menu())
                     return 1;
                 break;
             case Scene::Match:
-                if (!Match())
+                if (!Scene_Match())
                     return 1;
                 return 0;
             case Scene::Exit:

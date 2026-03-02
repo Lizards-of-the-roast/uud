@@ -1,3 +1,3 @@
 #pragma once
 
-bool Match(void);
+bool Scene_Match(void);

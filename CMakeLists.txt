@@ -103,14 +103,23 @@ add_executable(uud
     src/main.cpp
     src/core/resources.cpp
     src/core/state.cpp
+    src/scenes/common/scene_helpers.cpp
     src/scenes/intro/intro.cpp
+    src/scenes/intro/fade_in.cpp
     src/scenes/menu/menu.cpp
+    src/scenes/menu/pages/main/page.cpp
+    src/scenes/menu/pages/match/page.cpp
+    src/scenes/menu/pages/settings/page.cpp
+    src/scenes/menu/pages/about/page.cpp
+    src/scenes/menu/pages/credits/page.cpp
     src/scenes/match/match.cpp
-    src/ui/ui_box.cpp
-    src/ui/ui_context.cpp
-    src/ui/ui_layout.cpp
-    src/ui/widgets.cpp
-    src/ui/widget_draw.cpp
+    src/scenes/match/systems/hand.cpp
+    src/scenes/match/systems/drag_overlay.cpp
+    src/ui/box/ui_box.cpp
+    src/ui/context/ui_context.cpp
+    src/ui/context/ui_layout.cpp
+    src/ui/widgets/widgets.cpp
+    src/ui/widgets/widget_draw.cpp
 )
 
 target_include_directories(uud PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)

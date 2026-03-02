@@ -6,7 +6,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "ui_box.hpp"
+#include "ui/box/ui_box.hpp"
 
 struct UI_Context {
     std::unordered_map<UI_ID, UI_Box *> boxes;

@@ -1,3 +1,3 @@
 #pragma once
 
-bool Main_Menu(void);
+bool Scene_Menu(void);
