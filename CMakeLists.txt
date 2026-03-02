@@ -7,6 +7,19 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+option(OFFLINE_MODE "Disables need for backend" OFF)
+
+option(USE_SCCACHE "Use sccache" ON)
+if(USE_SCCACHE)
+    find_program(SCCACHE_PROGRAM sccache)
+    if(SCCACHE_PROGRAM)
+        set(CMAKE_C_COMPILER_LAUNCHER "${SCCACHE_PROGRAM}")
+        set(CMAKE_CXX_COMPILER_LAUNCHER "${SCCACHE_PROGRAM}")
+    else()
+        message(WARNING "USE_SCCACHE is ON but sccache was not found")
+    endif()
+endif()
+
 # symlink compile_commands.json for sdl and other libraries intellisense
 if(CMAKE_EXPORT_COMPILE_COMMANDS)
     execute_process(
@@ -103,16 +116,26 @@ add_executable(uud
     src/main.cpp
     src/core/resources.cpp
     src/core/state.cpp
+    src/net/net_client.cpp
+    src/net/auth_client.cpp
+    src/net/matchmaking_client.cpp
+    src/net/game_client.cpp
+    src/net/token_store.cpp
+    src/net/card_catalog.cpp
     src/scenes/common/scene_helpers.cpp
     src/scenes/intro/intro.cpp
     src/scenes/intro/fade_in.cpp
+    src/scenes/login/login.cpp
     src/scenes/menu/menu.cpp
     src/scenes/menu/pages/main/page.cpp
     src/scenes/menu/pages/match/page.cpp
+    src/scenes/menu/pages/matchmaking/page.cpp
+    src/scenes/menu/pages/deck_builder/page.cpp
     src/scenes/menu/pages/settings/page.cpp
     src/scenes/menu/pages/about/page.cpp
     src/scenes/menu/pages/credits/page.cpp
     src/scenes/match/match.cpp
+    src/scenes/match/game_state_local.cpp
     src/scenes/match/systems/hand.cpp
     src/scenes/match/systems/drag_overlay.cpp
     src/ui/box/ui_box.cpp
@@ -134,5 +157,9 @@ target_link_libraries(uud
 
 set_property(TARGET uud PROPERTY CXX_STANDARD 23)
 target_compile_options(uud PRIVATE -Wall -Werror -Wpedantic)
+
+if(OFFLINE_MODE)
+    target_compile_definitions(uud PRIVATE OFFLINE_MODE)
+endif()
 
 file(COPY res DESTINATION ${CMAKE_CURRENT_BINARY_DIR})

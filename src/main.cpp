@@ -3,6 +3,7 @@
 #include "core/defer.hpp"
 #include "core/state.hpp"
 #include "scenes/intro/intro.hpp"
+#include "scenes/login/login.hpp"
 #include "scenes/match/match.hpp"
 #include "scenes/menu/menu.hpp"
 #include <SDL3/SDL.h>
@@ -65,17 +66,30 @@ int main(void) {
                   << '\n';
         return 1;
     }
+    if (!state.font[paths::matrix_bold]) {
+        std::cerr << "couldnt load font '" << paths::matrix_bold << "': " << SDL_GetError() << '\n';
+        return 1;
+    }
+    if (!state.font[paths::mplantin_regular]) {
+        std::cerr << "couldnt load font '" << paths::mplantin_regular << "': " << SDL_GetError()
+                  << '\n';
+        return 1;
+    }
 
     // skip intro for testing
 #ifndef NDEBUG
-    state.scene = Scene::Main_Menu;
+    state.scene = state.offline ? Scene::Main_Menu : Scene::Login;
 #endif
     ////////////////////////
     // Loop
     for (;;) {
         switch (state.scene) {
-            case Scene::Intro:  // Maybe this should be the same as main_menu
+            case Scene::Intro:
                 if (!Scene_Intro())
+                    return 1;
+                break;
+            case Scene::Login:
+                if (!Scene_Login())
                     return 1;
                 break;
             case Scene::Main_Menu:
@@ -85,7 +99,7 @@ int main(void) {
             case Scene::Match:
                 if (!Scene_Match())
                     return 1;
-                return 0;
+                break;
             case Scene::Exit:
                 return 0;
         }

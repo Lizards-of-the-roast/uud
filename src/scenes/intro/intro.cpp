@@ -30,7 +30,7 @@ bool Scene_Intro(void) {
             render_fade_in = !Render_Fade_In(state.texture[paths::team_logo], start_time,
                                                    {0xFF, 0xFF, 0xFF, 0xFF}, 1.0f, 2.5f);
         else {
-            state.scene = Scene::Main_Menu;
+            state.scene = state.offline ? Scene::Main_Menu : Scene::Login;
             return true;
         }
 

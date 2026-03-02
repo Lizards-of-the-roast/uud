@@ -5,10 +5,12 @@
 #include "menu_types.hpp"
 #include "pages/about/page.hpp"
 #include "pages/credits/page.hpp"
+#include "pages/deck_builder/page.hpp"
 #include "pages/main/page.hpp"
-#include "pages/match/page.hpp"
+#include "pages/matchmaking/page.hpp"
 #include "pages/settings/page.hpp"
 #include "scenes/common/scene_helpers.hpp"
+#include "scenes/common/ui_theme.hpp"
 #include "ui/widgets/widgets.hpp"
 #include <SDL3/SDL.h>
 #include <SDL3_image/SDL_image.h>
@@ -20,16 +22,15 @@ bool Scene_Menu(void) {
     UI_Context ui = UI_Context(state.window, text_engine);
 
     Widget_Context w = Widget_Context(state.renderer, &ui);
-    for (Widget_Style &s : w.default_style)
-        s.background.a = 0xFF * 0.9;
+    w.default_style = theme::Button_Primary();
 
     SDL_Texture *bg = state.texture[paths::bg_texture];
-    TTF_Font *menu_font = state.font[paths::beleren_bold];
-    TTF_SetFontSize(menu_font, 30);
+    TTF_Font *font_button = state.font[paths::matrix_bold];
 
     Menu_Tab tab = Menu_Tab::None;
 
     for (;;) {
+        TTF_SetFontSize(font_button, 20);
         state.Update_Delta_Time();
         for (SDL_Event event; SDL_PollEvent(&event);) {
             ui.Pass_Event(event);
@@ -37,9 +38,12 @@ bool Scene_Menu(void) {
                 return true;
         }
 
-        SDL_SetRenderDrawColor(state.renderer, 0x00, 0x18, 0x18, 0xFF);
-        SDL_RenderClear(state.renderer);
+        if (state.scene != Scene::Main_Menu)
+            return true;
 
+        SDL_SetRenderDrawColor(state.renderer, theme::SCENE_BG.r, theme::SCENE_BG.g,
+                               theme::SCENE_BG.b, theme::SCENE_BG.a);
+        SDL_RenderClear(state.renderer);
         if (bg) {
             float bg_w = 0.0f;
             float bg_h = 0.0f;
@@ -58,31 +62,37 @@ bool Scene_Menu(void) {
         ui.root.elem_align = UI_ALIGN_CENTER;
 
         ui.sizes.push({UI_Size_Parent(0.4), UI_Size_Parent(0.9)});
-        defer(ui.sizes.pop());
         DIV(&w) {
             UI_Box *div = ui.leafs.back();
             div->child_layout_axis = 1;
+            theme::Apply_Panel(div, theme::Panel());
 
             ui.sizes.push({UI_Size_Fit(), UI_Size_Fit()});
             defer(ui.sizes.pop());
 
-            ui.fonts.push(menu_font);
+            ui.fonts.push(font_button);
             defer(ui.fonts.pop());
 
-            const float val = 20.0f;
+            const float val = 16.0f;
             ui.margins.push({.left = val, .right = val, .top = val / 2.0f, .bottom = val / 2.0f});
             defer(ui.margins.pop());
 
             ui.label_alignments.push({UI_ALIGN_CENTER, UI_ALIGN_CENTER});
+            defer(ui.label_alignments.pop());
 
             if (Menu_Main_Page(w, ui, tab))
                 return true;
-
-            ui.label_alignments.pop();
         }
+        ui.sizes.pop();
+
+        ui.sizes.push({UI_Size_Parent(0.55), UI_Size_Parent(0.95)});
         switch (tab) {
-            case Menu_Tab::Match:
-                if (Menu_Match_Page(w, ui, tab))
+            case Menu_Tab::Matchmaking:
+                if (Menu_Matchmaking_Page(w, ui, tab))
+                    return true;
+                break;
+            case Menu_Tab::Deck_Builder:
+                if (Menu_Deck_Builder_Page(w, ui, tab))
                     return true;
                 break;
             case Menu_Tab::Settings:
@@ -97,6 +107,7 @@ bool Scene_Menu(void) {
             case Menu_Tab::None:
                 break;
         }
+        ui.sizes.pop();
 
         Present_Frame(ui, w);
     }

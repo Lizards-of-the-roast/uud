@@ -182,7 +182,7 @@ void Widget_Context::Draw(UI_Box *box) {
         // SDL_SetRenderDrawColorFloat( renderer, 0.25f, 0.25f, 0.25f, 1.0f);
         SDL_Color c = style.border;
         SDL_SetRenderDrawColor(renderer, c.r, c.g, c.b, c.a);
-        Draw_Rect(renderer, box->area, 5);
+        Draw_Rect(renderer, box->area, 2);
     }
 
     /*

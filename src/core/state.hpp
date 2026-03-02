@@ -1,5 +1,8 @@
 #pragma once
 
+#include <cstdint>
+#include <string>
+
 #include "resources.hpp"
 
 namespace paths {
@@ -23,6 +26,7 @@ constexpr auto crack_texture = "./res/textures/gimp_crack.png";
 
 enum class Scene {
     Intro = 0,
+    Login,
     Main_Menu,
     Match,
     Exit,
@@ -31,8 +35,6 @@ enum class Scene {
 struct State {
     SDL_Window *window;
     int window_width, window_height;
-    // For now use SDL's simple renderer to get something that works
-    // If there is time change to either SDL_GPU or some other rendering api
     SDL_Renderer *renderer;
 
     Scene scene;
@@ -42,6 +44,17 @@ struct State {
 
     Uint64 tick;
     double delta_time;
+
+#ifdef OFFLINE_MODE
+    bool offline = true;
+#else
+    bool offline = false;
+#endif
+
+    uint64_t user_id = 0;
+    std::string username;
+    std::string server_address = "localhost:50051";  // this can be made dynamic if needed
+    std::string current_game_id;
 
     void Update_Delta_Time();
 };
