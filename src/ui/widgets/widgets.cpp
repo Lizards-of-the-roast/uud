@@ -264,6 +264,17 @@ UI_Signal Widget_Context::Textbox(std::string init_label, std::optional<Rect> ar
         sig.box->userdata = Widget_Data(this, Widget_Type::Textbox, {});
     }
 
+    //NOTE: size is still slightly too small, but I'm not sure how to fix that
+    //      without a sketchy TTF_GetStringSize() call.
+    //      adding TTF_GetFontAscent(font) to the hight seeming makes it slightly too big
+    //      too
+    if (sig.box->size.y.type == UI_SIZE_TEXT_CONTENT && !sig.box->min_size.y)
+    {
+        TTF_Font *font = TTF_GetTextFont(sig.box->label);
+        if (font)
+            sig.box->min_size.y = (float)(TTF_GetFontHeight(font)) + sig.box->size.y.value*2;
+    }
+
     return sig;
 }
 
