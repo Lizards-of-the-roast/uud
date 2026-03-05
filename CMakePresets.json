@@ -21,6 +21,7 @@
       "displayName": "Debug",
       "inherits": "base",
       "cacheVariables": {
+        "CMAKE_CXX_FLAGS": "-Og",
         "CMAKE_BUILD_TYPE": "Debug"
       }
     },
