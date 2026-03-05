@@ -364,7 +364,7 @@ UI_Context::Render_It_Range::Iterator UI_Context::Render_It_Range::end() {
 
 static Rect Get_Clip_Rect(UI_Box *box) {
     if (box->has_clip_ancestor)
-        return box->area.Intersection(box->clip_ancestor_rect);
+        return box->clip_ancestor_rect;
 
     return box->area;
 }
