@@ -171,7 +171,7 @@ UI_Signal UI_Box::Signal(UI_Context *ctx) {
         return sig;
     }
 
-    bool is_mouse_over = this->area.Collision(ctx->mouse_pos);
+    bool is_mouse_over = this->area.Collision(ctx->mouse_pos) && (!this->has_clip_ancestor || this->clip_ancestor_rect.Collision(ctx->mouse_pos));
 
     if (this->flags & UI_BOX_FLAG_CLICKABLE) {
         if (ctx->mouse_up_buttons && ctx->active == this->id) {
