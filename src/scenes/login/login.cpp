@@ -120,8 +120,9 @@ bool Scene_Login(void) {
         ui.Begin();
         ui.root.elem_align = UI_ALIGN_CENTER;
 
-        ui.sizes.push({UI_Size_Parent(0.35), UI_Size_Child(0.0f)});
+        ui.sizes.push({UI_Size_Parent(0.35), UI_Size_Parent(0.9)});
         defer(ui.sizes.pop());
+
 
         DIV(&w) {
             UI_Box *root_div = ui.leafs.back();
@@ -146,8 +147,6 @@ bool Scene_Login(void) {
             ui.sizes.pop();
             w.styles.pop();
 
-            w.Spacer(UI_Size_Pixels(8));
-
             TTF_SetFontSize(font, 16);
 
             ui.sizes.push({UI_Size_Parent(0.85), UI_Size_Text(8)});
@@ -158,14 +157,14 @@ bool Scene_Login(void) {
                 w.Label("Username");
                 w.styles.pop();
                 w.styles.push(theme::Textbox());
-                UI_Signal username_sig = w.Textbox("", {}, std::string("login_username"));
+                UI_Signal username_sig = w.Textbox();
                 w.styles.pop();
 
                 w.styles.push(theme::Label_Body());
                 w.Label("Password");
                 w.styles.pop();
                 w.styles.push(theme::Textbox());
-                UI_Signal password_sig = w.Textbox("", {}, std::string("login_password"));
+                UI_Signal password_sig = w.Textbox();
                 w.styles.pop();
 
                 w.styles.push(theme::Label_Body());
@@ -173,18 +172,13 @@ bool Scene_Login(void) {
                 w.styles.pop();
                 w.styles.push(theme::Textbox());
                 UI_Signal server_sig =
-                    w.Textbox(state.server_address, {}, std::string("login_server"));
+                    w.Textbox(state.server_address);
                 w.styles.pop();
 
                 if (!error_text.empty())
                     Styled_Message(w, error_text, theme::TEXT_ERROR);
                 if (!success_text.empty())
                     Styled_Message(w, success_text, theme::TEXT_SUCCESS);
-
-                w.Spacer(UI_Size_Pixels(6));
-
-                ui.sizes.push({UI_Size_Fit(), UI_Size_Text(8)});
-                defer(ui.sizes.pop());
 
                 TTF_SetFontSize(font, 18);
 
@@ -226,28 +220,28 @@ bool Scene_Login(void) {
                 w.Label("Username");
                 w.styles.pop();
                 w.styles.push(theme::Textbox());
-                UI_Signal username_sig = w.Textbox("", {}, std::string("reg_username"));
+                UI_Signal username_sig = w.Textbox();
                 w.styles.pop();
 
                 w.styles.push(theme::Label_Body());
                 w.Label("Email");
                 w.styles.pop();
                 w.styles.push(theme::Textbox());
-                UI_Signal email_sig = w.Textbox("", {}, std::string("reg_email"));
+                UI_Signal email_sig = w.Textbox();
                 w.styles.pop();
 
                 w.styles.push(theme::Label_Body());
                 w.Label("Password (8+ chars)");
                 w.styles.pop();
                 w.styles.push(theme::Textbox());
-                UI_Signal password_sig = w.Textbox("", {}, std::string("reg_password"));
+                UI_Signal password_sig = w.Textbox();
                 w.styles.pop();
 
                 w.styles.push(theme::Label_Body());
                 w.Label("Confirm Password");
                 w.styles.pop();
                 w.styles.push(theme::Textbox());
-                UI_Signal confirm_sig = w.Textbox("", {}, std::string("reg_confirm"));
+                UI_Signal confirm_sig = w.Textbox();
                 w.styles.pop();
 
                 w.styles.push(theme::Label_Body());
@@ -255,18 +249,13 @@ bool Scene_Login(void) {
                 w.styles.pop();
                 w.styles.push(theme::Textbox());
                 UI_Signal server_sig =
-                    w.Textbox(state.server_address, {}, std::string("reg_server"));
+                    w.Textbox();
                 w.styles.pop();
 
                 if (!error_text.empty())
                     Styled_Message(w, error_text, theme::TEXT_ERROR);
                 if (!success_text.empty())
                     Styled_Message(w, success_text, theme::TEXT_SUCCESS);
-
-                w.Spacer(UI_Size_Pixels(6));
-
-                ui.sizes.push({UI_Size_Fit(), UI_Size_Text(8)});
-                defer(ui.sizes.pop());
 
                 TTF_SetFontSize(font, 18);
 
@@ -311,13 +300,11 @@ bool Scene_Login(void) {
                 }
             }
 
-            w.Spacer(UI_Size_Pixels(6));
+            //w.Spacer(UI_Size_Parent(0.9, 0));
 
-            ui.sizes.push({UI_Size_Fit(), UI_Size_Text(8)});
             w.styles.push(theme::Button_Danger());
             UI_Signal quit = w.Button("Quit");
             w.styles.pop();
-            ui.sizes.pop();
             if (quit.flags & UI_SIG_LEFT_RELEASED) {
                 state.scene = Scene::Exit;
                 return true;
