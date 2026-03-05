@@ -45,9 +45,19 @@ SDL_Texture *&Texture_Resource::operator[](const std::string &key) {
 }
 
 Font_Resource::~Font_Resource() {
-    for (const auto &i : map)
+    this->Clear();
+}
+void Font_Resource::Clear(void) {
+    if (this->map.size() == 0)
+        return;
+
+    for (auto &i : this->map) if (i.second)
+    {
         TTF_CloseFont(i.second);
-    map.clear();
+        i.second = NULL;
+    }
+
+    this->map.clear();
 }
 
 bool Font_Resource::Destroy(const std::string &key) {

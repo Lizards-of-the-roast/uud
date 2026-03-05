@@ -23,8 +23,9 @@ struct Font_Resource {
     std::unordered_map<std::string, TTF_Font *> map;
     SDL_Texture *NULL_font;
 
-    // Cant use a constructor without State state = {0} style zii
     ~Font_Resource();
+
+    void Clear(void);
 
     bool Destroy(const std::string &key);
 
