@@ -70,8 +70,10 @@ bool Scene_Menu(void) {
             ui.sizes.push({UI_Size_Fit(), UI_Size_Fit()});
             defer(ui.sizes.pop());
 
+            /*
             ui.fonts.push(font_button);
             defer(ui.fonts.pop());
+            */
 
             const float val = 16.0f;
             ui.margins.push({.left = val, .right = val, .top = val / 2.0f, .bottom = val / 2.0f});
@@ -85,7 +87,7 @@ bool Scene_Menu(void) {
         }
         ui.sizes.pop();
 
-        ui.sizes.push({UI_Size_Parent(0.55), UI_Size_Parent(0.95)});
+        ui.sizes.push({UI_Size_Parent(0.55), UI_Size_Parent(0.9)});
         switch (tab) {
             case Menu_Tab::Matchmaking:
                 if (Menu_Matchmaking_Page(w, ui, tab))

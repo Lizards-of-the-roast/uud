@@ -48,10 +48,13 @@ union Widget_Union {
     Widget_Slider_Data slider;
 };
 
+
 struct Widget_Style {
     SDL_Color background;
     SDL_Color border;
-    std::optional<SDL_Color> text;
+
+    TTF_Text_Properties text;
+    //TTF_Font_Properties font;
 };
 enum class Widget_Style_State {
     Default = 0,
@@ -86,6 +89,7 @@ struct Widget_Context {
     UI_Context *ui;
 
     // stack data
+    std::stack<TTF_Font *> fonts;
     std::stack<std::array<Widget_Style, static_cast<size_t>(Widget_Style_State::Count)>> styles;
     std::array<Widget_Style, static_cast<size_t>(Widget_Style_State::Count)> default_style;
     std::stack<Widget_Flags> default_flags_override;
@@ -123,6 +127,7 @@ struct Widget_Context {
     Widget_Context(SDL_Renderer *renderer, UI_Context *context);
 
     // Rendering
+    Widget_Style Get_Style(UI_Box *box, Widget_Data *data);
     void Draw();
     void Draw(UI_Box *box);
 

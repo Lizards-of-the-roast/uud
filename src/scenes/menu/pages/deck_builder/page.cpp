@@ -56,7 +56,7 @@ static void Remove_Card_From_Deck(const std::string &name) {
 static void Styled_Message(Widget_Context &w, const std::string &text, SDL_Color color) {
     auto style = theme::Label_Body();
     for (auto &s : style)
-        s.text = color;
+        s.text.color = color;
     w.styles.push(style);
     w.Label(text);
     w.styles.pop();
@@ -87,8 +87,10 @@ bool Menu_Deck_Builder_Page(Widget_Context &w, UI_Context &ui, Menu_Tab &tab) {
         root->flags |= UI_BOX_FLAG_CLIP;
         theme::Apply_Panel(root, theme::Panel());
 
+        /*
         ui.fonts.push(font);
         defer(ui.fonts.pop());
+        */
 
         ui.label_alignments.push({UI_ALIGN_CENTER, UI_ALIGN_CENTER});
         defer(ui.label_alignments.pop());
@@ -106,9 +108,12 @@ bool Menu_Deck_Builder_Page(Widget_Context &w, UI_Context &ui, Menu_Tab &tab) {
         w.styles.pop();
 
         TTF_SetFontSize(font, 16);
+        ui.sizes.push({UI_Size_Parent(0.95), UI_Size_Child()});
         DIV(&w) {
             UI_Box *name_row = ui.leafs.back();
             name_row->child_layout_axis = 0;
+
+            //name_row->min_size.y = (float)(TTF_GetFontHeight(font)) + 6*2;
 
             ui.sizes.push({UI_Size_Parent(0.3), UI_Size_Text(6)});
             w.styles.push(theme::Label_Body());
@@ -118,7 +123,7 @@ bool Menu_Deck_Builder_Page(Widget_Context &w, UI_Context &ui, Menu_Tab &tab) {
 
             ui.sizes.push({UI_Size_Parent(0.5), UI_Size_Text(6)});
             w.styles.push(theme::Textbox());
-            UI_Signal name_sig = w.Textbox(current_deck.name, {}, std::string("deck_name"));
+            UI_Signal name_sig = w.Textbox(current_deck.name);
             w.styles.pop();
             if (name_sig.box->label && name_sig.box->label->text)
                 current_deck.name = name_sig.box->label->text;
@@ -130,15 +135,14 @@ bool Menu_Deck_Builder_Page(Widget_Context &w, UI_Context &ui, Menu_Tab &tab) {
             w.styles.pop();
             ui.sizes.pop();
         }
+        ui.sizes.pop();
 
         if (!deck_error.empty())
             Styled_Message(w, deck_error, theme::TEXT_ERROR);
         if (!deck_status.empty())
             Styled_Message(w, deck_status, theme::TEXT_SUCCESS);
 
-        float panel_height = (float)state.window_height * 0.50f;
-
-        ui.sizes.push({UI_Size_Parent(0.95), UI_Size_Pixels(panel_height, 0.5f)});
+        ui.sizes.push({UI_Size_Parent(0.95), UI_Size_Parent(0.5f)});
         DIV(&w) {
             UI_Box *columns = ui.leafs.back();
             columns->child_layout_axis = 0;
@@ -171,7 +175,7 @@ bool Menu_Deck_Builder_Page(Widget_Context &w, UI_Context &ui, Menu_Tab &tab) {
 
                 auto results = card_catalog.Search(search_text);
 
-                int max_cards = (int)(panel_height / 22.0f) - 2;
+                int max_cards = 999;//(int)(panel_height / 22.0f) - 2;
                 if (max_cards < 3)
                     max_cards = 3;
 
@@ -225,11 +229,15 @@ bool Menu_Deck_Builder_Page(Widget_Context &w, UI_Context &ui, Menu_Tab &tab) {
 
         TTF_SetFontSize(font, 16);
 
-        ui.sizes.push({UI_Size_Child(), UI_Size_Text(8)});
+        ui.sizes.push({UI_Size_Fit(), UI_Size_Child()});
         DIV(&w) {
             UI_Box *action_bar = ui.leafs.back();
-            action_bar->child_layout_axis = 0;
-            action_bar->elem_align = UI_ALIGN_CENTER;
+            action_bar->child_layout_axis = 1;
+            /*
+            TODO: add a ceck for downward dependant + align_center
+                  in the ui code somewhere
+            */
+            //action_bar->elem_align = UI_ALIGN_CENTER;
 
             ui.sizes.push({UI_Size_Fit(), UI_Size_Text(8)});
             defer(ui.sizes.pop());

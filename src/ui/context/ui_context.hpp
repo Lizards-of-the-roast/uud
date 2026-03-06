@@ -31,7 +31,7 @@ struct UI_Context {
     std::stack<G2<Alignment>> label_alignments;
     std::stack<G2<UI_Size>> sizes;
     std::stack<UI_Margin> margins;
-    std::stack<TTF_Font *> fonts;
+    //std::stack<TTF_Font *> fonts;
 
     Uint64 frame;
 
@@ -137,10 +137,10 @@ struct UI_Context {
         RETURNS:
             signal - signal as returned by box.Signal()
     */
-    UI_Signal Box_Make(V2 fixed_pos = {}, UI_Box_Flags flags = 0, std::string label = "",
+    UI_Signal Box_Make(V2 fixed_pos = {}, UI_Box_Flags flags = 0,
                        std::optional<std::string> id_override = {},
                        const std::source_location source_loc = std::source_location::current());
-    UI_Signal Box_Make(Rect area, UI_Box_Flags flags = 0, std::string label = "",
+    UI_Signal Box_Make(Rect area, UI_Box_Flags flags = 0,
                        std::optional<std::string> id_override = {},
                        const std::source_location source_loc = std::source_location::current());
     // void Box_Delete(UI_ID box);
@@ -167,3 +167,4 @@ struct UI_Context {
     void Layout_Comp_Relative(void);
     void Layout_Compute(void);
 };
+

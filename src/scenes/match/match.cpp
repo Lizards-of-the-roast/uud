@@ -96,8 +96,10 @@ bool Scene_Match(void) {
 
         ui.Begin();
 
+        /*
         ui.fonts.push(match_font);
         defer(ui.fonts.pop());
+        */
 
         ui.label_alignments.push({UI_ALIGN_CENTER, UI_ALIGN_CENTER});
         defer(ui.label_alignments.pop());
@@ -108,7 +110,7 @@ bool Scene_Match(void) {
         for (auto &s : hud_style) {
             s.background = {0x0A, 0x0A, 0x14, 0xCC};
             s.border = {0x8B, 0x6F, 0x2E, 0x44};
-            s.text = SDL_Color{0xEE, 0xDD, 0xBB, 0xFF};
+            s.text.color = SDL_Color{0xEE, 0xDD, 0xBB, 0xFF};
         }
 
         ui.sizes.push({UI_Size_Parent(1.0), UI_Size_Text(4)});
@@ -142,13 +144,13 @@ bool Scene_Match(void) {
 
         TTF_Font *font_btn = state.font[paths::matrix_bold];
         TTF_SetFontSize(font_btn, 14);
-        ui.fonts.push(font_btn);
+        //ui.fonts.push(font_btn);
         ui.sizes.push({UI_Size_Fit(), UI_Size_Text(6)});
         w.styles.push(theme::Button_Danger());
         bool leaving = w.Button("Leave Game").flags & UI_SIG_LEFT_RELEASED;
         w.styles.pop();
         ui.sizes.pop();
-        ui.fonts.pop();
+        //ui.fonts.pop();
         TTF_SetFontSize(match_font, 30);
 
         if (leaving) {

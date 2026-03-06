@@ -141,6 +141,24 @@ static void Widget_Draw_Div_Impl(Widget_Context *ctx, UI_Box *box, Widget_Data *
     (void)data;
 }
 
+Widget_Style Widget_Context::Get_Style(UI_Box *box, Widget_Data *data)
+{
+    if (!box || !data)
+        return {};
+
+    Widget_Style_State style_state;
+    if (box->signal_last.flags & UI_SIG_RELEASED)
+        style_state = Widget_Style_State::Released;
+    else if (box->signal_last.flags & UI_SIG_DOWN)
+        style_state = Widget_Style_State::Pressed;
+    else if (box->signal_last.flags & UI_SIG_HOVERING)
+        style_state = Widget_Style_State::Hovering;
+    else
+        style_state = Widget_Style_State::Default;
+
+    return data->style[static_cast<size_t>(style_state)];
+}
+
 void Widget_Context::Draw() {
     if (!renderer)
         return;
@@ -155,17 +173,7 @@ void Widget_Context::Draw(UI_Box *box) {
     if (!data)
         return;
 
-    Widget_Style_State style_state;
-    if (box->signal_last.flags & UI_SIG_RELEASED)
-        style_state = Widget_Style_State::Released;
-    else if (box->signal_last.flags & UI_SIG_DOWN)
-        style_state = Widget_Style_State::Pressed;
-    else if (box->signal_last.flags & UI_SIG_HOVERING)
-        style_state = Widget_Style_State::Hovering;
-    else
-        style_state = Widget_Style_State::Default;
-
-    Widget_Style style = data->style[static_cast<size_t>(style_state)];
+    Widget_Style style = this->Get_Style(box, data);
 
     if (data->flags & WIDGET_FLAG_DRAW_BACKGROUND) {
         SDL_Color c = style.background;
@@ -197,11 +205,17 @@ void Widget_Context::Draw(UI_Box *box) {
         data->draw_fn(this, box, data);
 
     if (data->flags & WIDGET_FLAG_DRAW_TEXT) {
-        if (style.text.has_value()) {
-            SDL_Color c = style.text.value();
-            TTF_SetTextColor(box->label, c.r, c.g, c.b, c.a);
-        }
+
+        TTF_Font_Properties font_props;
+        if (style.text.font.has_value())
+            font_props.Get(style.text.font.value());
+
+        style.text.Set(box->label);
+
         Widget_Draw_Text(box->label, box->area, box->label_alignment);
+
+        if (style.text.font.has_value())
+            font_props.Set(style.text.font.value());
     }
 
     return;

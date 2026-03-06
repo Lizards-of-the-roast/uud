@@ -23,7 +23,7 @@ bool Menu_Main_Page(Widget_Context &w, UI_Context &ui, Menu_Tab &tab) {
     {
         auto user_style = theme::Label_Body();
         for (auto &s : user_style)
-            s.text = theme::TEXT_INFO;
+            s.text.color = theme::TEXT_INFO;
         w.styles.push(user_style);
         if (state.offline)
             w.Label("Playing as Guest");

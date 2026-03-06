@@ -46,6 +46,7 @@ struct UI_Box {
 
     // std::string label;
     TTF_Text *label;
+    TTF_Font *font; //optional if copied
     size_t cursor;
     G2<Alignment> label_alignment;
 
@@ -98,6 +99,7 @@ struct UI_Box {
     */
     UI_Signal Signal(UI_Context *ctx);
 
+    void Text_Create(UI_Context *ctx, std::string str, TTF_Text_Properties props);
     void Text_Insert(UI_Context *ctx, std::string text);
     void Text_Delete(void);
     void Text_Cursor_Left(void);

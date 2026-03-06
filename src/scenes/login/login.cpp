@@ -23,7 +23,7 @@ enum class Login_Mode {
 static void Styled_Message(Widget_Context &w, const std::string &text, SDL_Color color) {
     auto style = theme::Label_Body();
     for (auto &s : style)
-        s.text = color;
+        s.text.color = color;
     w.styles.push(style);
     w.Label(text);
     w.styles.pop();
@@ -137,8 +137,10 @@ bool Scene_Login(void) {
             ui.label_alignments.push({UI_ALIGN_CENTER, UI_ALIGN_CENTER});
             defer(ui.label_alignments.pop());
 
+            /*
             ui.fonts.push(font);
             defer(ui.fonts.pop());
+            */
 
             TTF_SetFontSize(font, 28);
             w.styles.push(theme::Label_Title());

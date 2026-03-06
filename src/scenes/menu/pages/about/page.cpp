@@ -17,8 +17,10 @@ void Menu_About_Page(Widget_Context &w, UI_Context &ui) {
 
         TTF_Font *font_title = state.font[paths::beleren_bold];
         TTF_SetFontSize(font_title, 22);
+        /*
         ui.fonts.push(font_title);
         defer(ui.fonts.pop());
+        */
 
         w.styles.push(theme::Label_Title());
         UI_Signal label = w.Label("About (WIP)");

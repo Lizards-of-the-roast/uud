@@ -5,6 +5,8 @@
 UI_Box::~UI_Box() {
     if (this->label)
         TTF_DestroyText(this->label);
+    if (this->font)
+        TTF_CloseFont(this->font);
     if (this->id == 0)
         return;
     // SDL_Log("Box %lu killed", this->id);
@@ -75,6 +77,17 @@ std::tuple<UI_Box *, int> UI_Box::Neighbor_Prev() {
     return {NULL, 0};
 }
 
+void UI_Box::Text_Create(UI_Context *ctx, std::string str, TTF_Text_Properties props)
+{
+    if (!this->label)
+        this->label = TTF_CreateText(ctx->text_engine, props.font.value_or(((TTF_Font*)NULL)), str.c_str(), str.length());
+    else if (!str.empty())
+    {
+        //TTF_Text_Set_Properties(this->label, props);
+        props.Set(this->label);
+        TTF_SetTextString(this->label, str.c_str(), str.length());
+    }
+}
 void UI_Box::Text_Insert(UI_Context *ctx, std::string text) {
     TTF_Font *font = NULL;
     if (this->label && this->label->text == NULL) {

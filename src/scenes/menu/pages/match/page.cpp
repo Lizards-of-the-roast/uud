@@ -11,8 +11,10 @@ bool Menu_Match_Page(Widget_Context &w, UI_Context &ui, Menu_Tab &tab) {
         div->child_layout_axis = 1;
         div->elem_align = UI_ALIGN_CENTER;
 
+        /*
         ui.fonts.push(state.font[paths::beleren_bold]);
         defer(ui.fonts.pop());
+        */
 
         ui.label_alignments.push({UI_ALIGN_CENTER, UI_ALIGN_CENTER});
         defer(ui.label_alignments.pop());

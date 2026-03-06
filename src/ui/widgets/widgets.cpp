@@ -39,7 +39,8 @@ UI_Signal Widget_Context::Spacer(std::optional<UI_Size> size,
         this->ui->sizes.push(current_size);
     }
 
-    UI_Signal sig = ui->Box_Make(fixed_pos, flags, {}, {}, source_loc);
+    UI_Signal sig = ui->Box_Make(fixed_pos, flags, {}, source_loc);
+    //this->Set_Text(&sig.box->label, label);
 
     if (size.has_value())
         this->ui->sizes.pop();
@@ -64,7 +65,7 @@ UI_Signal Widget_Context::Div_Begin(std::optional<Rect> area,
         });
         fixed_pos = area.value().pos();
     }
-    UI_Signal sig = ui->Box_Make(fixed_pos, flags, {}, {}, source_loc);
+    UI_Signal sig = ui->Box_Make(fixed_pos, flags, {}, source_loc);
     if (area.has_value())
         ui->sizes.pop();
 
@@ -105,12 +106,16 @@ UI_Signal Widget_Context::Label(std::string label, std::optional<Rect> area,
         });
         fixed_pos = area.value().pos();
     }
-    UI_Signal sig = ui->Box_Make(fixed_pos, flags, label, id_override, source_loc);
+    UI_Signal sig = ui->Box_Make(fixed_pos, flags, id_override, source_loc);
     if (area.has_value())
         ui->sizes.pop();
 
     if (sig.box->frame_created == ui->frame)
         sig.box->userdata = Widget_Data(this, Widget_Type::Label, {});
+
+    sig.box->Text_Create(ui, label,
+                   this->Get_Style(sig.box, std::any_cast<Widget_Data>(&sig.box->userdata)).text);
+
     return sig;
 }
 
@@ -128,7 +133,7 @@ UI_Signal Widget_Context::Button(std::string label, std::optional<Rect> area,
         });
         fixed_pos = area.value().pos();
     }
-    UI_Signal sig = ui->Box_Make(fixed_pos, flags, label, id_override, source_loc);
+    UI_Signal sig = ui->Box_Make(fixed_pos, flags, id_override, source_loc);
     if (area.has_value())
         ui->sizes.pop();
 
@@ -140,6 +145,9 @@ UI_Signal Widget_Context::Button(std::string label, std::optional<Rect> area,
     } else {
         sig.box->userdata = Widget_Data(this, Widget_Type::Button, {});
     }
+
+    sig.box->Text_Create(ui, label,
+                   this->Get_Style(sig.box, std::any_cast<Widget_Data>(&sig.box->userdata)).text);
 
     return sig;
 }
@@ -158,7 +166,7 @@ UI_Signal Widget_Context::Toggle(bool *toggle, std::string label, std::optional<
         });
         fixed_pos = area.value().pos();
     }
-    UI_Signal sig = ui->Box_Make(fixed_pos, flags, label, id_override, source_loc);
+    UI_Signal sig = ui->Box_Make(fixed_pos, flags, id_override, source_loc);
     if (area.has_value())
         ui->sizes.pop();
 
@@ -176,6 +184,8 @@ UI_Signal Widget_Context::Toggle(bool *toggle, std::string label, std::optional<
             Widget_Data(this, Widget_Type::Toggle, (Widget_Union)Widget_Toggle_Data{*toggle});
     }
 
+    sig.box->Text_Create(ui, label,
+                   this->Get_Style(sig.box, std::any_cast<Widget_Data>(&sig.box->userdata)).text);
     return sig;
 }
 UI_Signal Widget_Context::Slider(float *value, float min, float max, Widget_Slider_Dir dir,
@@ -193,7 +203,7 @@ UI_Signal Widget_Context::Slider(float *value, float min, float max, Widget_Slid
         });
         fixed_pos = area.value().pos();
     }
-    UI_Signal sig = ui->Box_Make(fixed_pos, flags, label, id_override, source_loc);
+    UI_Signal sig = ui->Box_Make(fixed_pos, flags, id_override, source_loc);
     if (area.has_value())
         ui->sizes.pop();
 
@@ -234,6 +244,9 @@ UI_Signal Widget_Context::Slider(float *value, float min, float max, Widget_Slid
             Widget_Data(this, Widget_Type::Slider, Widget_Union{.slider = {*value, dir, min, max}});
     }
 
+    sig.box->Text_Create(ui, label,
+                   this->Get_Style(sig.box, std::any_cast<Widget_Data>(&sig.box->userdata)).text);
+
     return sig;
 }
 
@@ -251,7 +264,7 @@ UI_Signal Widget_Context::Textbox(std::string init_label, std::optional<Rect> ar
         });
         fixed_pos = area.value().pos();
     }
-    UI_Signal sig = ui->Box_Make(fixed_pos, flags, init_label, id_override, source_loc);
+    UI_Signal sig = ui->Box_Make(fixed_pos, flags, id_override, source_loc);
     if (area.has_value())
         ui->sizes.pop();
 
@@ -264,6 +277,9 @@ UI_Signal Widget_Context::Textbox(std::string init_label, std::optional<Rect> ar
         sig.box->userdata = Widget_Data(this, Widget_Type::Textbox, {});
     }
 
+    sig.box->Text_Create(ui, init_label,
+                   this->Get_Style(sig.box, std::any_cast<Widget_Data>(&sig.box->userdata)).text);
+
     //NOTE: size is still slightly too small, but I'm not sure how to fix that
     //      without a sketchy TTF_GetStringSize() call.
     //      adding TTF_GetFontAscent(font) to the hight seeming makes it slightly too big
@@ -274,6 +290,7 @@ UI_Signal Widget_Context::Textbox(std::string init_label, std::optional<Rect> ar
         if (font)
             sig.box->min_size.y = (float)(TTF_GetFontHeight(font)) + sig.box->size.y.value*2;
     }
+
 
     return sig;
 }

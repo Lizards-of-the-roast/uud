@@ -20,7 +20,7 @@ UI_Context::UI_Context(SDL_Window *window, TTF_TextEngine *text_engine) {
     label_alignments = {};
     sizes = {};
     margins = {};
-    fonts = {};
+    //fonts = {};
     frame = {};
     mouse_history = {};
     mouse_pos = V2{};
@@ -170,7 +170,7 @@ void UI_Context::Pass_Event(SDL_Event event) {
     }
 }
 
-UI_Signal UI_Context::Box_Make(V2 fixed_pos, UI_Box_Flags flags, std::string label,
+UI_Signal UI_Context::Box_Make(V2 fixed_pos, UI_Box_Flags flags,
                                std::optional<std::string> id_override,
                                const std::source_location source_loc) {
     size_t id = 0;
@@ -227,6 +227,8 @@ UI_Signal UI_Context::Box_Make(V2 fixed_pos, UI_Box_Flags flags, std::string lab
     box->flags = flags;
 
     // set label
+    //box->label = label;
+    /*
     if (!label.empty() || (flags & UI_BOX_FLAG_TEXTINPUT && !box->label)) {
         if (!box->label)
             box->label = TTF_CreateText(this->text_engine, NULL, label.c_str(), label.length());
@@ -235,6 +237,7 @@ UI_Signal UI_Context::Box_Make(V2 fixed_pos, UI_Box_Flags flags, std::string lab
         TTF_Font *font = (this->fonts.size()) ? this->fonts.top() : NULL;
         TTF_SetTextFont(box->label, font);
     }
+    */
 
     // get from style stack or dont (hard code)
 
@@ -246,7 +249,7 @@ UI_Signal UI_Context::Box_Make(V2 fixed_pos, UI_Box_Flags flags, std::string lab
     // semantic size or dont (just fixed size)
     // box->area = area;
     box->size = (this->sizes.size()) ? this->sizes.top() : G2<UI_Size>{};
-    box->fixed_size = V2{};
+    box->fixed_size = V2{-1,-1};
     box->fixed_position = fixed_pos;
     box->margin = (this->margins.size()) ? this->margins.top() : UI_Margin{};
 
