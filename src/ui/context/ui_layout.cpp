@@ -89,16 +89,10 @@ void UI_Context::Layout_Calc_Upwards_Dependent(void) {
 }
 
 void UI_Context::Layout_Calc_Downwards_Dependant(void) {
-    for (int i = 0, skip_n = 0; i < 2; i++)
+    for (int i = 0; i < 2; i++)
         for (UI_Box *leaf : this->leafs) {
-            if (skip_n > 0) {
-                skip_n--;
-                continue;
-            }
             UI_Box *last_box = NULL;
             for (UI_Box *box = leaf; box; box = box->parent) {
-                //XXX: this is not getting called in some cases where it
-                //     should be.
                 defer(last_box = box);
                 switch (box->size[i].type) {
                     case UI_SIZE_CHILD_SUM: {
@@ -133,8 +127,6 @@ void UI_Context::Layout_Calc_Downwards_Dependant(void) {
                         break;
                     }
                     default:
-                        if (box->parent)
-                            skip_n = box->child_count - 1;
                         break;
                 }
             }
