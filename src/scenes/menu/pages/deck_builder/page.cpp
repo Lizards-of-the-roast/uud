@@ -87,11 +87,6 @@ bool Menu_Deck_Builder_Page(Widget_Context &w, UI_Context &ui, Menu_Tab &tab) {
         root->flags |= UI_BOX_FLAG_CLIP;
         theme::Apply_Panel(root, theme::Panel());
 
-        /*
-        ui.fonts.push(font);
-        defer(ui.fonts.pop());
-        */
-
         ui.label_alignments.push({UI_ALIGN_CENTER, UI_ALIGN_CENTER});
         defer(ui.label_alignments.pop());
 
@@ -102,38 +97,32 @@ bool Menu_Deck_Builder_Page(Widget_Context &w, UI_Context &ui, Menu_Tab &tab) {
         ui.sizes.push({UI_Size_Parent(0.95), UI_Size_Text(6)});
         defer(ui.sizes.pop());
 
-        TTF_SetFontSize(font, 22);
         w.styles.push(theme::Label_Title());
-        w.Label("Deck Builder");
+        w.Label("Deck Builder").box->Text_Copy_Font(font, {.size=30});
         w.styles.pop();
 
-        TTF_SetFontSize(font, 16);
         ui.sizes.push({UI_Size_Parent(0.95), UI_Size_Child()});
         DIV(&w) {
             UI_Box *name_row = ui.leafs.back();
             name_row->child_layout_axis = 0;
 
             //name_row->min_size.y = (float)(TTF_GetFontHeight(font)) + 6*2;
+            ui.sizes.push({UI_Size_Fit(), UI_Size_Text(6)});
+            defer (ui.sizes.pop());
 
-            ui.sizes.push({UI_Size_Parent(0.3), UI_Size_Text(6)});
             w.styles.push(theme::Label_Body());
             w.Label("Deck:");
             w.styles.pop();
-            ui.sizes.pop();
 
-            ui.sizes.push({UI_Size_Parent(0.5), UI_Size_Text(6)});
             w.styles.push(theme::Textbox());
             UI_Signal name_sig = w.Textbox(current_deck.name);
             w.styles.pop();
             if (name_sig.box->label && name_sig.box->label->text)
                 current_deck.name = name_sig.box->label->text;
-            ui.sizes.pop();
 
-            ui.sizes.push({UI_Size_Parent(0.2), UI_Size_Text(6)});
             w.styles.push(theme::Label_Body());
             w.Label(std::to_string(current_deck.Total_Cards()) + "/60");
             w.styles.pop();
-            ui.sizes.pop();
         }
         ui.sizes.pop();
 
@@ -147,8 +136,6 @@ bool Menu_Deck_Builder_Page(Widget_Context &w, UI_Context &ui, Menu_Tab &tab) {
             UI_Box *columns = ui.leafs.back();
             columns->child_layout_axis = 0;
 
-            TTF_SetFontSize(font, 14);
-
             ui.sizes.push({UI_Size_Parent(0.55), UI_Size_Parent(1.0)});
             DIV(&w) {
                 UI_Box *catalog_panel = ui.leafs.back();
@@ -159,12 +146,10 @@ bool Menu_Deck_Builder_Page(Widget_Context &w, UI_Context &ui, Menu_Tab &tab) {
                 ui.sizes.push({UI_Size_Parent(0.95), UI_Size_Text(4)});
                 defer(ui.sizes.pop());
 
-                TTF_SetFontSize(font, 16);
                 w.styles.push(theme::Label_Title());
                 w.Label("Card Catalog");
                 w.styles.pop();
 
-                TTF_SetFontSize(font, 14);
                 w.styles.push(theme::Textbox());
                 UI_Signal search_sig = w.Textbox("", {}, std::string("card_search"));
                 w.styles.pop();
@@ -207,12 +192,10 @@ bool Menu_Deck_Builder_Page(Widget_Context &w, UI_Context &ui, Menu_Tab &tab) {
                 ui.sizes.push({UI_Size_Parent(0.95), UI_Size_Text(4)});
                 defer(ui.sizes.pop());
 
-                TTF_SetFontSize(font, 16);
                 w.styles.push(theme::Label_Title());
                 w.Label("Current Deck");
                 w.styles.pop();
 
-                TTF_SetFontSize(font, 14);
                 w.styles.push(theme::Button_Secondary());
                 for (const auto &entry : current_deck.cards) {
                     std::string display = std::to_string(entry.count) + "x " + entry.card_name;
@@ -227,7 +210,6 @@ bool Menu_Deck_Builder_Page(Widget_Context &w, UI_Context &ui, Menu_Tab &tab) {
         }
         ui.sizes.pop();
 
-        TTF_SetFontSize(font, 16);
 
         ui.sizes.push({UI_Size_Fit(), UI_Size_Child()});
         DIV(&w) {

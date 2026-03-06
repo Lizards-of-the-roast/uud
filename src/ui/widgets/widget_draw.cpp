@@ -206,16 +206,12 @@ void Widget_Context::Draw(UI_Box *box) {
 
     if (data->flags & WIDGET_FLAG_DRAW_TEXT) {
 
-        TTF_Font_Properties font_props;
-        if (style.text.font.has_value())
-            font_props.Get(style.text.font.value());
-
+        if (box->font)
+            style.text.font = {};
         style.text.Set(box->label);
 
         Widget_Draw_Text(box->label, box->area, box->label_alignment);
 
-        if (style.text.font.has_value())
-            font_props.Set(style.text.font.value());
     }
 
     return;

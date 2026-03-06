@@ -100,6 +100,7 @@ struct UI_Box {
     UI_Signal Signal(UI_Context *ctx);
 
     void Text_Create(UI_Context *ctx, std::string str, TTF_Text_Properties props);
+    void Text_Copy_Font(TTF_Font *font, TTF_Font_Properties props = {});
     void Text_Insert(UI_Context *ctx, std::string text);
     void Text_Delete(void);
     void Text_Cursor_Left(void);

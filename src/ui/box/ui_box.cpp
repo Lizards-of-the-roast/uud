@@ -79,6 +79,9 @@ std::tuple<UI_Box *, int> UI_Box::Neighbor_Prev() {
 
 void UI_Box::Text_Create(UI_Context *ctx, std::string str, TTF_Text_Properties props)
 {
+    if (this->font)
+        props.font = this->font;
+
     if (!this->label)
         this->label = TTF_CreateText(ctx->text_engine, props.font.value_or(((TTF_Font*)NULL)), str.c_str(), str.length());
     else if (!str.empty())
@@ -87,6 +90,17 @@ void UI_Box::Text_Create(UI_Context *ctx, std::string str, TTF_Text_Properties p
         props.Set(this->label);
         TTF_SetTextString(this->label, str.c_str(), str.length());
     }
+}
+void UI_Box::Text_Copy_Font(TTF_Font *font, TTF_Font_Properties props)
+{
+    if (this->font)
+        TTF_CloseFont(this->font);
+
+    this->font = TTF_CopyFont(font);
+    props.Set(this->font);
+
+    if (this->label)
+        TTF_SetTextFont(this->label, this->font);
 }
 void UI_Box::Text_Insert(UI_Context *ctx, std::string text) {
     TTF_Font *font = NULL;
