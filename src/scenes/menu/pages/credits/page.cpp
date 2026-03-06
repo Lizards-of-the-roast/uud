@@ -35,7 +35,7 @@ void Menu_Credits_Page(Widget_Context &w, UI_Context &ui) {
         ui.sizes.push({UI_Size_Text(50), UI_Size_Text(50)});
         defer(ui.sizes.pop());
 
-        w.styles.push(theme::Label_Body());
+        w.styles.push(theme::Label_Body(font_body));
         UI_Signal label = w.Label(
             "Lizards Of the Roast\n"
             "Engine:\n"

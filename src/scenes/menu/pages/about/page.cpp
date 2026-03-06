@@ -22,7 +22,7 @@ void Menu_About_Page(Widget_Context &w, UI_Context &ui) {
         defer(ui.fonts.pop());
         */
 
-        w.styles.push(theme::Label_Title());
+        w.styles.push(theme::Label_Title(font_title));
         UI_Signal label = w.Label("About (WIP)");
         label.box->label_alignment = UI_ALIGN_CENTER;
         w.styles.pop();
