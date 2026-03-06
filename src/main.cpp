@@ -82,7 +82,7 @@ int main(void) {
 
     // skip intro for testing
 #ifndef NDEBUG
-    state.scene = state.offline ? Scene::Main_Menu : Scene::Login;
+    state.scene = state.offline ? Scene::Main_Menu : Scene::Intro;
 #endif
     ////////////////////////
     // Loop
