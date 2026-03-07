@@ -48,6 +48,8 @@ struct UI_Box {
     TTF_Text *label;
     TTF_Font *font; //optional if copied
     size_t cursor;
+    bool allow_multiline;
+    std::string filter;
     G2<Alignment> label_alignment;
 
     Uint64 frame_created;

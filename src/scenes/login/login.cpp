@@ -15,6 +15,11 @@
 #include <SDL3_image/SDL_image.h>
 #include <SDL3_ttf/SDL_ttf.h>
 
+#define FILTER_STRING "abcdefghijklmnopqrstuvwxyz" \
+                      "ABCDEFGHIJKLMNOPQRSTUVWXYZ" \
+                      "0123456789" \
+                      "_-"
+
 enum class Login_Mode {
     Login,
     Register,
@@ -160,6 +165,7 @@ bool Scene_Login(void) {
                 w.styles.pop();
                 w.styles.push(theme::Textbox());
                 UI_Signal username_sig = w.Textbox();
+                username_sig.box->filter = FILTER_STRING;
                 w.styles.pop();
 
                 w.styles.push(theme::Label_Body());
@@ -167,6 +173,7 @@ bool Scene_Login(void) {
                 w.styles.pop();
                 w.styles.push(theme::Textbox());
                 UI_Signal password_sig = w.Textbox();
+                password_sig.box->filter = FILTER_STRING;
                 w.styles.pop();
 
                 w.styles.push(theme::Label_Body());

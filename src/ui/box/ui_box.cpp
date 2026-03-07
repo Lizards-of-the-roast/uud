@@ -103,6 +103,15 @@ void UI_Box::Text_Copy_Font(TTF_Font *font, TTF_Font_Properties props)
         TTF_SetTextFont(this->label, this->font);
 }
 void UI_Box::Text_Insert(UI_Context *ctx, std::string text) {
+    if (!this->filter.empty())
+    {
+        for (size_t i = 0; i < text.length(); i++)
+            if (this->filter.find(text[i]) == this->filter.npos)
+                text.erase(i, 1);
+    }
+    if (text.empty())
+        return;
+
     TTF_Font *font = NULL;
     if (this->label && this->label->text == NULL) {
         font = TTF_GetTextFont(this->label);

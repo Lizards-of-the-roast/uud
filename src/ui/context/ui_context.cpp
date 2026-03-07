@@ -151,7 +151,8 @@ void UI_Context::Pass_Event(SDL_Event event) {
                         box->Text_Delete();
                         break;
                     case SDLK_RETURN:
-                        box->Text_Insert(this, "\n");
+                        if (box->allow_multiline)
+                            box->Text_Insert(this, "\n");
                         break;
                     case SDLK_LEFT:
                         box->Text_Cursor_Left();
