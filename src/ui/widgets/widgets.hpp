@@ -8,6 +8,10 @@
     for (int _i_ = ((CTX)->Div_Begin(__VA_ARGS__), 0); !_i_; _i_++, (CTX)->Div_End())
 #define DIV(CTX) for (int _i_ = ((CTX)->Div_Begin(), 0); !_i_; _i_++, (CTX)->Div_End())
 
+#define SCROLL_O(CTX, AXIS, ...) \
+    for (int _i_ = ((CTX)->Scroll_Begin(AXIS, __VA_ARGS__), 0); !_i_; _i_++, (CTX)->Scroll_End(AXIS))
+#define SCROLL(CTX) for (int _i_ = ((CTX)->Scroll_Begin(), 0); !_i_; _i_++, (CTX)->Scroll_End())
+
 enum class Widget_Type {
     Div,
     Label,
@@ -102,6 +106,9 @@ struct Widget_Context {
     UI_Signal Div_Begin(std::optional<Rect> area = {}, UI_Box_Flags flags = 0,
                         const std::source_location source_loc = std::source_location::current());
     void Div_End();
+    UI_Signal Scroll_Begin(int axis = 1, std::optional<Rect> area = {}, UI_Box_Flags flags = 0,
+                        const std::source_location source_loc = std::source_location::current());
+    void Scroll_End(int axis = 1);
 
     UI_Signal Label(std::string label = "", std::optional<Rect> area = {},
                     std::optional<std::string> id_override = {},

@@ -164,30 +164,28 @@ bool Menu_Deck_Builder_Page(Widget_Context &w, UI_Context &ui, Menu_Tab &tab) {
                     max_cards = 3;
 
                 int count = 0;
-                ui.sizes.push({UI_Size_Parent(0.95), UI_Size_Parent(1, 1.0f)});
+                //TODO: use UI_Size_Fix for y but only after fit is made to work right
+                ui.sizes.push({UI_Size_Parent(1.0f), UI_Size_Parent(0.75)});
                 defer(ui.sizes.pop());
-                DIV_O(&w, {}, UI_BOX_FLAG_CLIP | UI_BOX_FLAG_VIEW_SCROLL_Y)
+                SCROLL_O(&w, 1, {}, UI_BOX_FLAG_CLIP)
                 {
-                    UI_Box *div = ui.leafs.back();
-                    div->child_layout_axis = 1;
+                        ui.sizes.push({UI_Size_Parent(1.0f), UI_Size_Text(6)});
+                        defer(ui.sizes.pop());
 
-                    ui.sizes.push({UI_Size_Parent(1.0f), UI_Size_Text(6)});
-                    defer(ui.sizes.pop());
+                        for (const auto *card : results) {
+                            if (count >= max_cards)
+                                break;
 
-                    for (const auto *card : results) {
-                        if (count >= max_cards)
-                            break;
+                            std::string display = card->name;
+                            if (!card->mana_cost.empty())
+                                display += " " + card->mana_cost;
 
-                        std::string display = card->name;
-                        if (!card->mana_cost.empty())
-                            display += " " + card->mana_cost;
+                            UI_Signal card_btn = w.Button(display, {}, std::string("cat_" + card->name));
+                            if (card_btn.flags & UI_SIG_LEFT_RELEASED)
+                                Add_Card_To_Deck(card->name);
 
-                        UI_Signal card_btn = w.Button(display, {}, std::string("cat_" + card->name));
-                        if (card_btn.flags & UI_SIG_LEFT_RELEASED)
-                            Add_Card_To_Deck(card->name);
-
-                        count++;
-                    }
+                            count++;
+                        }
                 }
             }
             ui.sizes.pop();
@@ -206,10 +204,11 @@ bool Menu_Deck_Builder_Page(Widget_Context &w, UI_Context &ui, Menu_Tab &tab) {
                 w.Label("Current Deck");
                 w.styles.pop();
 
-                ui.sizes.push({UI_Size_Parent(0.95), UI_Size_Parent(1, 1.0f)});
+                ui.sizes.push({UI_Size_Parent(0.95), UI_Size_Parent(0.85)});
                 defer(ui.sizes.pop());
                 w.styles.push(theme::Button_Secondary());
-                DIV_O(&w, {}, UI_BOX_FLAG_CLIP | UI_BOX_FLAG_VIEW_SCROLL_Y)
+
+                SCROLL_O(&w, 1, {}, UI_BOX_FLAG_CLIP)
                 {
                     UI_Box *div = ui.leafs.back();
                     div->child_layout_axis = 1;
