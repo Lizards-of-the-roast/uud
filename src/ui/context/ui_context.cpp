@@ -171,6 +171,14 @@ void UI_Context::Pass_Event(SDL_Event event) {
     }
 }
 
+
+std::string UI_Context::Source_Loc_Str(const std::source_location source_loc)
+{
+    return std::string(source_loc.file_name()) + ":" + std::string(source_loc.function_name())
+           + ":" + std::to_string(source_loc.line()) + ":"
+           + std::to_string(source_loc.column());
+}
+
 UI_Signal UI_Context::Box_Make(V2 fixed_pos, UI_Box_Flags flags,
                                std::optional<std::string> id_override,
                                const std::source_location source_loc) {
@@ -189,12 +197,10 @@ UI_Signal UI_Context::Box_Make(V2 fixed_pos, UI_Box_Flags flags,
             box_exists = true;
         }
     } else {
-        source_key = std::hash<std::string>{}(std::string(source_loc.file_name()) +
-                                              "::" + std::to_string(source_loc.line()) + ":" +
-                                              std::to_string(source_loc.column()));
+        source_key = std::hash<std::string>{}(Source_Loc_Str(source_loc));
 
         iteration = this->source_iteration_counter[source_key]++;
-        id = std::hash<std::string>{}(std::to_string(source_key) + "#" + std::to_string(iteration));
+        id = std::hash<std::string>{}(Source_Loc_Str(source_loc) + "#" + std::to_string(iteration));
 
         if (auto it = this->boxes.find(id); it != this->boxes.end()) {
             box = it->second;

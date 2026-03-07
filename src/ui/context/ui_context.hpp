@@ -125,6 +125,7 @@ struct UI_Context {
     */
     void Pass_Event(SDL_Event event);
 
+    std::string Source_Loc_Str(const std::source_location source_loc = std::source_location::current());
     /*
         Create a UI_Box in this UI_Context
 

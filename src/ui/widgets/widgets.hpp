@@ -103,13 +103,17 @@ struct Widget_Context {
     UI_Signal Spacer(std::optional<UI_Size> size = {},
                      const std::source_location source_loc = std::source_location::current());
 
-    UI_Signal Div_Begin(std::optional<Rect> area = {}, UI_Box_Flags flags = 0,
+    // Group Elements
+    UI_Signal Div_Begin(std::optional<Rect> area = {}, UI_Box_Flags flags = 0, std::optional<std::string> id_override = {},
                         const std::source_location source_loc = std::source_location::current());
     void Div_End();
-    UI_Signal Scroll_Begin(int axis = 1, std::optional<Rect> area = {}, UI_Box_Flags flags = 0,
-                        const std::source_location source_loc = std::source_location::current());
-    void Scroll_End(int axis = 1);
 
+    UI_Signal Scroll_Begin(int axis = 1, std::optional<Rect> area = {}, UI_Box_Flags flags = 0, std::optional<std::string> id_override = {},
+                        const std::source_location source_loc = std::source_location::current());
+    void Scroll_End(int axis = 1, std::optional<std::string> id_override = {},
+                        const std::source_location source_loc = std::source_location::current());
+
+    // Basic Elements
     UI_Signal Label(std::string label = "", std::optional<Rect> area = {},
                     std::optional<std::string> id_override = {},
                     const std::source_location source_loc = std::source_location::current());
