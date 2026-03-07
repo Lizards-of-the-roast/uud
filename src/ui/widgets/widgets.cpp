@@ -131,12 +131,68 @@ void Widget_Context::Scroll_End(int axis, std::optional<std::string> id_override
     Div_End();
     ui->sizes.pop();
 }
+UI_Signal Widget_Context::Window_Begin(Rect area, bool *should_close, std::string title, UI_Box_Flags flags, std::optional<std::string> id_override,
+                                       const std::source_location source_loc)
+{
+    const float size_v = 20.0f;
+    std::string id_base = id_override.value_or(ui->Source_Loc_Str(source_loc));
+    const std::string id_win = "Window_div[" + id_base;
+    UI_Box *win = ui->Get_Box(std::hash<std::string>{}(id_win));
+    bool win_existed = win != NULL;
+    if (win_existed)
+        for (int i=0;i<2;i++)
+        {
+            area[i] = win->fixed_position[i];
+            area[2+i] = win->layout_box.size()[i];
+        }
+    win = Div_Begin(area, UI_BOX_FLAG_FLOATING | UI_BOX_FLAG_CLIP, id_win).box;
+    win->margin = {0};
+    win->child_layout_axis = 1;
+
+    ui->sizes.push({UI_Size_Parent(1.0), UI_Size_Pixels(size_v)});
+    Div_Begin({}, {}, "Window_Title_Div[" + id_base).box->margin = {0};
+      ui->sizes.push({UI_Size_Pixels(win->area.w-size_v), UI_Size_Parent(1.0)});
+        UI_Signal title_sig =
+            Label(title, {}, UI_BOX_FLAG_CLIP | UI_BOX_FLAG_CLICKABLE, "Window_Title_Label[" + id_base);
+        title_sig.box->margin = {0};
+      ui->sizes.pop();
+      ui->sizes.push({UI_Size_Pixels(size_v), UI_Size_Parent(1.0)});
+        UI_Signal close_button = Button("X", {}, "Window_Title_Button[" + id_base);
+        close_button.box->margin = {0};
+      ui->sizes.pop();
+    Div_End();
+    ui->sizes.pop();
+
+    if (close_button.flags & UI_SIG_LEFT_PRESSED)
+        *should_close = true;
+    else
+        *should_close = false;
+    //TODO: dont use static
+    //      technically it should be fine; cant drag 2 windows
+    //      at once, but ew
+    static V2 mouse_rel;
+    if (title_sig.flags & UI_SIG_LEFT_PRESSED)
+        mouse_rel = title_sig.mouse_pos - win->layout_box.pos();
+
+    if (title_sig.flags & UI_SIG_LEFT_DOWN)
+        win->fixed_position = title_sig.mouse_pos - win->parent->layout_box.pos() - mouse_rel;
+
+
+    ui->sizes.push({UI_Size_Parent(1.0), UI_Size_Pixels(win->area.h - size_v)});
+    UI_Signal sig = Div_Begin({}, flags, id_base);
+    ui->sizes.pop();
+    return sig;
+}
+void Widget_Context::Window_End()
+{
+    Div_End();
+    Div_End();
+}
 
 UI_Signal Widget_Context::Label(std::string label, std::optional<Rect> area,
-                                std::optional<std::string> id_override,
+                                UI_Box_Flags flags, std::optional<std::string> id_override,
                                 const std::source_location source_loc) {
     V2 fixed_pos = {};
-    UI_Box_Flags flags = UI_BOX_FLAG_CLIP;
     if (area.has_value()) {
         flags |= UI_BOX_FLAG_FLOATING;
 

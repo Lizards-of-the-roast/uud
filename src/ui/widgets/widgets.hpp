@@ -113,9 +113,13 @@ struct Widget_Context {
     void Scroll_End(int axis = 1, std::optional<std::string> id_override = {},
                         const std::source_location source_loc = std::source_location::current());
 
+UI_Signal Window_Begin(Rect area, bool *should_close, std::string title = "", UI_Box_Flags flags = 0, std::optional<std::string> id_override = {},
+                       const std::source_location source_loc = std::source_location::current());
+    void Window_End();
+
     // Basic Elements
     UI_Signal Label(std::string label = "", std::optional<Rect> area = {},
-                    std::optional<std::string> id_override = {},
+                    UI_Box_Flags = UI_BOX_FLAG_CLIP, std::optional<std::string> id_override = {},
                     const std::source_location source_loc = std::source_location::current());
     UI_Signal Button(std::string label = "", std::optional<Rect> area = {},
                      std::optional<std::string> id_override = {},

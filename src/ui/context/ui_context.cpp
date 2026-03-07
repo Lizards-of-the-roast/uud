@@ -73,6 +73,14 @@ UI_Box *UI_Context::Alloc_Box() {
 void UI_Context::Free_Box(UI_Box *box) {
     if (!box)
         return;
+
+    if (box->id == this->active)
+        this->active = 0;
+    if (box->id == this->hot)
+        this->hot = 0;
+    if (box->id == this->focused)
+        this->focused = 0;
+
     box->~UI_Box();
     new (box) UI_Box{};
     this->free_boxes.push_back(box);

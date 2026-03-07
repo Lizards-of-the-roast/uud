@@ -61,6 +61,21 @@ bool Scene_Menu(void) {
 
         ui.root.elem_align = UI_ALIGN_CENTER;
 
+        static bool should_close = false;
+        if (!should_close)
+        {
+            w.Window_Begin({100,100,100,100}, &should_close, "test");
+            w.styles.push(theme::Button_Secondary());
+                ui.sizes.push({UI_Size_Fit(), UI_Size_Fit()});
+                //w.Label("testening");
+                UI_Signal textbox = w.Textbox();
+                TTF_SetTextWrapWidth(textbox.box->label, textbox.box->area.w);
+                ui.sizes.pop();
+            w.styles.pop();
+            w.Window_End();
+        }
+
+
         ui.sizes.push({UI_Size_Parent(0.4), UI_Size_Parent(0.9)});
         DIV(&w) {
             UI_Box *div = ui.leafs.back();

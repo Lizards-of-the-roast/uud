@@ -241,7 +241,7 @@ void UI_Context::Layout_Comp_Relative(void) {
             // second pass and use last frames bounds
             for (UI_Box *child = box->first_child; child; child = child->next_sibling) {
                 if (child->flags & (UI_BOX_FLAG_FLOATING_X << i))
-                    break;
+                    continue;
 
                 float original_position = child->layout_box[i] + child->position_delta[i];
                 float size = (i == box->child_layout_axis) ? bounds : child->layout_box[2 + i];
