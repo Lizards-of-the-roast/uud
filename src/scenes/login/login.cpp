@@ -38,7 +38,7 @@ bool Scene_Login(void) {
     w.default_style = theme::Button_Primary();
 
     SDL_Texture *bg = state.texture[paths::bg_texture];
-    TTF_Font *font = state.font[paths::beleren_bold];
+    //TTF_Font *font = state.font[paths::beleren_bold];
 
     Login_Mode mode = Login_Mode::Login;
     std::string error_text;
@@ -142,14 +142,14 @@ bool Scene_Login(void) {
             defer(ui.fonts.pop());
             */
 
-            TTF_SetFontSize(font, 28);
+            //TTF_SetFontSize(font, 28);
             w.styles.push(theme::Label_Title());
             ui.sizes.push({UI_Size_Parent(0.9), UI_Size_Text(10)});
             w.Label("Untap Upkeep Draw");
             ui.sizes.pop();
             w.styles.pop();
 
-            TTF_SetFontSize(font, 16);
+            //TTF_SetFontSize(font, 16);
 
             ui.sizes.push({UI_Size_Parent(0.85), UI_Size_Text(8)});
             defer(ui.sizes.pop());
@@ -182,7 +182,7 @@ bool Scene_Login(void) {
                 if (!success_text.empty())
                     Styled_Message(w, success_text, theme::TEXT_SUCCESS);
 
-                TTF_SetFontSize(font, 18);
+                //TTF_SetFontSize(font, 18);
 
                 if (auth_client.In_Flight()) {
                     w.styles.push(theme::Label_Body());
@@ -259,7 +259,7 @@ bool Scene_Login(void) {
                 if (!success_text.empty())
                     Styled_Message(w, success_text, theme::TEXT_SUCCESS);
 
-                TTF_SetFontSize(font, 18);
+                //TTF_SetFontSize(font, 18);
 
                 if (auth_client.In_Flight()) {
                     w.styles.push(theme::Label_Body());

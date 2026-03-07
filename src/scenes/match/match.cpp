@@ -22,7 +22,7 @@ bool Scene_Match(void) {
 
     SDL_Texture *crack_texture = state.texture[paths::crack_texture];
     SDL_Texture *card_texture = state.texture[paths::card_texture];
-    TTF_Font *match_font = state.font[paths::beleren_bold];
+    //TTF_Font *match_font = state.font[paths::beleren_bold];
 
     Local_Game_State game_state;
     bool is_local = (state.current_game_id == "local");
@@ -104,7 +104,7 @@ bool Scene_Match(void) {
         ui.label_alignments.push({UI_ALIGN_CENTER, UI_ALIGN_CENTER});
         defer(ui.label_alignments.pop());
 
-        TTF_SetFontSize(match_font, 14);
+        //TTF_SetFontSize(match_font, 14);
 
         std::array<Widget_Style, WIDGET_STYLE_COUNT> hud_style;
         for (auto &s : hud_style) {
@@ -138,12 +138,12 @@ bool Scene_Match(void) {
         w.styles.pop();
         ui.sizes.pop();
 
-        TTF_SetFontSize(match_font, 30);
+        //TTF_SetFontSize(match_font, 30);
 
         Render_Hand(w, ui, card_texture);
 
-        TTF_Font *font_btn = state.font[paths::matrix_bold];
-        TTF_SetFontSize(font_btn, 14);
+        //TTF_Font *font_btn = state.font[paths::matrix_bold];
+        //TTF_SetFontSize(font_btn, 14);
         //ui.fonts.push(font_btn);
         ui.sizes.push({UI_Size_Fit(), UI_Size_Text(6)});
         w.styles.push(theme::Button_Danger());
@@ -151,7 +151,7 @@ bool Scene_Match(void) {
         w.styles.pop();
         ui.sizes.pop();
         //ui.fonts.pop();
-        TTF_SetFontSize(match_font, 30);
+        //TTF_SetFontSize(match_font, 30);
 
         if (leaving) {
             if (!is_local)

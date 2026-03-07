@@ -15,8 +15,8 @@ void Menu_Settings_Page(Widget_Context &w, UI_Context &ui) {
         ui.sizes.push({UI_Size_Text(50), UI_Size_Text(50)});
         defer(ui.sizes.pop());
 
-        TTF_Font *font_title = state.font[paths::beleren_bold];
-        TTF_SetFontSize(font_title, 22);
+        //TTF_Font *font_title = state.font[paths::beleren_bold];
+        //TTF_SetFontSize(font_title, 22);
         /*
         ui.fonts.push(font_title);
         defer(ui.fonts.pop());

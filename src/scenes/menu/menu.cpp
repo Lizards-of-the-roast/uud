@@ -25,12 +25,12 @@ bool Scene_Menu(void) {
     w.default_style = theme::Button_Primary();
 
     SDL_Texture *bg = state.texture[paths::bg_texture];
-    TTF_Font *font_button = state.font[paths::matrix_bold];
+    //TTF_Font *font_button = state.font[paths::matrix_bold];
 
     Menu_Tab tab = Menu_Tab::None;
 
     for (;;) {
-        TTF_SetFontSize(font_button, 20);
+        //TTF_SetFontSize(font_button, 20);
         state.Update_Delta_Time();
         for (SDL_Event event; SDL_PollEvent(&event);) {
             ui.Pass_Event(event);
