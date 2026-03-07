@@ -7,6 +7,12 @@
 #include <SDL3_image/SDL_image.h>
 #include <SDL3_ttf/SDL_ttf.h>
 
+/*
+    these are of course, slower then just storing a variable,
+    however for prototypeing this is easy and we dont need to worry about
+    otimisation prematurely
+*/
+
 struct Texture_Resource {
     std::unordered_map<std::string, SDL_Texture *> map;
     SDL_Texture *NULL_texture;

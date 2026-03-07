@@ -131,8 +131,8 @@ bool Menu_Deck_Builder_Page(Widget_Context &w, UI_Context &ui, Menu_Tab &tab) {
         if (!deck_status.empty())
             Styled_Message(w, deck_status, theme::TEXT_SUCCESS);
 
-        ui.sizes.push({UI_Size_Parent(0.95), UI_Size_Parent(0.5f)});
-        DIV(&w) {
+        ui.sizes.push({UI_Size_Parent(1.0f), UI_Size_Parent(0.5f)});
+        DIV_O(&w, {}, UI_BOX_FLAG_CLIP) {
             UI_Box *columns = ui.leafs.back();
             columns->child_layout_axis = 0;
 
@@ -140,10 +140,9 @@ bool Menu_Deck_Builder_Page(Widget_Context &w, UI_Context &ui, Menu_Tab &tab) {
             DIV(&w) {
                 UI_Box *catalog_panel = ui.leafs.back();
                 catalog_panel->child_layout_axis = 1;
-                catalog_panel->flags |= UI_BOX_FLAG_CLIP;
                 theme::Apply_Panel(catalog_panel, theme::Panel_Inner());
 
-                ui.sizes.push({UI_Size_Parent(0.95), UI_Size_Text(4)});
+                ui.sizes.push({UI_Size_Parent(1.0), UI_Size_Text(6)});
                 defer(ui.sizes.pop());
 
                 w.styles.push(theme::Label_Title());
@@ -165,19 +164,30 @@ bool Menu_Deck_Builder_Page(Widget_Context &w, UI_Context &ui, Menu_Tab &tab) {
                     max_cards = 3;
 
                 int count = 0;
-                for (const auto *card : results) {
-                    if (count >= max_cards)
-                        break;
+                ui.sizes.push({UI_Size_Parent(0.95), UI_Size_Parent(1, 1.0f)});
+                defer(ui.sizes.pop());
+                DIV_O(&w, {}, UI_BOX_FLAG_CLIP | UI_BOX_FLAG_VIEW_SCROLL_Y)
+                {
+                    UI_Box *div = ui.leafs.back();
+                    div->child_layout_axis = 1;
 
-                    std::string display = card->name;
-                    if (!card->mana_cost.empty())
-                        display += " " + card->mana_cost;
+                    ui.sizes.push({UI_Size_Parent(1.0f), UI_Size_Text(6)});
+                    defer(ui.sizes.pop());
 
-                    UI_Signal card_btn = w.Button(display, {}, std::string("cat_" + card->name));
-                    if (card_btn.flags & UI_SIG_LEFT_RELEASED)
-                        Add_Card_To_Deck(card->name);
+                    for (const auto *card : results) {
+                        if (count >= max_cards)
+                            break;
 
-                    count++;
+                        std::string display = card->name;
+                        if (!card->mana_cost.empty())
+                            display += " " + card->mana_cost;
+
+                        UI_Signal card_btn = w.Button(display, {}, std::string("cat_" + card->name));
+                        if (card_btn.flags & UI_SIG_LEFT_RELEASED)
+                            Add_Card_To_Deck(card->name);
+
+                        count++;
+                    }
                 }
             }
             ui.sizes.pop();
@@ -189,20 +199,30 @@ bool Menu_Deck_Builder_Page(Widget_Context &w, UI_Context &ui, Menu_Tab &tab) {
                 deck_panel->flags |= UI_BOX_FLAG_CLIP;
                 theme::Apply_Panel(deck_panel, theme::Panel_Inner());
 
-                ui.sizes.push({UI_Size_Parent(0.95), UI_Size_Text(4)});
+                ui.sizes.push({UI_Size_Parent(1.0), UI_Size_Text(4)});
                 defer(ui.sizes.pop());
 
                 w.styles.push(theme::Label_Title());
                 w.Label("Current Deck");
                 w.styles.pop();
 
+                ui.sizes.push({UI_Size_Parent(0.95), UI_Size_Parent(1, 1.0f)});
+                defer(ui.sizes.pop());
                 w.styles.push(theme::Button_Secondary());
-                for (const auto &entry : current_deck.cards) {
-                    std::string display = std::to_string(entry.count) + "x " + entry.card_name;
-                    UI_Signal entry_btn =
-                        w.Button(display, {}, std::string("deck_" + entry.card_name));
-                    if (entry_btn.flags & UI_SIG_LEFT_RELEASED)
-                        Remove_Card_From_Deck(entry.card_name);
+                DIV_O(&w, {}, UI_BOX_FLAG_CLIP | UI_BOX_FLAG_VIEW_SCROLL_Y)
+                {
+                    UI_Box *div = ui.leafs.back();
+                    div->child_layout_axis = 1;
+
+                    ui.sizes.push({UI_Size_Parent(1.0), UI_Size_Text(4)});
+                    defer(ui.sizes.pop());
+                    for (const auto &entry : current_deck.cards) {
+                        std::string display = std::to_string(entry.count) + "x " + entry.card_name;
+                        UI_Signal entry_btn =
+                            w.Button(display, {}, std::string("deck_" + entry.card_name));
+                        if (entry_btn.flags & UI_SIG_LEFT_RELEASED)
+                            Remove_Card_From_Deck(entry.card_name);
+                    }
                 }
                 w.styles.pop();
             }

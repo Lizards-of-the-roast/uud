@@ -99,7 +99,7 @@ struct Widget_Context {
     UI_Signal Spacer(std::optional<UI_Size> size = {},
                      const std::source_location source_loc = std::source_location::current());
 
-    UI_Signal Div_Begin(std::optional<Rect> area = {},
+    UI_Signal Div_Begin(std::optional<Rect> area = {}, UI_Box_Flags flags = 0,
                         const std::source_location source_loc = std::source_location::current());
     void Div_End();
 

@@ -258,7 +258,7 @@ void UI_Context::Layout_Comp_Relative(void) {
                 }
 
                 child->layout_box[i] =
-                    box->layout_box[i] + box->offset[i] + child->fixed_position[i];
+                    box->layout_box[i] + box->offset[i] + child->fixed_position[i] + box->view_offset[i];
                 child->position_delta[i] = original_position - child->layout_box[i];
             }
 

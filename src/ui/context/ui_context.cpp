@@ -226,19 +226,6 @@ UI_Signal UI_Context::Box_Make(V2 fixed_pos, UI_Box_Flags flags,
     // set flags
     box->flags = flags;
 
-    // set label
-    //box->label = label;
-    /*
-    if (!label.empty() || (flags & UI_BOX_FLAG_TEXTINPUT && !box->label)) {
-        if (!box->label)
-            box->label = TTF_CreateText(this->text_engine, NULL, label.c_str(), label.length());
-        else
-            TTF_SetTextString(box->label, label.c_str(), label.length());
-        TTF_Font *font = (this->fonts.size()) ? this->fonts.top() : NULL;
-        TTF_SetTextFont(box->label, font);
-    }
-    */
-
     // get from style stack or dont (hard code)
 
     // get from text align stack
@@ -327,6 +314,7 @@ void UI_Context::End() {
 
     this->mouse_up_buttons = 0;
     this->mouse_down_buttons = 0;
+    this->mouse_wheel = V2{0, 0};
 
     // layout
     this->Layout_Compute();

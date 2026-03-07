@@ -52,10 +52,9 @@ UI_Signal Widget_Context::Spacer(std::optional<UI_Size> size,
 
     return sig;
 }
-UI_Signal Widget_Context::Div_Begin(std::optional<Rect> area,
+UI_Signal Widget_Context::Div_Begin(std::optional<Rect> area, UI_Box_Flags flags,
                                     const std::source_location source_loc) {
     V2 fixed_pos = {};
-    UI_Box_Flags flags = 0;
     if (area.has_value()) {
         flags |= UI_BOX_FLAG_FLOATING;
 

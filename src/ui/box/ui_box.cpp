@@ -261,24 +261,21 @@ UI_Signal UI_Box::Signal(UI_Context *ctx) {
         }
     }
 
-    /*
-    if (box->flags & UI_BOX_FLAG_VIEW_SCROLL && is_mouse_over &&
-    (ctx->mouse_wheel.x != 0 || ctx->mouse_wheel.y != 0) )
+    if (this->flags & UI_BOX_FLAG_VIEW_SCROLL && is_mouse_over &&
+        (ctx->mouse_wheel.x != 0 || ctx->mouse_wheel.y != 0) )
     {
-        SDL_FPoint max_view_of = {
+        SDL_FPoint max_view_off = {
             SDL_max(0, this->view_bounds.x - this->area.w ),
             SDL_max(0, this->view_bounds.y - this->area.h ),
         };
         SDL_FPoint mask = {
-            !!(this->flags & UI_BOX_FLAG_VIEW_SCROLL_X),
-            !!(this->flags & UI_BOX_FLAG_VIEW_SCROLL_Y),
+            (float)!!(this->flags & UI_BOX_FLAG_VIEW_SCROLL_X),
+            (float)!!(this->flags & UI_BOX_FLAG_VIEW_SCROLL_Y),
         };
-        float step = (this->scroll_step) ? this->scroll_step : 1.0f;
-        this->view_offset.x += SDL_clamp(ctx->mouse_wheel.x * mask.x * step, 0,
-    max_view_off.x); this->view_offset.y += SDL_clamp(ctx->mouse_wheel.y * mask.y
-    * step, 0, max_view_off.y);
+        float step = (this->scroll_step) ? this->scroll_step : 10.0f;
+        this->view_offset.x = SDL_clamp(this->view_offset.x + ctx->mouse_wheel.x * mask.x * step, -max_view_off.x, 0);
+        this->view_offset.y = SDL_clamp(this->view_offset.y + ctx->mouse_wheel.y * mask.y * step, -max_view_off.y, 0);
     }
-    */
 
     if (is_mouse_over) {
         sig.flags |= UI_SIG_MOUSE_OVER;

@@ -56,6 +56,8 @@ struct UI_Box {
     bool do_disable;   // set this one
     bool is_disabled;  // look at this one
 
+    float scroll_step;
+
     UI_Signal signal_last;
 
     ~UI_Box();
