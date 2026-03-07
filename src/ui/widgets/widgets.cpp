@@ -314,8 +314,11 @@ UI_Signal Widget_Context::Textbox(std::string init_label, std::optional<Rect> ar
         sig.box->userdata = Widget_Data(this, Widget_Type::Textbox, {});
     }
 
-    sig.box->Text_Create(ui, init_label,
-                   this->Get_Style(sig.box, std::any_cast<Widget_Data>(&sig.box->userdata)).text);
+    if (!sig.box->label)
+    {
+        sig.box->Text_Create(ui, init_label,
+                    this->Get_Style(sig.box, std::any_cast<Widget_Data>(&sig.box->userdata)).text);
+    }
 
     //NOTE: size is still slightly too small, but I'm not sure how to fix that
     //      without a sketchy TTF_GetStringSize() call.

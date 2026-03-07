@@ -101,6 +101,8 @@ const std::vector<Card_Entry> &Card_Catalog::All() const {
 }
 
 std::string Deck_Store::Get_Dir() {
+    //TODO: use SDL to get the correct data directory
+    //      platform independent
     const char *home = std::getenv("HOME");
     if (!home)
         home = ".";

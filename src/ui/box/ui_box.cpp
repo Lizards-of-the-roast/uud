@@ -90,6 +90,7 @@ void UI_Box::Text_Create(UI_Context *ctx, std::string str, TTF_Text_Properties p
         props.Set(this->label);
         TTF_SetTextString(this->label, str.c_str(), str.length());
     }
+    this->cursor += str.length();
 }
 void UI_Box::Text_Copy_Font(TTF_Font *font, TTF_Font_Properties props)
 {

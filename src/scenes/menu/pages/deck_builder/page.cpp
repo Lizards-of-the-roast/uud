@@ -116,6 +116,15 @@ bool Menu_Deck_Builder_Page(Widget_Context &w, UI_Context &ui, Menu_Tab &tab) {
 
             w.styles.push(theme::Textbox());
             UI_Signal name_sig = w.Textbox(current_deck.name);
+            /* Uncomment if you want to erase the temp text on first focus
+            if (name_sig.flags & (UI_SIG_FOCUSED | UI_SIG_LEFT_PRESSED)
+            &&  name_sig.box->label && name_sig.box->label->text
+            &&  std::string(name_sig.box->label->text) == "New Deck")
+            {
+                TTF_SetTextString(name_sig.box->label, "", 0);
+                name_sig.box->cursor = 0;
+            }
+            */
             w.styles.pop();
             if (name_sig.box->label && name_sig.box->label->text)
                 current_deck.name = name_sig.box->label->text;
