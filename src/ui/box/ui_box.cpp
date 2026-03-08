@@ -94,6 +94,7 @@ void UI_Box::Text_Create(UI_Context *ctx, std::string str, TTF_Text_Properties p
 }
 void UI_Box::Text_Copy_Font(TTF_Font *font, TTF_Font_Properties props)
 {
+    //TODO dont copy a font if its identicle
     if (this->font)
         TTF_CloseFont(this->font);
 

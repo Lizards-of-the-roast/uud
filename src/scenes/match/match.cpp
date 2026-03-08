@@ -6,12 +6,12 @@
 #include "net/game_client.hpp"
 #include "scenes/common/scene_helpers.hpp"
 #include "scenes/common/ui_theme.hpp"
-#include "systems/drag_overlay.hpp"
-#include "systems/hand.hpp"
 #include "ui/widgets/widgets.hpp"
 #include <SDL3/SDL.h>
 #include <SDL3_image/SDL_image.h>
 #include <SDL3_ttf/SDL_ttf.h>
+
+#include "systems.hpp"
 
 bool Scene_Match(void) {
     TTF_TextEngine *text_engine = TTF_CreateRendererTextEngine(state.renderer);
@@ -22,7 +22,7 @@ bool Scene_Match(void) {
 
     SDL_Texture *crack_texture = state.texture[paths::crack_texture];
     SDL_Texture *card_texture = state.texture[paths::card_texture];
-    //TTF_Font *match_font = state.font[paths::beleren_bold];
+    TTF_Font *match_font = state.font[paths::beleren_bold];
 
     Local_Game_State game_state;
     bool is_local = (state.current_game_id == "local");
@@ -111,6 +111,7 @@ bool Scene_Match(void) {
             s.background = {0x0A, 0x0A, 0x14, 0xCC};
             s.border = {0x8B, 0x6F, 0x2E, 0x44};
             s.text.color = SDL_Color{0xEE, 0xDD, 0xBB, 0xFF};
+            s.text.font = match_font;
         }
 
         ui.sizes.push({UI_Size_Parent(1.0), UI_Size_Text(4)});
@@ -130,7 +131,7 @@ bool Scene_Match(void) {
                 hud_line += " | Opp: " + opp->username() + " " + std::to_string(opp->life_total()) +
                             " HP, " + std::to_string(opp->hand_count()) + " cards";
 
-            w.Label(hud_line);
+            w.Label(hud_line).box;
         } else {
             w.Label("Waiting for game state...");
         }
@@ -140,7 +141,8 @@ bool Scene_Match(void) {
 
         //TTF_SetFontSize(match_font, 30);
 
-        Render_Hand(w, ui, card_texture);
+        Hand_UI(w, ui, card_texture);
+        Library_UI(w, ui, card_texture);
 
         //TTF_Font *font_btn = state.font[paths::matrix_bold];
         //TTF_SetFontSize(font_btn, 14);
@@ -165,7 +167,7 @@ bool Scene_Match(void) {
 
         w.Draw();
 
-        Render_Drag_Overlay(ui, card_texture);
+        Drag_Overlay_UI(ui, card_texture);
 
         SDL_RenderPresent(state.renderer);
     }

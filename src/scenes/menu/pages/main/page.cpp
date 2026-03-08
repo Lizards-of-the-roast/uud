@@ -25,11 +25,14 @@ bool Menu_Main_Page(Widget_Context &w, UI_Context &ui, Menu_Tab &tab) {
         for (auto &s : user_style)
             s.text.color = theme::TEXT_INFO;
         w.styles.push(user_style);
+        UI_Box *label = NULL;
         if (state.offline)
-            w.Label("Playing as Guest");
+            label = w.Label("Playing as Guest").box;
         else if (!state.username.empty())
-            w.Label("Logged in as: " + state.username);
+            label = w.Label("Logged in as: " + state.username).box;
         w.styles.pop();
+        if (label)
+           label->Text_Copy_Font(user_style[0].text.font.value(), {.size = 40});
     }
 
     w.Spacer(UI_Size_Pixels(20));
