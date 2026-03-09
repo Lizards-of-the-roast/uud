@@ -2,6 +2,8 @@
 
 namespace Game {
 
+Instances instances;
+
 const Card *Instances::Find(Card_ID id) const {
     if (auto it = this->cards_.find(id); it != this->cards_.end())
         return &it->second;

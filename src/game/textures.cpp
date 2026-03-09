@@ -2,6 +2,8 @@
 
 namespace Game {
 
+Card_Textures card_textures;
+
 SDL_Texture *Card_Textures::Get(std::string name)
 {
     if (auto it = this->textures_.find(name); it != this->textures_.end())

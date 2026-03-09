@@ -12,6 +12,9 @@
 #include <SDL3_image/SDL_image.h>
 #include <SDL3_ttf/SDL_ttf.h>
 
+#include "game/textures.hpp"
+#include "game/instances.hpp"
+
 bool Scene_Match(void) {
     TTF_TextEngine *text_engine = TTF_CreateRendererTextEngine(state.renderer);
     defer(TTF_DestroyRendererTextEngine(text_engine););
@@ -21,6 +24,7 @@ bool Scene_Match(void) {
 
     SDL_Texture *crack_texture = state.texture[paths::crack_texture];
     SDL_Texture *card_texture = state.texture[paths::card_texture];
+    card_textures.default_texture = card_texture;
     TTF_Font *match_font = state.font[paths::beleren_bold];
 
     Local_Game_State game_state;
@@ -42,6 +46,13 @@ bool Scene_Match(void) {
         p1.username = "You";
         p1.life_total = 20;
         p1.hand_count = 7;
+        for (int i = 0; i < p1.hand_count; i++)
+        {
+            Card c;
+            c.instance_id = i;
+            instances.Add(c);
+            p1.hand.push_back(c.instance_id);
+        }
         p1.library_count = 53;
         mock.players.push_back(p1);
 
@@ -50,6 +61,13 @@ bool Scene_Match(void) {
         p2.username = "Opponent";
         p2.life_total = 20;
         p2.hand_count = 7;
+        for (int i = 0; i < p1.hand_count; i++)
+        {
+            Card c;
+            c.instance_id = 6 + i;
+            instances.Add(c);
+            p2.hand.push_back(c.instance_id);
+        }
         p2.library_count = 53;
         mock.players.push_back(p2);
 
@@ -142,8 +160,10 @@ bool Scene_Match(void) {
 
         // TTF_SetFontSize(match_font, 30);
 
-        Hand_UI(w, ui, card_texture);
-        Library_UI(w, ui, card_texture);
+        if (game_state.Has_Snapshot()) {
+            Hand_UI(w, ui, game_state.Snapshot().players[0]);
+            Library_UI(w, ui, card_texture);
+        }
 
         // TTF_Font *font_btn = state.font[paths::matrix_bold];
         // TTF_SetFontSize(font_btn, 14);

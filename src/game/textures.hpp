@@ -10,4 +10,5 @@ struct Card_Textures {
 private:
     std::unordered_map<std::string, SDL_Texture *> textures_;
 };
+extern Card_Textures card_textures;
 }//namespace Game
