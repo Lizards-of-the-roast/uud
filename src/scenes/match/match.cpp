@@ -24,7 +24,7 @@ bool Scene_Match(void) {
 
     SDL_Texture *crack_texture = state.texture[paths::crack_texture];
     SDL_Texture *card_texture = state.texture[paths::card_texture];
-    card_textures.default_texture = card_texture;
+    Game::card_textures.default_texture = card_texture;
     TTF_Font *match_font = state.font[paths::beleren_bold];
 
     Local_Game_State game_state;
@@ -34,38 +34,38 @@ bool Scene_Match(void) {
     bool stream_started = false;
 
     if (is_local) {
-        Game_Snapshot mock;
+        Game::Game_Snapshot mock;
         mock.game_id = "local";
-        mock.current_phase = Phase::Main_1;
+        mock.current_phase = Game::Phase::Main_1;
         mock.turn_number = 1;
         mock.active_player_id = 1;
         mock.priority_player_id = 1;
 
-        Player_State p1;
+        Game::Player_State p1;
         p1.player_id = 1;
         p1.username = "You";
         p1.life_total = 20;
         p1.hand_count = 7;
         for (int i = 0; i < p1.hand_count; i++)
         {
-            Card c;
+            Game::Card c;
             c.instance_id = i;
-            instances.Add(c);
+            Game::instances.Add(c);
             p1.hand.push_back(c.instance_id);
         }
         p1.library_count = 53;
         mock.players.push_back(p1);
 
-        Player_State p2;
+        Game::Player_State p2;
         p2.player_id = 2;
         p2.username = "Opponent";
         p2.life_total = 20;
         p2.hand_count = 7;
         for (int i = 0; i < p1.hand_count; i++)
         {
-            Card c;
+            Game::Card c;
             c.instance_id = 6 + i;
-            instances.Add(c);
+            Game::instances.Add(c);
             p2.hand.push_back(c.instance_id);
         }
         p2.library_count = 53;

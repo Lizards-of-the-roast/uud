@@ -3,6 +3,8 @@
 #include <string>
 #include <variant>
 
+using namespace Game;
+
 void Local_Game_State::Apply_Snapshot(const Game_Snapshot &snapshot) {
     snapshot_ = snapshot;
     has_snapshot_ = true;

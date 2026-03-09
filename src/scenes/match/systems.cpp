@@ -14,7 +14,7 @@ const float card_height = 200.0f;
 const float card_offset = 40.0f;
 const float div_width = (card_width * 7.0f - card_offset * 5);
 
-void Hand_UI(Widget_Context &w, UI_Context &ui, Player_State player) {
+void Hand_UI(Widget_Context &w, UI_Context &ui, Game::Player_State player) {
     DIV_O(&w, Rect{state.window_width * 0.5f - div_width * 0.5f,
                    state.window_height - card_height / 3.0f, div_width, card_height}) {
         UI_Box *div = ui.leafs.back();
@@ -25,8 +25,8 @@ void Hand_UI(Widget_Context &w, UI_Context &ui, Player_State player) {
         defer(ui.sizes.pop());
         int hovered = INT32_MAX;
         for (int i = 0; i < player.hand_count; i++) {
-            const Card *c = instances.Find(player.hand[i]);
-            UI_Signal button = w.Card(card_textures.Get(c->name), {}, card_ids[i]);
+            const Game::Card *c = Game::instances.Find(player.hand[i]);
+            UI_Signal button = w.Card(Game::card_textures.Get(c->name), {}, card_ids[i]);
             if (button.flags & (UI_SIG_HOVERING | UI_SIG_LEFT_DOWN)) {
                 hovered = i;
                 div->offset.y = -card_height / 3 * 2;

@@ -8,7 +8,6 @@
 #include "async_queue.hpp"
 #include "game/matchmaking.hpp"
 
-using namespace Game;
 
 struct Matchmaking_Join_Result {
     bool success;
@@ -22,13 +21,13 @@ struct Matchmaking_Client {
     void Stop_Stream();
 
     std::optional<Matchmaking_Join_Result> Poll_Join();
-    std::optional<Queue_Status> Poll_Update();
+    std::optional<Game::Queue_Status> Poll_Update();
 
     bool In_Queue();
 
 private:
     Async_Queue<Matchmaking_Join_Result> join_results_;
-    Async_Queue<Queue_Status> updates_;
+    Async_Queue<Game::Queue_Status> updates_;
     std::mutex ticket_mutex_;
     std::string queue_ticket_;
     std::atomic<bool> in_queue_{false};

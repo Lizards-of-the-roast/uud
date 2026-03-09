@@ -9,6 +9,8 @@
 #include "mtg/game_state.pb.h"
 #include "net_client.hpp"
 
+using namespace Game;
+
 struct Game_Client::Impl {
     std::mutex stream_mutex;
     std::shared_ptr<mtg::proto::GameService::Stub> stream_stub;

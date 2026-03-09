@@ -11,8 +11,6 @@
 #include "game/game_snapshot.hpp"
 #include "game/matchmaking.hpp"
 
-using namespace Game;
-
 struct Game_Join_Result {
     bool success;
     std::string error;
@@ -31,14 +29,14 @@ struct Game_Leave_Result {
 
 struct Game_List_Result {
     bool success;
-    std::vector<Game_Summary> games;
+    std::vector<Game::Game_Summary> games;
     std::string error;
 };
 
 struct Game_Rejoin_Result {
     bool success;
     std::string error;
-    std::optional<Game_Snapshot> snapshot;
+    std::optional<Game::Game_Snapshot> snapshot;
 };
 
 struct Game_Client {
@@ -54,7 +52,7 @@ struct Game_Client {
     void Get_State(const std::string &game_id);
 
     void Start_Action_Stream(const std::string &game_id);
-    void Send_Action(const Player_Action &action);
+    void Send_Action(const Game::Player_Action &action);
     void Stop_Action_Stream();
 
     void Start_State_Stream(const std::string &game_id, uint64_t last_sequence = 0);
@@ -65,9 +63,9 @@ struct Game_Client {
     std::optional<Game_Leave_Result> Poll_Leave();
     std::optional<Game_List_Result> Poll_List();
     std::optional<Game_Rejoin_Result> Poll_Rejoin();
-    std::optional<Deck_Submission_Result> Poll_Deck();
-    std::optional<Game_Snapshot> Poll_Snapshot();
-    std::optional<Game_Event> Poll_Event();
+    std::optional<Game::Deck_Submission_Result> Poll_Deck();
+    std::optional<Game::Game_Snapshot> Poll_Snapshot();
+    std::optional<Game::Game_Event> Poll_Event();
 
     bool Stream_Active();
     bool State_Stream_Active();
@@ -78,9 +76,9 @@ private:
     Async_Queue<Game_Leave_Result> leave_results_;
     Async_Queue<Game_List_Result> list_results_;
     Async_Queue<Game_Rejoin_Result> rejoin_results_;
-    Async_Queue<Deck_Submission_Result> deck_results_;
-    Async_Queue<Game_Snapshot> snapshots_;
-    Async_Queue<Game_Event> events_;
+    Async_Queue<Game::Deck_Submission_Result> deck_results_;
+    Async_Queue<Game::Game_Snapshot> snapshots_;
+    Async_Queue<Game::Game_Event> events_;
 
     std::atomic<bool> stream_active_{false};
     std::atomic<bool> state_stream_active_{false};

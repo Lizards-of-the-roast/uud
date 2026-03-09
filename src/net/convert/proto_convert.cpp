@@ -1,5 +1,7 @@
 #include "proto_convert.hpp"
 
+using namespace Game;
+
 namespace convert {
 
 Card_Type From_Proto(cle::proto::CardType proto) {
