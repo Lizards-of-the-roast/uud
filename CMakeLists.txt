@@ -144,6 +144,7 @@ add_executable(uud
     src/ui/widgets/widgets.cpp
     src/ui/widgets/widget_draw.cpp
     src/game/instances.cpp
+    src/game/textures.cpp
 )
 
 target_include_directories(uud PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
