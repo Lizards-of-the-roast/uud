@@ -8,6 +8,8 @@
 #include "card.hpp"
 #include "mana_pool.hpp"
 
+namespace Game {
+
 struct Pass_Priority_Action {};
 
 struct Play_Card_Action {
@@ -102,3 +104,5 @@ struct Player_Action {
         Concede_Action>
         action;
 };
+
+} //namespace Game

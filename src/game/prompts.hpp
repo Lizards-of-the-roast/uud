@@ -8,6 +8,8 @@
 #include "card.hpp"
 #include "mana_pool.hpp"
 
+namespace Game {
+
 struct Priority_Prompt {
     std::vector<std::string> legal_actions;
     std::vector<uint64_t> castable_card_ids;
@@ -84,3 +86,5 @@ struct Action_Prompt {
         Damage_Assignment_Prompt>
         prompt;
 };
+
+} //namespace Game

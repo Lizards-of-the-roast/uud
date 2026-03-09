@@ -8,6 +8,8 @@
 #include "player.hpp"
 #include "stack_entry.hpp"
 
+namespace Game {
+
 struct Game_Snapshot {
     std::string game_id;
     Phase current_phase = Phase::Untap;
@@ -17,3 +19,5 @@ struct Game_Snapshot {
     std::vector<Player_State> players;
     std::vector<Stack_Entry> stack;
 };
+
+} //namespace Game

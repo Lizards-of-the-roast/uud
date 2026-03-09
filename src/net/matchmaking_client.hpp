@@ -8,6 +8,8 @@
 #include "async_queue.hpp"
 #include "game/matchmaking.hpp"
 
+using namespace Game;
+
 struct Matchmaking_Join_Result {
     bool success;
     std::string queue_ticket;

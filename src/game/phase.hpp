@@ -1,5 +1,7 @@
 #pragma once
 
+namespace Game {
+
 enum class Phase {
     Untap,
     Upkeep,
@@ -15,3 +17,5 @@ enum class Phase {
     End_Step,
     Cleanup,
 };
+
+} //namespace Game

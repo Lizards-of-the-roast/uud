@@ -1,5 +1,6 @@
 #pragma once
 
+namespace Game {
 enum class Zone_Type {
     Library,
     Hand,
@@ -9,3 +10,4 @@ enum class Zone_Type {
     Stack,
     Command,
 };
+} //namespace Game

@@ -11,6 +11,8 @@
 #include "prompts.hpp"
 #include "zone.hpp"
 
+namespace Game {
+
 struct Card_Drawn_Event {
     uint64_t player_id = 0;
     Card card;
@@ -131,3 +133,5 @@ struct Game_Event {
         Action_Prompt>
         event;
 };
+
+} //namespace Game

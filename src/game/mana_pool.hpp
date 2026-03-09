@@ -1,5 +1,7 @@
 #pragma once
 
+namespace Game {
+
 struct Mana_Pool {
     int white = 0;
     int blue = 0;
@@ -8,3 +10,5 @@ struct Mana_Pool {
     int green = 0;
     int colorless = 0;
 };
+
+} //namespace Game

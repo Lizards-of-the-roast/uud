@@ -19,6 +19,8 @@
 #include "mtg/game_state.pb.h"
 #include "mtg/matchmaking_service.pb.h"
 
+using namespace Game;
+
 namespace convert {
 
 Card_Type From_Proto(cle::proto::CardType proto);

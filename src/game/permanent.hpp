@@ -8,6 +8,8 @@
 #include "card.hpp"
 #include "counter.hpp"
 
+namespace Game {
+
 struct Permanent_State {
     uint64_t permanent_id = 0;
     Card card;
@@ -24,3 +26,5 @@ struct Permanent_State {
     std::vector<uint64_t> attachments;
     bool is_token = false;
 };
+
+} //namespace Game

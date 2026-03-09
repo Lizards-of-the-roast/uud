@@ -7,6 +7,8 @@
 
 #include "card.hpp"
 
+namespace Game {
+
 struct Stack_Entry {
     uint64_t entry_id = 0;
     std::optional<Card> spell;
@@ -14,3 +16,5 @@ struct Stack_Entry {
     uint64_t controller_id = 0;
     std::vector<uint64_t> targets;
 };
+
+} //namespace Game

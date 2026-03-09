@@ -1,5 +1,7 @@
 #include "card_catalog.hpp"
 
+using namespace Game;
+
 #include <algorithm>
 
 Card_Catalog card_catalog;

@@ -6,6 +6,8 @@
 #include "game/game_snapshot.hpp"
 #include "game/player.hpp"
 
+using namespace Game;
+
 struct Local_Game_State {
     void Apply_Snapshot(const Game_Snapshot &snapshot);
     void Apply_Event(const Game_Event &event);

@@ -11,6 +11,8 @@
 #include "game/game_snapshot.hpp"
 #include "game/matchmaking.hpp"
 
+using namespace Game;
+
 struct Game_Join_Result {
     bool success;
     std::string error;

@@ -8,6 +8,8 @@
 #include "mana_pool.hpp"
 #include "permanent.hpp"
 
+namespace Game {
+
 struct Player_State {
     uint64_t player_id = 0;
     std::string username;
@@ -23,3 +25,5 @@ struct Player_State {
     bool has_priority = false;
     int lands_played_this_turn = 0;
 };
+
+} //namespace Game

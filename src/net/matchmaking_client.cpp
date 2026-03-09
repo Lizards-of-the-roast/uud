@@ -7,6 +7,8 @@
 #include "mtg/matchmaking_service.grpc.pb.h"
 #include "net_client.hpp"
 
+using namespace Game;
+
 Matchmaking_Client matchmaking_client;
 
 void Matchmaking_Client::Join_Queue(const std::string &format, const std::string &deck_id) {

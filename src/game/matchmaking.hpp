@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+namespace Game {
+
 struct Queue_Status {
     bool matched = false;
     std::string game_id;
@@ -24,3 +26,5 @@ struct Deck_Submission_Result {
     bool valid = false;
     std::vector<std::string> errors;
 };
+
+} //namespace Game

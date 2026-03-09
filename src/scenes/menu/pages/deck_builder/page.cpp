@@ -10,6 +10,8 @@
 #include "scenes/menu/menu_types.hpp"
 #include "ui/widgets/widgets.hpp"
 
+using namespace Game;
+
 struct Deck_Entry {
     std::string card_name;
     int count = 1;

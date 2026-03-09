@@ -5,6 +5,8 @@
 
 #include "game/card.hpp"
 
+using namespace Game;
+
 struct Card_Catalog {
     void Load_Default_Cards();
     std::vector<const Card *> Search(const std::string &query) const;

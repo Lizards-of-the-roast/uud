@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 
+namespace Game {
+
 enum class Card_Type {
     Creature,
     Instant,
@@ -67,6 +69,7 @@ struct Modal_Ability {
     std::vector<Modal_Choice> modes;
 };
 
+typedef uint32_t Card_ID;
 struct Card {
     std::string name;
     Card_Type type;
@@ -77,9 +80,11 @@ struct Card {
     std::vector<std::string> subtypes;
     std::vector<std::string> keywords;
     std::optional<Creature_Stats> creature_stats;
-    uint64_t instance_id = 0;
+    Card_ID instance_id = 0;
     std::vector<int> trigger_types;
     std::vector<Activated_Ability> activated_abilities;
     std::vector<Static_Ability> static_abilities;
     std::optional<Modal_Ability> modal;
 };
+
+} //namespace Game
