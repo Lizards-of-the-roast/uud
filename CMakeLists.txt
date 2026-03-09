@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-option(OFFLINE_MODE "Disables need for backend" OFF)
+option(OFFLINE_MODE "Disables need for backend" ON)
 
 option(USE_SCCACHE "Use sccache" ON)
 if(USE_SCCACHE)
@@ -136,8 +136,7 @@ add_executable(uud
     src/scenes/menu/pages/credits/page.cpp
     src/scenes/match/match.cpp
     src/scenes/match/game_state_local.cpp
-    src/scenes/match/systems/hand.cpp
-    src/scenes/match/systems/drag_overlay.cpp
+    src/scenes/match/systems.cpp
     src/ui/box/ui_box.cpp
     src/ui/context/ui_context.cpp
     src/ui/context/ui_layout.cpp
