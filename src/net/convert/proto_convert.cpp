@@ -205,13 +205,13 @@ Player_State From_Proto(const mtg::proto::PlayerState &proto) {
     player.hand_count = proto.hand_count();
     player.library_count = proto.library_count();
     for (const auto &c : proto.hand())
-        player.hand.push_back(From_Proto(c));
+        player.hand.push_back(From_Proto(c).instance_id);
     for (const auto &p : proto.battlefield())
-        player.battlefield.push_back(From_Proto(p));
+        player.battlefield.push_back(From_Proto(p).permanent_id);
     for (const auto &c : proto.graveyard())
-        player.graveyard.push_back(From_Proto(c));
+        player.graveyard.push_back(From_Proto(c).instance_id);
     for (const auto &c : proto.exile())
-        player.exile.push_back(From_Proto(c));
+        player.exile.push_back(From_Proto(c).instance_id);
     player.has_priority = proto.has_priority();
     player.lands_played_this_turn = proto.lands_played_this_turn();
     return player;

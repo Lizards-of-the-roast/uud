@@ -10,8 +10,9 @@
 
 namespace Game {
 
+typedef uint64_t Permanent_ID;
 struct Permanent_State {
-    uint64_t permanent_id = 0;
+    Permanent_ID permanent_id = 0;
     Card card;
     uint64_t controller_id = 0;
     uint64_t owner_id = 0;

@@ -18,10 +18,10 @@ struct Player_State {
     Mana_Pool mana_pool;
     int hand_count = 0;
     int library_count = 0;
-    std::vector<Card> hand;
-    std::vector<Permanent_State> battlefield;
-    std::vector<Card> graveyard;
-    std::vector<Card> exile;
+    std::vector<Card_ID> hand;
+    std::vector<Permanent_ID> battlefield;
+    std::vector<Card_ID> graveyard;
+    std::vector<Card_ID> exile;
     bool has_priority = false;
     int lands_played_this_turn = 0;
 };
