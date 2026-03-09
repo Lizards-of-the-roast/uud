@@ -31,7 +31,7 @@ struct Async_Queue {
             queue_.pop();
     }
 
-   private:
+private:
     std::mutex mutex_;
     std::queue<T> queue_;
 };

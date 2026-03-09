@@ -3,14 +3,15 @@
 #include <iostream>
 #include <thread>
 
+#include "convert/proto_convert.hpp"
+#include "mtg/matchmaking_service.grpc.pb.h"
 #include "net_client.hpp"
 
 Matchmaking_Client matchmaking_client;
 
 void Matchmaking_Client::Join_Queue(const std::string &format, const std::string &deck_id) {
-    if (in_queue_)
+    if (in_queue_.exchange(true))
         return;
-    in_queue_ = true;
 
     std::thread([this, format, deck_id]() {
         auto stub = net.Matchmaking();
@@ -63,10 +64,8 @@ void Matchmaking_Client::Start_Status_Stream() {
     std::thread([this, ticket]() {
         auto stub = net.Matchmaking();
         if (!stub) {
-            Matchmaking_Update update;
-            update.error = true;
-            update.error_message = "Not connected to server";
-            update.matched = false;
+            Queue_Status update;
+            update.error = "Not connected to server";
             updates_.Push(update);
             in_queue_ = false;
             stream_active_ = false;
@@ -82,12 +81,7 @@ void Matchmaking_Client::Start_Status_Stream() {
 
         mtg::proto::QueueStatusResponse resp;
         while (stream_active_ && reader->Read(&resp)) {
-            Matchmaking_Update update;
-            update.matched = resp.matched();
-            update.game_id = resp.game_id();
-            update.queue_position = resp.queue_position();
-            update.estimated_wait_seconds = resp.estimated_wait_seconds();
-            update.error = false;
+            Queue_Status update = convert::From_Proto(resp);
             updates_.Push(update);
 
             if (resp.matched()) {
@@ -99,10 +93,8 @@ void Matchmaking_Client::Start_Status_Stream() {
 
         grpc::Status status = reader->Finish();
         if (!status.ok() && stream_active_) {
-            Matchmaking_Update update;
-            update.error = true;
-            update.error_message = status.error_message();
-            update.matched = false;
+            Queue_Status update;
+            update.error = status.error_message();
             updates_.Push(update);
         }
         in_queue_ = false;
@@ -151,7 +143,7 @@ std::optional<Matchmaking_Join_Result> Matchmaking_Client::Poll_Join() {
     return join_results_.Poll();
 }
 
-std::optional<Matchmaking_Update> Matchmaking_Client::Poll_Update() {
+std::optional<Queue_Status> Matchmaking_Client::Poll_Update() {
     return updates_.Poll();
 }
 

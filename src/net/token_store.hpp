@@ -16,7 +16,7 @@ struct Token_Store {
     static std::optional<Stored_Tokens> Load();
     static void Clear();
 
-   private:
+private:
     static std::mutex mutex_;
     static std::string Get_Path();
 };

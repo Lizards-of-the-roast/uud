@@ -195,6 +195,8 @@ message ActionPrompt {
         ColorChoicePrompt color_choice = 17;
         CreatureTypePrompt creature_type = 18;
         ManaPaymentPrompt mana_payment = 19;
+        OrderBlockersPrompt order_blockers = 20;
+        DamageAssignmentPrompt damage_assignment = 21;
     }
 }
 
@@ -242,4 +244,16 @@ message CreatureTypePrompt {}
 message ManaPaymentPrompt {
     string cost_description = 1;
     ManaPoolProto available = 2;
+}
+
+message OrderBlockersPrompt {
+    uint64 attacker_id = 1;
+    repeated uint64 unordered_blockers = 2;
+}
+
+message DamageAssignmentPrompt {
+    uint64 attacker_id = 1;
+    repeated uint64 ordered_blockers = 2;
+    int32 total_damage = 3;
+    uint64 defending_player_id = 4;
 }

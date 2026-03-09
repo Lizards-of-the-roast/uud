@@ -13,7 +13,6 @@ int main(void) {
     ////////////////////////
     // INIT
 
-
     // SDL
     if (!SDL_Init(SDL_INIT_VIDEO)) {
         std::cerr << "ERROR: " << "Couldnt Init SDL" << SDL_GetError() << '\n';
@@ -59,10 +58,8 @@ int main(void) {
         return 1;
     }
 
-    defer(
-        state.font.Clear(); //free fonts before closing TTF
-        TTF_Quit();
-    );
+    defer(state.font.Clear();  // free fonts before closing TTF
+          TTF_Quit(););
 
     // fail so ui can assume its not null
     if (!state.font[paths::beleren_bold]) {

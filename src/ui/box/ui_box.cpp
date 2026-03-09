@@ -77,24 +77,22 @@ std::tuple<UI_Box *, int> UI_Box::Neighbor_Prev() {
     return {NULL, 0};
 }
 
-void UI_Box::Text_Create(UI_Context *ctx, std::string str, TTF_Text_Properties props)
-{
+void UI_Box::Text_Create(UI_Context *ctx, std::string str, TTF_Text_Properties props) {
     if (this->font)
         props.font = this->font;
 
     if (!this->label)
-        this->label = TTF_CreateText(ctx->text_engine, props.font.value_or(((TTF_Font*)NULL)), str.c_str(), str.length());
-    else if (!str.empty())
-    {
-        //TTF_Text_Set_Properties(this->label, props);
+        this->label = TTF_CreateText(ctx->text_engine, props.font.value_or(((TTF_Font *)NULL)),
+                                     str.c_str(), str.length());
+    else if (!str.empty()) {
+        // TTF_Text_Set_Properties(this->label, props);
         props.Set(this->label);
         TTF_SetTextString(this->label, str.c_str(), str.length());
     }
     this->cursor += str.length();
 }
-void UI_Box::Text_Copy_Font(TTF_Font *font, TTF_Font_Properties props)
-{
-    //TODO dont copy a font if its identicle
+void UI_Box::Text_Copy_Font(TTF_Font *font, TTF_Font_Properties props) {
+    // TODO dont copy a font if its identicle
     if (this->font)
         TTF_CloseFont(this->font);
 
@@ -105,8 +103,7 @@ void UI_Box::Text_Copy_Font(TTF_Font *font, TTF_Font_Properties props)
         TTF_SetTextFont(this->label, this->font);
 }
 void UI_Box::Text_Insert(UI_Context *ctx, std::string text) {
-    if (!this->filter.empty())
-    {
+    if (!this->filter.empty()) {
         for (size_t i = 0; i < text.length(); i++)
             if (this->filter.find(text[i]) == this->filter.npos)
                 text.erase(i, 1);
@@ -209,7 +206,9 @@ UI_Signal UI_Box::Signal(UI_Context *ctx) {
         return sig;
     }
 
-    bool is_mouse_over = this->area.Collision(ctx->mouse_pos) && (!this->has_clip_ancestor || this->clip_ancestor_rect.Collision(ctx->mouse_pos));
+    bool is_mouse_over =
+        this->area.Collision(ctx->mouse_pos) &&
+        (!this->has_clip_ancestor || this->clip_ancestor_rect.Collision(ctx->mouse_pos));
 
     if (this->flags & UI_BOX_FLAG_CLICKABLE) {
         if (ctx->mouse_up_buttons && ctx->active == this->id) {
@@ -273,19 +272,20 @@ UI_Signal UI_Box::Signal(UI_Context *ctx) {
     }
 
     if (this->flags & UI_BOX_FLAG_VIEW_SCROLL && is_mouse_over &&
-        (ctx->mouse_wheel.x != 0 || ctx->mouse_wheel.y != 0) )
-    {
+        (ctx->mouse_wheel.x != 0 || ctx->mouse_wheel.y != 0)) {
         SDL_FPoint max_view_off = {
-            SDL_max(0, this->view_bounds.x - this->area.w ),
-            SDL_max(0, this->view_bounds.y - this->area.h ),
+            SDL_max(0, this->view_bounds.x - this->area.w),
+            SDL_max(0, this->view_bounds.y - this->area.h),
         };
         SDL_FPoint mask = {
             (float)!!(this->flags & UI_BOX_FLAG_VIEW_SCROLL_X),
             (float)!!(this->flags & UI_BOX_FLAG_VIEW_SCROLL_Y),
         };
         float step = (this->scroll_step) ? this->scroll_step : 10.0f;
-        this->view_offset.x = SDL_clamp(this->view_offset.x + ctx->mouse_wheel.x * mask.x * step, -max_view_off.x, 0);
-        this->view_offset.y = SDL_clamp(this->view_offset.y + ctx->mouse_wheel.y * mask.y * step, -max_view_off.y, 0);
+        this->view_offset.x =
+            SDL_clamp(this->view_offset.x + ctx->mouse_wheel.x * mask.x * step, -max_view_off.x, 0);
+        this->view_offset.y =
+            SDL_clamp(this->view_offset.y + ctx->mouse_wheel.y * mask.y * step, -max_view_off.y, 0);
     }
 
     if (is_mouse_over) {

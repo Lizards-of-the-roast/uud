@@ -31,7 +31,7 @@ struct UI_Context {
     std::stack<G2<Alignment>> label_alignments;
     std::stack<G2<UI_Size>> sizes;
     std::stack<UI_Margin> margins;
-    //std::stack<TTF_Font *> fonts;
+    // std::stack<TTF_Font *> fonts;
 
     Uint64 frame;
 
@@ -125,7 +125,8 @@ struct UI_Context {
     */
     void Pass_Event(SDL_Event event);
 
-    std::string Source_Loc_Str(const std::source_location source_loc = std::source_location::current());
+    std::string Source_Loc_Str(
+        const std::source_location source_loc = std::source_location::current());
     /*
         Create a UI_Box in this UI_Context
 
@@ -168,4 +169,3 @@ struct UI_Context {
     void Layout_Comp_Relative(void);
     void Layout_Compute(void);
 };
-

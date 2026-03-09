@@ -32,7 +32,7 @@ bool Menu_Main_Page(Widget_Context &w, UI_Context &ui, Menu_Tab &tab) {
             label = w.Label("Logged in as: " + state.username).box;
         w.styles.pop();
         if (label)
-           label->Text_Copy_Font(user_style[0].text.font.value(), {.size = 40});
+            label->Text_Copy_Font(user_style[0].text.font.value(), {.size = 40});
     }
 
     w.Spacer(UI_Size_Pixels(20));

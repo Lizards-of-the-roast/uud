@@ -122,6 +122,7 @@ add_executable(uud
     src/net/game_client.cpp
     src/net/token_store.cpp
     src/net/card_catalog.cpp
+    src/net/convert/proto_convert.cpp
     src/scenes/common/scene_helpers.cpp
     src/scenes/intro/intro.cpp
     src/scenes/intro/fade_in.cpp

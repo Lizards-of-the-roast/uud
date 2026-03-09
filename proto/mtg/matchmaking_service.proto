@@ -25,6 +25,7 @@ message QueueStatusResponse {
     string game_id = 2;
     int32 queue_position = 3;
     int32 estimated_wait_seconds = 4;
+    int32 elo = 5;
 }
 
 service MatchmakingService {

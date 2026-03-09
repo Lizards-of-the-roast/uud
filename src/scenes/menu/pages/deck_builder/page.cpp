@@ -10,26 +10,67 @@
 #include "scenes/menu/menu_types.hpp"
 #include "ui/widgets/widgets.hpp"
 
+struct Deck_Entry {
+    std::string card_name;
+    int count = 1;
+};
+
+struct Deck {
+    std::string name;
+    std::vector<Deck_Entry> cards;
+
+    int Total_Cards() const {
+        int total = 0;
+        for (const auto &e : cards)
+            total += e.count;
+        return total;
+    }
+
+    std::vector<std::string> To_Card_Names() const {
+        std::vector<std::string> names;
+        for (const auto &e : cards)
+            for (int i = 0; i < e.count; i++)
+                names.push_back(e.card_name);
+        return names;
+    }
+};
+
 static bool catalog_loaded = false;
 static bool page_active = false;
 static Deck current_deck;
 static std::string deck_status;
 static std::string deck_error;
-static int selected_deck_index = -1;
-static std::vector<std::string> saved_deck_names;
 
-static void Refresh_Saved_Decks() {
-    saved_deck_names = Deck_Store::List_Decks();
+static bool Is_Basic_Land(const Card &card) {
+    for (const auto &kw : card.keywords)
+        if (kw == "basic")
+            return true;
+    return false;
+}
+
+static std::string Format_Mana_Cost(const Mana_Cost &cost) {
+    std::string s;
+    if (cost.x_count > 0)
+        for (int i = 0; i < cost.x_count; i++)
+            s += "{X}";
+    if (cost.colorless > 0)
+        s += "{" + std::to_string(cost.colorless) + "}";
+    for (int i = 0; i < cost.white; i++) s += "{W}";
+    for (int i = 0; i < cost.blue; i++) s += "{U}";
+    for (int i = 0; i < cost.black; i++) s += "{B}";
+    for (int i = 0; i < cost.red; i++) s += "{R}";
+    for (int i = 0; i < cost.green; i++) s += "{G}";
+    return s;
 }
 
 static void Add_Card_To_Deck(const std::string &name) {
-    const Card_Entry *card = card_catalog.Find(name);
+    const Card *card = card_catalog.Find(name);
     if (!card)
         return;
 
     for (auto &entry : current_deck.cards) {
         if (entry.card_name == name) {
-            if (!card->is_basic_land && entry.count >= 4) {
+            if (!Is_Basic_Land(*card) && entry.count >= 4) {
                 deck_error = "Max 4 copies of " + name;
                 return;
             }
@@ -65,7 +106,6 @@ static void Styled_Message(Widget_Context &w, const std::string &text, SDL_Color
 bool Menu_Deck_Builder_Page(Widget_Context &w, UI_Context &ui, Menu_Tab &tab) {
     if (!catalog_loaded) {
         card_catalog.Load_Default_Cards();
-        Refresh_Saved_Decks();
         if (current_deck.name.empty())
             current_deck.name = "New Deck";
         catalog_loaded = true;
@@ -74,7 +114,6 @@ bool Menu_Deck_Builder_Page(Widget_Context &w, UI_Context &ui, Menu_Tab &tab) {
     if (!page_active) {
         deck_status.clear();
         deck_error.clear();
-        Refresh_Saved_Decks();
         page_active = true;
     }
 
@@ -98,7 +137,7 @@ bool Menu_Deck_Builder_Page(Widget_Context &w, UI_Context &ui, Menu_Tab &tab) {
         defer(ui.sizes.pop());
 
         w.styles.push(theme::Label_Title());
-        w.Label("Deck Builder").box->Text_Copy_Font(font, {.size=30});
+        w.Label("Deck Builder").box->Text_Copy_Font(font, {.size = 30});
         w.styles.pop();
 
         ui.sizes.push({UI_Size_Parent(0.95), UI_Size_Child()});
@@ -106,9 +145,8 @@ bool Menu_Deck_Builder_Page(Widget_Context &w, UI_Context &ui, Menu_Tab &tab) {
             UI_Box *name_row = ui.leafs.back();
             name_row->child_layout_axis = 0;
 
-            //name_row->min_size.y = (float)(TTF_GetFontHeight(font)) + 6*2;
             ui.sizes.push({UI_Size_Fit(), UI_Size_Text(6)});
-            defer (ui.sizes.pop());
+            defer(ui.sizes.pop());
 
             w.styles.push(theme::Label_Body());
             w.Label("Deck:");
@@ -116,15 +154,6 @@ bool Menu_Deck_Builder_Page(Widget_Context &w, UI_Context &ui, Menu_Tab &tab) {
 
             w.styles.push(theme::Textbox());
             UI_Signal name_sig = w.Textbox(current_deck.name);
-            /* Uncomment if you want to erase the temp text on first focus
-            if (name_sig.flags & (UI_SIG_FOCUSED | UI_SIG_LEFT_PRESSED)
-            &&  name_sig.box->label && name_sig.box->label->text
-            &&  std::string(name_sig.box->label->text) == "New Deck")
-            {
-                TTF_SetTextString(name_sig.box->label, "", 0);
-                name_sig.box->cursor = 0;
-            }
-            */
             w.styles.pop();
             if (name_sig.box->label && name_sig.box->label->text)
                 current_deck.name = name_sig.box->label->text;
@@ -168,33 +197,33 @@ bool Menu_Deck_Builder_Page(Widget_Context &w, UI_Context &ui, Menu_Tab &tab) {
 
                 auto results = card_catalog.Search(search_text);
 
-                int max_cards = 999;//(int)(panel_height / 22.0f) - 2;
+                int max_cards = 999;
                 if (max_cards < 3)
                     max_cards = 3;
 
                 int count = 0;
-                //TODO: use UI_Size_Fix for y but only after fit is made to work right
                 ui.sizes.push({UI_Size_Parent(1.0f), UI_Size_Parent(0.75)});
                 defer(ui.sizes.pop());
-                SCROLL_O(&w, 1, {}, UI_BOX_FLAG_CLIP)
-                {
-                        ui.sizes.push({UI_Size_Parent(1.0f), UI_Size_Text(6)});
-                        defer(ui.sizes.pop());
+                SCROLL_O(&w, 1, {}, UI_BOX_FLAG_CLIP) {
+                    ui.sizes.push({UI_Size_Parent(1.0f), UI_Size_Text(6)});
+                    defer(ui.sizes.pop());
 
-                        for (const auto *card : results) {
-                            if (count >= max_cards)
-                                break;
+                    for (const auto *card : results) {
+                        if (count >= max_cards)
+                            break;
 
-                            std::string display = card->name;
-                            if (!card->mana_cost.empty())
-                                display += " " + card->mana_cost;
+                        std::string display = card->name;
+                        std::string cost_str = Format_Mana_Cost(card->mana_cost);
+                        if (!cost_str.empty())
+                            display += " " + cost_str;
 
-                            UI_Signal card_btn = w.Button(display, {}, std::string("cat_" + card->name));
-                            if (card_btn.flags & UI_SIG_LEFT_RELEASED)
-                                Add_Card_To_Deck(card->name);
+                        UI_Signal card_btn =
+                            w.Button(display, {}, std::string("cat_" + card->name));
+                        if (card_btn.flags & UI_SIG_LEFT_RELEASED)
+                            Add_Card_To_Deck(card->name);
 
-                            count++;
-                        }
+                        count++;
+                    }
                 }
             }
             ui.sizes.pop();
@@ -217,8 +246,7 @@ bool Menu_Deck_Builder_Page(Widget_Context &w, UI_Context &ui, Menu_Tab &tab) {
                 defer(ui.sizes.pop());
                 w.styles.push(theme::Button_Secondary());
 
-                SCROLL_O(&w, 1, {}, UI_BOX_FLAG_CLIP)
-                {
+                SCROLL_O(&w, 1, {}, UI_BOX_FLAG_CLIP) {
                     UI_Box *div = ui.leafs.back();
                     div->child_layout_axis = 1;
 
@@ -238,16 +266,10 @@ bool Menu_Deck_Builder_Page(Widget_Context &w, UI_Context &ui, Menu_Tab &tab) {
         }
         ui.sizes.pop();
 
-
         ui.sizes.push({UI_Size_Fit(), UI_Size_Child()});
         DIV(&w) {
             UI_Box *action_bar = ui.leafs.back();
             action_bar->child_layout_axis = 1;
-            /*
-            TODO: add a ceck for downward dependant + align_center
-                  in the ui code somewhere
-            */
-            //action_bar->elem_align = UI_ALIGN_CENTER;
 
             ui.sizes.push({UI_Size_Fit(), UI_Size_Text(8)});
             defer(ui.sizes.pop());
@@ -255,33 +277,6 @@ bool Menu_Deck_Builder_Page(Widget_Context &w, UI_Context &ui, Menu_Tab &tab) {
             const float bm = 8.0f;
             ui.margins.push({.left = bm, .right = bm, .top = 0, .bottom = 0});
             defer(ui.margins.pop());
-
-            if (w.Button("Save").flags & UI_SIG_LEFT_RELEASED) {
-                if (current_deck.name.empty() || current_deck.name == "New Deck") {
-                    deck_error = "Enter a deck name first";
-                } else if (Deck_Store::Save(current_deck)) {
-                    deck_status = "Deck saved!";
-                    deck_error.clear();
-                    Refresh_Saved_Decks();
-                } else {
-                    deck_error = "Failed to save deck";
-                    deck_status.clear();
-                }
-            }
-
-            if (!saved_deck_names.empty()) {
-                w.styles.push(theme::Button_Secondary());
-                if (w.Button("Load").flags & UI_SIG_LEFT_RELEASED) {
-                    selected_deck_index = (selected_deck_index + 1) % (int)saved_deck_names.size();
-                    auto loaded = Deck_Store::Load(saved_deck_names[selected_deck_index]);
-                    if (loaded.has_value()) {
-                        current_deck = *loaded;
-                        deck_status = "Loaded: " + current_deck.name;
-                        deck_error.clear();
-                    }
-                }
-                w.styles.pop();
-            }
 
             w.styles.push(theme::Button_Danger());
             if (w.Button("Clear").flags & UI_SIG_LEFT_RELEASED) {

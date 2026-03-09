@@ -12,9 +12,9 @@ void Menu_Credits_Page(Widget_Context &w, UI_Context &ui) {
         div->elem_align = UI_ALIGN_CENTER;
         theme::Apply_Panel(div, theme::Panel());
 
-        //TTF_Font *font_title = state.font[paths::beleren_bold];
-        //TTF_SetFontSize(font_title, 22);
-        //ui.fonts.push(font_title);
+        // TTF_Font *font_title = state.font[paths::beleren_bold];
+        // TTF_SetFontSize(font_title, 22);
+        // ui.fonts.push(font_title);
 
         ui.sizes.push({UI_Size_Text(50), UI_Size_Text(10)});
         w.styles.push(theme::Label_Title());
@@ -23,10 +23,10 @@ void Menu_Credits_Page(Widget_Context &w, UI_Context &ui) {
         w.styles.pop();
         ui.sizes.pop();
 
-        //ui.fonts.pop();
+        // ui.fonts.pop();
 
         TTF_Font *font_body = state.font[paths::mplantin_regular];
-        //TTF_SetFontSize(font_body, 16);
+        // TTF_SetFontSize(font_body, 16);
         /*
         ui.fonts.push(font_body);
         defer(ui.fonts.pop());

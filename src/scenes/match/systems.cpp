@@ -1,7 +1,7 @@
 #include "systems.hpp"
 
-#include "core/state.hpp"
 #include "core/defer.hpp"
+#include "core/state.hpp"
 
 static const std::array<std::string, 7> card_ids = {
     "card 0", "card 1", "card 2", "card 3", "card 4", "card 5", "card 6",
@@ -11,9 +11,7 @@ const float card_height = 200.0f;
 const float card_offset = 40.0f;
 const float div_width = (card_width * 7.0f - card_offset * 5);
 
-void Hand_UI(Widget_Context &w, UI_Context &ui, SDL_Texture *card_texture)
-{
-
+void Hand_UI(Widget_Context &w, UI_Context &ui, SDL_Texture *card_texture) {
     DIV_O(&w, Rect{state.window_width * 0.5f - div_width * 0.5f,
                    state.window_height - card_height / 3.0f, div_width, card_height}) {
         UI_Box *div = ui.leafs.back();
@@ -49,7 +47,7 @@ void Drag_Overlay_UI(UI_Context &ui, SDL_Texture *card_texture) {
     if (!active || ((~active->signal_last.flags) & UI_SIG_LEFT_DOWN))
         return;
 
-    //TODO: add checks for if the ui element should be draggable
+    // TODO: add checks for if the ui element should be draggable
 
     V2 box_pos = (V2)(active->area.pos() + active->area.size() / 2);
 

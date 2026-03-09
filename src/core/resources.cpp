@@ -51,11 +51,11 @@ void Font_Resource::Clear(void) {
     if (this->map.size() == 0)
         return;
 
-    for (auto &i : this->map) if (i.second)
-    {
-        TTF_CloseFont(i.second);
-        i.second = NULL;
-    }
+    for (auto &i : this->map)
+        if (i.second) {
+            TTF_CloseFont(i.second);
+            i.second = NULL;
+        }
 
     this->map.clear();
 }

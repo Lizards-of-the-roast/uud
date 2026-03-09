@@ -25,7 +25,7 @@ bool Menu_Matchmaking_Page(Widget_Context &w, UI_Context &ui, Menu_Tab &tab) {
         div->elem_align = UI_ALIGN_CENTER;
         theme::Apply_Panel(div, theme::Panel());
 
-        //TTF_Font *font = state.font[paths::beleren_bold];
+        // TTF_Font *font = state.font[paths::beleren_bold];
 
         /*
         ui.fonts.push(font);
@@ -62,8 +62,8 @@ bool Menu_Matchmaking_Page(Widget_Context &w, UI_Context &ui, Menu_Tab &tab) {
             }
 
             if (auto update = matchmaking_client.Poll_Update()) {
-                if (update->error) {
-                    error_text = update->error_message;
+                if (update->error.has_value()) {
+                    error_text = *update->error;
                     status_text.clear();
                 } else if (update->matched) {
                     state.current_game_id = update->game_id;
@@ -71,14 +71,14 @@ bool Menu_Matchmaking_Page(Widget_Context &w, UI_Context &ui, Menu_Tab &tab) {
                     status_text.clear();
                     return true;
                 } else {
-                    status_text =
-                        "Position: " + std::to_string(update->queue_position) + " | Wait: ~" +
-                        std::to_string(update->estimated_wait_seconds) + "s";
+                    status_text = "Position: " + std::to_string(update->queue_position) +
+                                  " | Wait: ~" + std::to_string(update->estimated_wait_seconds) +
+                                  "s";
                 }
             }
         }
 
-        //TTF_SetFontSize(font, 24);
+        // TTF_SetFontSize(font, 24);
         w.styles.push(theme::Label_Title());
         w.Label("Matchmaking");
         w.styles.pop();
@@ -88,7 +88,7 @@ bool Menu_Matchmaking_Page(Widget_Context &w, UI_Context &ui, Menu_Tab &tab) {
         if (!status_text.empty())
             Styled_Message(w, status_text, theme::TEXT_INFO);
 
-        //TTF_SetFontSize(font, 18);
+        // TTF_SetFontSize(font, 18);
 
         ui.sizes.push({UI_Size_Fit(), UI_Size_Text(10)});
         defer(ui.sizes.pop());

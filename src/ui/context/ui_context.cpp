@@ -20,7 +20,7 @@ UI_Context::UI_Context(SDL_Window *window, TTF_TextEngine *text_engine) {
     label_alignments = {};
     sizes = {};
     margins = {};
-    //fonts = {};
+    // fonts = {};
     frame = {};
     mouse_history = {};
     mouse_pos = V2{};
@@ -179,12 +179,9 @@ void UI_Context::Pass_Event(SDL_Event event) {
     }
 }
 
-
-std::string UI_Context::Source_Loc_Str(const std::source_location source_loc)
-{
-    return std::string(source_loc.file_name()) + ":" + std::string(source_loc.function_name())
-           + ":" + std::to_string(source_loc.line()) + ":"
-           + std::to_string(source_loc.column());
+std::string UI_Context::Source_Loc_Str(const std::source_location source_loc) {
+    return std::string(source_loc.file_name()) + ":" + std::string(source_loc.function_name()) +
+           ":" + std::to_string(source_loc.line()) + ":" + std::to_string(source_loc.column());
 }
 
 UI_Signal UI_Context::Box_Make(V2 fixed_pos, UI_Box_Flags flags,
@@ -251,7 +248,7 @@ UI_Signal UI_Context::Box_Make(V2 fixed_pos, UI_Box_Flags flags,
     // semantic size or dont (just fixed size)
     // box->area = area;
     box->size = (this->sizes.size()) ? this->sizes.top() : G2<UI_Size>{};
-    box->fixed_size = V2{-1,-1};
+    box->fixed_size = V2{-1, -1};
     box->fixed_position = fixed_pos;
     box->margin = (this->margins.size()) ? this->margins.top() : UI_Margin{};
 

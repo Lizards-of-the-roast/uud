@@ -41,9 +41,16 @@ message ValidateTokenResponse {
     string username = 3;
 }
 
+message LogoutRequest {}
+
+message LogoutResponse {
+    bool success = 1;
+}
+
 service AuthService {
     rpc Login(LoginRequest) returns (LoginResponse);
     rpc Register(RegisterRequest) returns (RegisterResponse);
     rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse);
     rpc ValidateToken(ValidateTokenRequest) returns (ValidateTokenResponse);
+    rpc Logout(LogoutRequest) returns (LogoutResponse);
 }

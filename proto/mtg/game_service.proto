@@ -4,7 +4,6 @@ package mtg.proto;
 import "mtg/game_state.proto";
 import "mtg/common.proto";
 
-// Game lifecycle
 message CreateGameRequest {
     string format = 1;
 }
@@ -44,10 +43,10 @@ message GameSummary {
     string status = 5;
 }
 
-// Deck submission
 message SubmitDeckRequest {
     string game_id = 1;
     repeated string card_names = 2;
+    string preset_deck_name = 3;
 }
 
 message SubmitDeckResponse {
@@ -55,7 +54,6 @@ message SubmitDeckResponse {
     repeated string errors = 2;
 }
 
-// Game state query
 message GetGameStateRequest {
     string game_id = 1;
 }
@@ -64,7 +62,6 @@ message GetGameStateResponse {
     GameSnapshot snapshot = 1;
 }
 
-// Player actions during gameplay
 message PlayerAction {
     string game_id = 1;
     string prompt_id = 2;
@@ -83,6 +80,8 @@ message PlayerAction {
         PayManaAction pay_mana = 21;
         ConcedeAction concede = 22;
         PlayLandAction play_land = 23;
+        OrderBlockersAction order_blockers = 24;
+        DamageAssignmentAction damage_assignment = 25;
     }
 }
 
@@ -149,10 +148,28 @@ message PayManaAction {
 
 message ConcedeAction {}
 
-// Stream request for spectating or reconnection
+message OrderBlockersAction {
+    repeated uint64 ordered_blocker_ids = 1;
+}
+
+message DamageAssignmentAction {
+    repeated int32 damage_to_each_blocker = 1;
+    int32 damage_to_player = 2;
+}
+
 message StreamRequest {
     string game_id = 1;
     uint64 last_sequence = 2;
+}
+
+message RejoinGameRequest {
+    string game_id = 1;
+}
+
+message RejoinGameResponse {
+    bool success = 1;
+    string error = 2;
+    GameSnapshot snapshot = 3;
 }
 
 service GameService {
@@ -162,6 +179,7 @@ service GameService {
     rpc ListGames(ListGamesRequest) returns (ListGamesResponse);
     rpc SubmitDeck(SubmitDeckRequest) returns (SubmitDeckResponse);
     rpc GetGameState(GetGameStateRequest) returns (GetGameStateResponse);
+    rpc RejoinGame(RejoinGameRequest) returns (RejoinGameResponse);
     rpc StreamGameState(StreamRequest) returns (stream GameEvent);
     rpc SubmitAction(stream PlayerAction) returns (stream GameEvent);
 }

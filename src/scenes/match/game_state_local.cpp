@@ -1,58 +1,57 @@
 #include "game_state_local.hpp"
 
 #include <string>
+#include <variant>
 
-void Local_Game_State::Apply_Snapshot(const mtg::proto::GameSnapshot &snapshot) {
+void Local_Game_State::Apply_Snapshot(const Game_Snapshot &snapshot) {
     snapshot_ = snapshot;
     has_snapshot_ = true;
 }
 
-void Local_Game_State::Apply_Event(const mtg::proto::GameEvent &event) {
-    if (event.has_snapshot()) {
-        Apply_Snapshot(event.snapshot().snapshot());
-        return;
-    }
+void Local_Game_State::Apply_Event(const Game_Event &event) {
+    std::visit([this](const auto &e) {
+        using T = std::decay_t<decltype(e)>;
 
-    if (event.has_game_over()) {
-        game_over_ = true;
-        game_over_msg_ = "Game Over - Winner ID: " + std::to_string(event.game_over().winner_id());
-    }
-
-    if (event.has_life_changed() && has_snapshot_) {
-        for (auto &player : *snapshot_.mutable_players()) {
-            if (player.player_id() == event.life_changed().player_id()) {
-                player.set_life_total(event.life_changed().new_total());
+        if constexpr (std::is_same_v<T, Game_Snapshot_Event>) {
+            Apply_Snapshot(e.snapshot);
+        } else if constexpr (std::is_same_v<T, Game_Over_Event>) {
+            game_over_ = true;
+            game_over_msg_ = "Game Over - Winner ID: " + std::to_string(e.winner_id);
+        } else if constexpr (std::is_same_v<T, Life_Changed_Event>) {
+            if (has_snapshot_) {
+                for (auto &player : snapshot_.players)
+                    if (player.player_id == e.player_id)
+                        player.life_total = e.new_total;
             }
+        } else if constexpr (std::is_same_v<T, Phase_Changed_Event>) {
+            if (has_snapshot_)
+                snapshot_.current_phase = e.new_phase;
         }
-    }
-
-    if (event.has_phase_changed() && has_snapshot_) {
-        snapshot_.set_current_phase(event.phase_changed().new_phase());
-    }
+    }, event.event);
 }
 
 bool Local_Game_State::Has_Snapshot() const {
     return has_snapshot_;
 }
 
-const mtg::proto::GameSnapshot &Local_Game_State::Snapshot() const {
+const Game_Snapshot &Local_Game_State::Snapshot() const {
     return snapshot_;
 }
 
-const mtg::proto::PlayerState *Local_Game_State::My_State(uint64_t my_user_id) const {
+const Player_State *Local_Game_State::My_State(uint64_t my_user_id) const {
     if (!has_snapshot_)
         return nullptr;
-    for (const auto &player : snapshot_.players())
-        if (player.player_id() == my_user_id)
+    for (const auto &player : snapshot_.players)
+        if (player.player_id == my_user_id)
             return &player;
     return nullptr;
 }
 
-const mtg::proto::PlayerState *Local_Game_State::Opponent_State(uint64_t my_user_id) const {
+const Player_State *Local_Game_State::Opponent_State(uint64_t my_user_id) const {
     if (!has_snapshot_)
         return nullptr;
-    for (const auto &player : snapshot_.players())
-        if (player.player_id() != my_user_id)
+    for (const auto &player : snapshot_.players)
+        if (player.player_id != my_user_id)
             return &player;
     return nullptr;
 }
@@ -60,35 +59,21 @@ const mtg::proto::PlayerState *Local_Game_State::Opponent_State(uint64_t my_user
 std::string Local_Game_State::Phase_Name() const {
     if (!has_snapshot_)
         return "Unknown";
-    switch (snapshot_.current_phase()) {
-        case mtg::proto::PHASE_UNTAP:
-            return "Untap";
-        case mtg::proto::PHASE_UPKEEP:
-            return "Upkeep";
-        case mtg::proto::PHASE_DRAW:
-            return "Draw";
-        case mtg::proto::PHASE_MAIN_1:
-            return "Main 1";
-        case mtg::proto::PHASE_BEGINNING_OF_COMBAT:
-            return "Begin Combat";
-        case mtg::proto::PHASE_DECLARE_ATTACKERS:
-            return "Declare Attackers";
-        case mtg::proto::PHASE_DECLARE_BLOCKERS:
-            return "Declare Blockers";
-        case mtg::proto::PHASE_FIRST_STRIKE_DAMAGE:
-            return "First Strike Damage";
-        case mtg::proto::PHASE_COMBAT_DAMAGE:
-            return "Combat Damage";
-        case mtg::proto::PHASE_END_OF_COMBAT:
-            return "End Combat";
-        case mtg::proto::PHASE_MAIN_2:
-            return "Main 2";
-        case mtg::proto::PHASE_END_STEP:
-            return "End Step";
-        case mtg::proto::PHASE_CLEANUP:
-            return "Cleanup";
-        default:
-            return "Unknown";
+    switch (snapshot_.current_phase) {
+        case Phase::Untap:              return "Untap";
+        case Phase::Upkeep:             return "Upkeep";
+        case Phase::Draw:               return "Draw";
+        case Phase::Main_1:             return "Main 1";
+        case Phase::Beginning_Of_Combat: return "Begin Combat";
+        case Phase::Declare_Attackers:  return "Declare Attackers";
+        case Phase::Declare_Blockers:   return "Declare Blockers";
+        case Phase::First_Strike_Damage: return "First Strike Damage";
+        case Phase::Combat_Damage:      return "Combat Damage";
+        case Phase::End_Of_Combat:      return "End Combat";
+        case Phase::Main_2:             return "Main 2";
+        case Phase::End_Step:           return "End Step";
+        case Phase::Cleanup:            return "Cleanup";
+        default:                        return "Unknown";
     }
 }
 

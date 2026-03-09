@@ -46,7 +46,7 @@ struct UI_Box {
 
     // std::string label;
     TTF_Text *label;
-    TTF_Font *font; //optional if copied
+    TTF_Font *font;  // optional if copied
     size_t cursor;
     bool allow_multiline;
     std::string filter;

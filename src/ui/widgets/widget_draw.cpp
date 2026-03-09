@@ -141,8 +141,7 @@ static void Widget_Draw_Div_Impl(Widget_Context *ctx, UI_Box *box, Widget_Data *
     (void)data;
 }
 
-Widget_Style Widget_Context::Get_Style(UI_Box *box, Widget_Data *data)
-{
+Widget_Style Widget_Context::Get_Style(UI_Box *box, Widget_Data *data) {
     if (!box || !data)
         return {};
 
@@ -205,13 +204,11 @@ void Widget_Context::Draw(UI_Box *box) {
         data->draw_fn(this, box, data);
 
     if (data->flags & WIDGET_FLAG_DRAW_TEXT) {
-
         if (box->font)
             style.text.font = {};
         style.text.Set(box->label);
 
         Widget_Draw_Text(box->label, box->area, box->label_alignment);
-
     }
 
     return;

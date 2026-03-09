@@ -9,9 +9,8 @@ Auth_Client auth_client;
 
 void Auth_Client::Login(const std::string &server, const std::string &username,
                         const std::string &password) {
-    if (in_flight_)
+    if (in_flight_.exchange(true))
         return;
-    in_flight_ = true;
 
     std::thread([this, server, username, password]() {
         net.Connect(server);
@@ -56,9 +55,8 @@ void Auth_Client::Login(const std::string &server, const std::string &username,
 
 void Auth_Client::Register(const std::string &server, const std::string &username,
                            const std::string &email, const std::string &password) {
-    if (in_flight_)
+    if (in_flight_.exchange(true))
         return;
-    in_flight_ = true;
 
     std::thread([this, server, username, email, password]() {
         net.Connect(server);
@@ -96,9 +94,8 @@ void Auth_Client::Register(const std::string &server, const std::string &usernam
 }
 
 void Auth_Client::Validate(const std::string &server, const std::string &token) {
-    if (in_flight_)
+    if (in_flight_.exchange(true))
         return;
-    in_flight_ = true;
 
     std::thread([this, server, token]() {
         net.Connect(server);
@@ -134,6 +131,67 @@ void Auth_Client::Validate(const std::string &server, const std::string &token) 
 
         results_.Push(result);
         in_flight_ = false;
+    }).detach();
+}
+
+void Auth_Client::Refresh(const std::string &server, const std::string &refresh_token) {
+    if (in_flight_.exchange(true))
+        return;
+
+    std::thread([this, server, refresh_token]() {
+        if (!net.IsConnected())
+            net.Connect(server);
+
+        auto stub = net.Auth();
+        Auth_Refresh_Result result;
+        if (!stub) {
+            result.success = false;
+            result.error = "Failed to connect to server";
+            results_.Push(result);
+            in_flight_ = false;
+            return;
+        }
+
+        grpc::ClientContext ctx;
+        mtg::proto::RefreshTokenRequest req;
+        req.set_refresh_token(refresh_token);
+
+        mtg::proto::RefreshTokenResponse resp;
+        grpc::Status status = stub->RefreshToken(&ctx, req, &resp);
+
+        if (status.ok()) {
+            result.success = true;
+            result.access_token = resp.access_token();
+            result.refresh_token = resp.refresh_token();
+
+            net.Set_Token(resp.access_token());
+            Token_Store::Save(resp.access_token(), resp.refresh_token(), server);
+        } else {
+            result.success = false;
+            result.error = status.error_message();
+            Token_Store::Clear();
+        }
+
+        results_.Push(result);
+        in_flight_ = false;
+    }).detach();
+}
+
+void Auth_Client::Logout() {
+    std::thread([]() {
+        auto stub = net.Auth();
+        if (!stub)
+            return;
+
+        grpc::ClientContext ctx;
+        net.Attach_Auth(ctx);
+        mtg::proto::LogoutRequest req;
+        mtg::proto::LogoutResponse resp;
+        stub->Logout(&ctx, req, &resp);
+
+        net.Set_Token("");
+        net.Disconnect();
+        Token_Store::Clear();
     }).detach();
 }
 

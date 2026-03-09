@@ -15,10 +15,17 @@
 #include <SDL3_image/SDL_image.h>
 #include <SDL3_ttf/SDL_ttf.h>
 
-#define FILTER_STRING "abcdefghijklmnopqrstuvwxyz" \
-                      "ABCDEFGHIJKLMNOPQRSTUVWXYZ" \
-                      "0123456789" \
-                      "_-"
+#define FILTER_USERNAME          \
+    "abcdefghijklmnopqrstuvwxyz" \
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZ" \
+    "0123456789"                 \
+    "_-"
+
+#define FILTER_PASSWORD          \
+    "abcdefghijklmnopqrstuvwxyz" \
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZ" \
+    "0123456789"                 \
+    "!@#$%^&*()_+-=[]{}|;:',.<>?/`~ \"\\"
 
 enum class Login_Mode {
     Login,
@@ -43,7 +50,7 @@ bool Scene_Login(void) {
     w.default_style = theme::Button_Primary();
 
     SDL_Texture *bg = state.texture[paths::bg_texture];
-    //TTF_Font *font = state.font[paths::beleren_bold];
+    // TTF_Font *font = state.font[paths::beleren_bold];
 
     Login_Mode mode = Login_Mode::Login;
     std::string error_text;
@@ -128,7 +135,6 @@ bool Scene_Login(void) {
         ui.sizes.push({UI_Size_Parent(0.35), UI_Size_Parent(0.9)});
         defer(ui.sizes.pop());
 
-
         DIV(&w) {
             UI_Box *root_div = ui.leafs.back();
             root_div->child_layout_axis = 1;
@@ -147,14 +153,14 @@ bool Scene_Login(void) {
             defer(ui.fonts.pop());
             */
 
-            //TTF_SetFontSize(font, 28);
+            // TTF_SetFontSize(font, 28);
             w.styles.push(theme::Label_Title());
             ui.sizes.push({UI_Size_Parent(0.9), UI_Size_Text(10)});
             w.Label("Untap Upkeep Draw");
             ui.sizes.pop();
             w.styles.pop();
 
-            //TTF_SetFontSize(font, 16);
+            // TTF_SetFontSize(font, 16);
 
             ui.sizes.push({UI_Size_Parent(0.85), UI_Size_Text(8)});
             defer(ui.sizes.pop());
@@ -165,7 +171,7 @@ bool Scene_Login(void) {
                 w.styles.pop();
                 w.styles.push(theme::Textbox());
                 UI_Signal username_sig = w.Textbox();
-                username_sig.box->filter = FILTER_STRING;
+                username_sig.box->filter = FILTER_USERNAME;
                 w.styles.pop();
 
                 w.styles.push(theme::Label_Body());
@@ -173,15 +179,14 @@ bool Scene_Login(void) {
                 w.styles.pop();
                 w.styles.push(theme::Textbox());
                 UI_Signal password_sig = w.Textbox();
-                password_sig.box->filter = FILTER_STRING;
+                password_sig.box->filter = FILTER_PASSWORD;
                 w.styles.pop();
 
                 w.styles.push(theme::Label_Body());
                 w.Label("Server Address");
                 w.styles.pop();
                 w.styles.push(theme::Textbox());
-                UI_Signal server_sig =
-                    w.Textbox(state.server_address);
+                UI_Signal server_sig = w.Textbox(state.server_address);
                 w.styles.pop();
 
                 if (!error_text.empty())
@@ -189,7 +194,7 @@ bool Scene_Login(void) {
                 if (!success_text.empty())
                     Styled_Message(w, success_text, theme::TEXT_SUCCESS);
 
-                //TTF_SetFontSize(font, 18);
+                // TTF_SetFontSize(font, 18);
 
                 if (auth_client.In_Flight()) {
                     w.styles.push(theme::Label_Body());
@@ -257,8 +262,7 @@ bool Scene_Login(void) {
                 w.Label("Server Address");
                 w.styles.pop();
                 w.styles.push(theme::Textbox());
-                UI_Signal server_sig =
-                    w.Textbox();
+                UI_Signal server_sig = w.Textbox();
                 w.styles.pop();
 
                 if (!error_text.empty())
@@ -266,7 +270,7 @@ bool Scene_Login(void) {
                 if (!success_text.empty())
                     Styled_Message(w, success_text, theme::TEXT_SUCCESS);
 
-                //TTF_SetFontSize(font, 18);
+                // TTF_SetFontSize(font, 18);
 
                 if (auth_client.In_Flight()) {
                     w.styles.push(theme::Label_Body());
@@ -309,7 +313,7 @@ bool Scene_Login(void) {
                 }
             }
 
-            //w.Spacer(UI_Size_Parent(0.9, 0));
+            // w.Spacer(UI_Size_Parent(0.9, 0));
 
             w.styles.push(theme::Button_Danger());
             UI_Signal quit = w.Button("Quit");
