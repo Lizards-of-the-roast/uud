@@ -7,6 +7,8 @@
 #include "game/instances.hpp"
 #include "game/permanent.hpp"
 
+#include "scenes/common/ui_theme.hpp"
+
 static const std::array<std::string, 7> card_ids = {
     "card 0", "card 1", "card 2", "card 3", "card 4", "card 5", "card 6",
 };
@@ -14,7 +16,8 @@ const float card_width = 143.0f;
 const float card_height = 200.0f;
 const float card_offset = 40.0f;
 const float card_grow_amount = 60.0f;
-const float div_width = (card_width * 7.0f - card_offset * 5);
+
+UI_ID battlefield_ui = 0;
 
 /*
 I assume this is the servers job but i dont have the server yet
@@ -32,18 +35,53 @@ static Game::Permanent_ID Card_To_Permanent(Game::Card_ID card, Game::Player_Sta
 
 void Battlefield_UI(Widget_Context &w, UI_Context &ui, Game::Player_State *player) {
     Rect dst = {};
-    dst.w = (float)state.window_width * 0.5f;
+    dst.w = (float)state.window_width - (float)state.window_width * 0.2f;
     dst.h = (float)state.window_height * 0.5f;
-    dst.x = (float)state.window_width * 0.5f - dst.w/2;
+    dst.x = (float)state.window_width * 0.2f;
     dst.y = (float)state.window_height * 0.5f - dst.h/2;
-    w.Button(std::to_string(player->battlefield.size()), dst, UI_BOX_FLAG_DROPPABLE);
+
+    w.styles.push(theme::Button_Primary());
+    defer (w.styles.pop());
+    UI_Signal div = w.Div_Begin(dst,
+                                 UI_BOX_FLAG_DROPPABLE);
+    battlefield_ui = div.box->id;
+    defer (w.Div_End());
+
+    div.box->child_layout_axis = 1;
+    div.box->elem_align = {UI_ALIGN_LEFT, UI_ALIGN_BOTTOM};
+
+    if (Widget_Data *widget = std::any_cast<Widget_Data>(&div.box->userdata))
+    {
+        widget->flags |= WIDGET_FLAG_DRAW_BORDER;
+    }
+    ui.sizes.push({UI_Size_Fit(), UI_Size_Pixels(card_height)});
+    defer (ui.sizes.pop());
+
+    SCROLL_O(&w, 0, {}, UI_BOX_FLAG_CLIP)
+    {
+        ui.sizes.push({UI_Size_Pixels(card_width), UI_Size_Pixels(card_height)});
+        defer (ui.sizes.pop());
+        for (size_t i = 0; i < player->battlefield.size(); i++)
+        {
+            const Game::Permanent_State *p = Game::instances.Find(player->battlefield[i]);
+            const Game::Card *c = Game::instances.Find(p->card);
+            w.Card(*c);
+            if (p->tapped)
+            {
+                //make it le tapped
+            }
+        }
+    }
 }
 
 void Hand_UI(Widget_Context &w, UI_Context &ui, Game::Player_State *player) {
-    DIV_O(&w, Rect{state.window_width * 0.5f - div_width * 0.5f,
+    float n = (float)player->hand.size();
+    float div_width = card_width * (float)player->hand.size() - ((card_offset * n * (n + 1))/2);
+    DIV_O(&w, Rect{state.window_width/2 - div_width/2,
                    state.window_height - card_height / 3.0f, div_width, card_height}) {
         UI_Box *div = ui.leafs.back();
         div->flags &= ~UI_BOX_FLAG_CLIP;
+        div->elem_align = UI_ALIGN_CENTER;
         div->offset.y = 0;
 
         ui.sizes.push({UI_Size_Pixels(card_width), UI_Size_Pixels(card_height)});
@@ -52,7 +90,7 @@ void Hand_UI(Widget_Context &w, UI_Context &ui, Game::Player_State *player) {
         for (size_t i = 0; i < player->hand.size(); i++) {
             const Game::Card *c = Game::instances.Find(player->hand[i]);
             UI_Signal button = w.Card(*c, {}, UI_BOX_FLAG_CLICKABLE | UI_BOX_FLAG_CLIP | UI_BOX_FLAG_DRAGGABLE, "Card[" + std::to_string(c->instance_id));
-            if (button.flags & UI_SIG_DROPPED_OUT)
+            if (button.flags & UI_SIG_DROPPED_OUT && button.drop_site == battlefield_ui)
             {
                 //TODO: this is probably where you tell the server that you are trying to
                 //      play a card, rather then just editing state
@@ -84,12 +122,16 @@ void Library_UI(Widget_Context &w, UI_Context &ui, SDL_Texture *card_texture) {
     */
 }
 
-void Drag_Overlay_UI(UI_Context &ui, SDL_Texture *card_texture) {
+void Drag_Overlay_UI(UI_Context &ui) {
     UI_Box *active = ui.Get_Box(ui.active);
     if (!active || ((~active->signal_last.flags) & UI_SIG_LEFT_DOWN)
     ||  ((~active->flags) & UI_BOX_FLAG_DRAGGABLE) )
         return;
 
+    Widget_Data *widget = std::any_cast<Widget_Data>(&active->userdata);
+    if (!widget || !widget->texture) {
+        return;
+    }
 
     V2 box_pos = (V2)(active->area.pos() + active->area.size() / 2);
 
@@ -113,9 +155,7 @@ void Drag_Overlay_UI(UI_Context &ui, SDL_Texture *card_texture) {
     V2 drop_pos = (V2)(ui.mouse_pos - active->area.size() / 2);
     SDL_FRect drop_rect = {drop_pos.x, drop_pos.y, drop_size.x, drop_size.y};
 
-    if (card_texture) {
-        SDL_SetTextureAlphaMod(card_texture, 0xFF * 0.7);
-        SDL_RenderTexture(state.renderer, card_texture, NULL, &drop_rect);
-        SDL_SetTextureAlphaMod(card_texture, 0xFF);
-    }
+    SDL_SetTextureAlphaMod(widget->texture, 0xFF * 0.7);
+    SDL_RenderTexture(state.renderer, widget->texture, NULL, &drop_rect);
+    SDL_SetTextureAlphaMod(widget->texture, 0xFF);
 }

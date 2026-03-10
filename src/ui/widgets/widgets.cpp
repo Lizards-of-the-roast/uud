@@ -98,7 +98,7 @@ UI_Signal Widget_Context::Scroll_Begin(int axis, std::optional<Rect> area, UI_Bo
                                        std::optional<std::string> id_override,
                                        const std::source_location source_loc) {
     std::string id_base = id_override.value_or(ui->Source_Loc_Str(source_loc));
-    Div_Begin(area, {}, "Scroll_div[" + id_base);
+    Div_Begin(area, {}, "Scroll_div[" + id_base).box->child_layout_axis = !axis;
     // TODO: better sizing for scroll bars
     G2<UI_Size> size;
     size[axis] = UI_Size_Parent(1.0f);
@@ -132,7 +132,7 @@ void Widget_Context::Scroll_End(int axis, std::optional<std::string> id_override
     slider.box->margin = {0};
     float delta = (-max_offset) - tmp;
     if (delta > scroll_div->scroll_step || delta < -scroll_div->scroll_step)
-        scroll_div->view_offset.y = -tmp;
+        scroll_div->view_offset[axis] = -tmp;
 
     Div_End();
     ui->sizes.pop();

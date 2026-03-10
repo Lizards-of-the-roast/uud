@@ -39,6 +39,7 @@ SDL_Texture *&Texture_Resource::operator[](const std::string &key) {
     SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, img);
     if (!texture)
         return NULL_texture;
+    SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
 
     entry->second = texture;
     return entry->second;

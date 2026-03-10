@@ -25,7 +25,7 @@ bool Scene_Match(void) {
     SDL_Texture *crack_texture = state.texture[paths::crack_texture];
     SDL_Texture *card_texture = state.texture[paths::card_texture];
     Game::card_textures.default_texture = card_texture;
-    SDL_Texture *test_card_texture = state.texture["./res/textures/ankle-biter.jpg"];
+    SDL_Texture *test_card_texture = state.texture["./res/textures/ankle-biter.png"];
     TTF_Font *match_font = state.font[paths::beleren_bold];
 
     Local_Game_State game_state;
@@ -169,9 +169,7 @@ bool Scene_Match(void) {
             Hand_UI(w, ui, &p);
             Library_UI(w, ui, card_texture);
 
-            w.styles.push(theme::Button_Secondary());
             Battlefield_UI(w, ui, &p);
-            w.styles.pop();
         }
 
         // TTF_Font *font_btn = state.font[paths::matrix_bold];
@@ -197,7 +195,7 @@ bool Scene_Match(void) {
 
         w.Draw();
 
-        Drag_Overlay_UI(ui, card_texture);
+        Drag_Overlay_UI(ui);
 
         SDL_RenderPresent(state.renderer);
     }

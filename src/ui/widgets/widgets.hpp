@@ -13,7 +13,7 @@
 #define SCROLL_O(CTX, AXIS, ...)                                      \
     for (int _i_ = ((CTX)->Scroll_Begin(AXIS, __VA_ARGS__), 0); !_i_; \
          _i_++, (CTX)->Scroll_End(AXIS))
-#define SCROLL(CTX) for (int _i_ = ((CTX)->Scroll_Begin(), 0); !_i_; _i_++, (CTX)->Scroll_End())
+#define SCROLL(CTX, AXIS) for (int _i_ = ((CTX)->Scroll_Begin(AXIS), 0); !_i_; _i_++, (CTX)->Scroll_End(AXIS))
 
 enum class Widget_Type {
     Div,

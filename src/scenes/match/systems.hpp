@@ -9,4 +9,4 @@
 void Battlefield_UI(Widget_Context &w, UI_Context &ui, Game::Player_State *player);
 void Hand_UI(Widget_Context &w, UI_Context &ui, Game::Player_State *player);
 void Library_UI(Widget_Context &w, UI_Context &ui, SDL_Texture *card_texture);
-void Drag_Overlay_UI(UI_Context &ui, SDL_Texture *card_texture);
+void Drag_Overlay_UI(UI_Context &ui);
