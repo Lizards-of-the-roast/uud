@@ -25,6 +25,7 @@ bool Scene_Match(void) {
     SDL_Texture *crack_texture = state.texture[paths::crack_texture];
     SDL_Texture *card_texture = state.texture[paths::card_texture];
     Game::card_textures.default_texture = card_texture;
+    SDL_Texture *test_card_texture = state.texture["./res/textures/ankle-biter.jpg"];
     TTF_Font *match_font = state.font[paths::beleren_bold];
 
     Local_Game_State game_state;
@@ -50,6 +51,9 @@ bool Scene_Match(void) {
         {
             Game::Card c;
             c.instance_id = i;
+            c.name = "Card " + std::to_string(i);
+            if (i == 3)
+                Game::card_textures.Set(c.name, test_card_texture);
             Game::instances.Add(c);
             p1.hand.push_back(c.instance_id);
         }

@@ -12,6 +12,7 @@ static const std::array<std::string, 7> card_ids = {
 const float card_width = 143.0f;
 const float card_height = 200.0f;
 const float card_offset = 40.0f;
+const float card_grow_amount = 60.0f;
 const float div_width = (card_width * 7.0f - card_offset * 5);
 
 void Hand_UI(Widget_Context &w, UI_Context &ui, Game::Player_State player) {
@@ -26,24 +27,29 @@ void Hand_UI(Widget_Context &w, UI_Context &ui, Game::Player_State player) {
         int hovered = INT32_MAX;
         for (int i = 0; i < player.hand_count; i++) {
             const Game::Card *c = Game::instances.Find(player.hand[i]);
-            UI_Signal button = w.Card(Game::card_textures.Get(c->name), {}, card_ids[i]);
+            UI_Signal button = w.Card(*c, {}, card_ids[i]);
             if (button.flags & (UI_SIG_HOVERING | UI_SIG_LEFT_DOWN)) {
                 hovered = i;
                 div->offset.y = -card_height / 3 * 2;
+                button.box->margin.top = button.box->margin.right
+                                       = -card_grow_amount;
             }
-            button.box->offset.x = -card_offset * ((!hovered || i < hovered) ? i : i - 1);
+            else
+            {
+                button.box->margin.top = 0;
+                button.box->margin.right = 0;
+            }
+            button.box->offset.x = -card_offset * ((!hovered || i < hovered) ? i : i - 1)
+                                                + ((i > hovered) ? card_grow_amount : 0);
         }
     }
+}
 
+void Library_UI(Widget_Context &w, UI_Context &ui, SDL_Texture *card_texture) {
     /*
     w.Card(card_texture,
            Rect{100.0f, state.window_height * 0.66f - card_height, card_width, card_height});
     */
-}
-
-void Library_UI(Widget_Context &w, UI_Context &ui, SDL_Texture *card_texture) {
-    w.Card(card_texture,
-           Rect{100.0f, state.window_height * 0.66f - card_height, card_width, card_height});
 }
 
 void Drag_Overlay_UI(UI_Context &ui, SDL_Texture *card_texture) {

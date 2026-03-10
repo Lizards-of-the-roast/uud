@@ -4,6 +4,8 @@
 
 #include "ui/context/ui_context.hpp"
 
+#include "game/card.hpp"
+
 #define DIV_O(CTX, ...) \
     for (int _i_ = ((CTX)->Div_Begin(__VA_ARGS__), 0); !_i_; _i_++, (CTX)->Div_End())
 #define DIV(CTX) for (int _i_ = ((CTX)->Div_Begin(), 0); !_i_; _i_++, (CTX)->Div_End())
@@ -138,7 +140,7 @@ struct Widget_Context {
                       std::optional<std::string> id_override = {},
                       const std::source_location source_loc = std::source_location::current());
 
-    UI_Signal Card(SDL_Texture *texture, std::optional<Rect> area = {},
+    UI_Signal Card(Game::Card card, std::optional<Rect> area = {},
                    std::optional<std::string> id_override = {},
                    const std::source_location source_loc = std::source_location::current());
 

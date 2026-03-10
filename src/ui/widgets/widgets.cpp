@@ -1,5 +1,8 @@
 #include "widgets.hpp"
 
+#include "game/textures.hpp"
+#include "game/instances.hpp"
+
 Widget_Context::Widget_Context(SDL_Renderer *renderer, UI_Context *context) {
     this->renderer = renderer;
     this->ui = context;
@@ -392,14 +395,14 @@ UI_Signal Widget_Context::Textbox(std::string init_label, std::optional<Rect> ar
     return sig;
 }
 
-UI_Signal Widget_Context::Card(SDL_Texture *texture, std::optional<Rect> area,
+UI_Signal Widget_Context::Card(Game::Card card, std::optional<Rect> area,
                                std::optional<std::string> id_override,
                                const std::source_location source_loc) {
     UI_Signal sig = this->Button({}, area, id_override, source_loc);
 
     if (Widget_Data *data = std::any_cast<Widget_Data>(&sig.box->userdata)) {
         data->flags = 0x00;
-        data->texture = texture;
+        data->texture = Game::card_textures.Get(card.name);
     }
 
     return sig;
