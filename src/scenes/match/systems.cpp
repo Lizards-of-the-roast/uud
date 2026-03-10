@@ -5,6 +5,7 @@
 
 #include "game/textures.hpp"
 #include "game/instances.hpp"
+#include "game/permanent.hpp"
 
 static const std::array<std::string, 7> card_ids = {
     "card 0", "card 1", "card 2", "card 3", "card 4", "card 5", "card 6",
@@ -15,7 +16,30 @@ const float card_offset = 40.0f;
 const float card_grow_amount = 60.0f;
 const float div_width = (card_width * 7.0f - card_offset * 5);
 
-void Hand_UI(Widget_Context &w, UI_Context &ui, Game::Player_State player) {
+/*
+I assume this is the servers job but i dont have the server yet
+*/
+static Game::Permanent_ID Card_To_Permanent(Game::Card_ID card, Game::Player_State *player)
+{
+    Game::Permanent_State p = {0};
+    p.card = card;
+    p.permanent_id = (Game::Permanent_ID)SDL_GetTicksNS(); /*tmp*/
+    p.controller_id = p.owner_id
+                    = player->player_id;
+    Game::instances.Add(p);
+    return p.permanent_id;
+}
+
+void Battlefield_UI(Widget_Context &w, UI_Context &ui, Game::Player_State *player) {
+    Rect dst = {};
+    dst.w = (float)state.window_width * 0.5f;
+    dst.h = (float)state.window_height * 0.5f;
+    dst.x = (float)state.window_width * 0.5f - dst.w/2;
+    dst.y = (float)state.window_height * 0.5f - dst.h/2;
+    w.Button(std::to_string(player->battlefield.size()), dst, UI_BOX_FLAG_DROPPABLE);
+}
+
+void Hand_UI(Widget_Context &w, UI_Context &ui, Game::Player_State *player) {
     DIV_O(&w, Rect{state.window_width * 0.5f - div_width * 0.5f,
                    state.window_height - card_height / 3.0f, div_width, card_height}) {
         UI_Box *div = ui.leafs.back();
@@ -24,10 +48,18 @@ void Hand_UI(Widget_Context &w, UI_Context &ui, Game::Player_State player) {
 
         ui.sizes.push({UI_Size_Pixels(card_width), UI_Size_Pixels(card_height)});
         defer(ui.sizes.pop());
-        int hovered = INT32_MAX;
-        for (int i = 0; i < player.hand_count; i++) {
-            const Game::Card *c = Game::instances.Find(player.hand[i]);
-            UI_Signal button = w.Card(*c, {}, card_ids[i]);
+        size_t hovered = INT32_MAX;
+        for (size_t i = 0; i < player->hand.size(); i++) {
+            const Game::Card *c = Game::instances.Find(player->hand[i]);
+            UI_Signal button = w.Card(*c, {}, UI_BOX_FLAG_CLICKABLE | UI_BOX_FLAG_CLIP | UI_BOX_FLAG_DRAGGABLE, "Card[" + std::to_string(c->instance_id));
+            if (button.flags & UI_SIG_DROPPED_OUT)
+            {
+                //TODO: this is probably where you tell the server that you are trying to
+                //      play a card, rather then just editing state
+                player->hand_count--;
+                player->hand.erase(player->hand.begin() + i);
+                player->battlefield.push_back(Card_To_Permanent(c->instance_id, player));
+            }
             if (button.flags & (UI_SIG_HOVERING | UI_SIG_LEFT_DOWN)) {
                 hovered = i;
                 div->offset.y = -card_height / 3 * 2;
@@ -54,10 +86,10 @@ void Library_UI(Widget_Context &w, UI_Context &ui, SDL_Texture *card_texture) {
 
 void Drag_Overlay_UI(UI_Context &ui, SDL_Texture *card_texture) {
     UI_Box *active = ui.Get_Box(ui.active);
-    if (!active || ((~active->signal_last.flags) & UI_SIG_LEFT_DOWN))
+    if (!active || ((~active->signal_last.flags) & UI_SIG_LEFT_DOWN)
+    ||  ((~active->flags) & UI_BOX_FLAG_DRAGGABLE) )
         return;
 
-    // TODO: add checks for if the ui element should be draggable
 
     V2 box_pos = (V2)(active->area.pos() + active->area.size() / 2);
 

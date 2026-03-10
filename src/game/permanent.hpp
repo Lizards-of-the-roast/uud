@@ -13,7 +13,7 @@ namespace Game {
 typedef uint64_t Permanent_ID;
 struct Permanent_State {
     Permanent_ID permanent_id = 0;
-    Card card;
+    Card_ID card;
     uint64_t controller_id = 0;
     uint64_t owner_id = 0;
     bool tapped = false;

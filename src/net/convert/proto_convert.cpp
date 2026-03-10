@@ -164,7 +164,7 @@ Card From_Proto(const cle::proto::CardData &proto) {
 Permanent_State From_Proto(const mtg::proto::PermanentState &proto) {
     Permanent_State perm;
     perm.permanent_id = proto.permanent_id();
-    perm.card = From_Proto(proto.card());
+    perm.card = From_Proto(proto.card()).instance_id;
     perm.controller_id = proto.controller_id();
     perm.owner_id = proto.owner_id();
     perm.tapped = proto.tapped();

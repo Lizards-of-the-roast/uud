@@ -190,7 +190,7 @@ bool Menu_Deck_Builder_Page(Widget_Context &w, UI_Context &ui, Menu_Tab &tab) {
                 w.styles.pop();
 
                 w.styles.push(theme::Textbox());
-                UI_Signal search_sig = w.Textbox("", {}, std::string("card_search"));
+                UI_Signal search_sig = w.Textbox();
                 w.styles.pop();
 
                 const char *search_text = (search_sig.box->label && search_sig.box->label->text)
@@ -220,7 +220,7 @@ bool Menu_Deck_Builder_Page(Widget_Context &w, UI_Context &ui, Menu_Tab &tab) {
                             display += " " + cost_str;
 
                         UI_Signal card_btn =
-                            w.Button(display, {}, std::string("cat_" + card->name));
+                            w.Button(display, {}, UI_BOX_FLAG_CLICKABLE | UI_BOX_FLAG_CLIP, std::string("cat_" + card->name));
                         if (card_btn.flags & UI_SIG_LEFT_RELEASED)
                             Add_Card_To_Deck(card->name);
 
@@ -257,7 +257,7 @@ bool Menu_Deck_Builder_Page(Widget_Context &w, UI_Context &ui, Menu_Tab &tab) {
                     for (const auto &entry : current_deck.cards) {
                         std::string display = std::to_string(entry.count) + "x " + entry.card_name;
                         UI_Signal entry_btn =
-                            w.Button(display, {}, std::string("deck_" + entry.card_name));
+                            w.Button(display, {}, UI_BOX_FLAG_CLICKABLE | UI_BOX_FLAG_CLIP, std::string("deck_" + entry.card_name));
                         if (entry_btn.flags & UI_SIG_LEFT_RELEASED)
                             Remove_Card_From_Deck(entry.card_name);
                     }

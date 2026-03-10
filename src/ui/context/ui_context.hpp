@@ -17,6 +17,7 @@ struct UI_Context {
     UI_ID hot;
     UI_ID active;
     UI_ID focused;  // for text
+    UI_ID drop_site;
 
     UI_Box root;
     // UI_Box pointers are stable (wont move),

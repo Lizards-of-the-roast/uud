@@ -165,8 +165,13 @@ bool Scene_Match(void) {
         // TTF_SetFontSize(match_font, 30);
 
         if (game_state.Has_Snapshot()) {
-            Hand_UI(w, ui, game_state.Snapshot().players[0]);
+            Game::Player_State &p = (Game::Player_State &)game_state.Snapshot().players[0];
+            Hand_UI(w, ui, &p);
             Library_UI(w, ui, card_texture);
+
+            w.styles.push(theme::Button_Secondary());
+            Battlefield_UI(w, ui, &p);
+            w.styles.pop();
         }
 
         // TTF_Font *font_btn = state.font[paths::matrix_bold];

@@ -215,6 +215,13 @@ UI_Signal UI_Box::Signal(UI_Context *ctx) {
             ctx->active = 0;
             sig.flags |= SDL_Button_Flag_To_Sig_Flag(ctx->mouse_up_buttons, UI_SIG_LEFT_RELEASED);
 
+            if (this->flags & UI_BOX_FLAG_DRAGGABLE && ctx->drop_site != 0)
+            {
+                sig.flags |= UI_SIG_DROPPED_OUT;
+                sig.drop_site = ctx->drop_site;
+                ctx->drop_site = 0;
+            }
+
             if (is_mouse_over) {
                 sig.flags |=
                     SDL_Button_Flag_To_Sig_Flag(ctx->mouse_up_buttons, UI_SIG_LEFT_CLICKED);
@@ -293,12 +300,27 @@ UI_Signal UI_Box::Signal(UI_Context *ctx) {
 
         UI_Box *hot = ctx->Get_Box(ctx->hot);
         bool has_hot = (hot != NULL);
+        bool valid_hot = (!has_hot || hot->frame_last_touched != ctx->frame || ctx->hot == this->id);
+        bool valid_active = (ctx->active == 0 || ctx->active == this->id);
 
         if (this->flags & UI_BOX_FLAG_CLICKABLE &&
-            (!has_hot || hot->frame_last_touched != ctx->frame || ctx->hot == this->id) &&
-            (ctx->active == 0 || ctx->active == this->id)) {
+            valid_hot &&
+            valid_active) {
             sig.flags |= UI_SIG_HOVERING;
             ctx->hot = this->id;
+        }
+
+        UI_Box *drop_site = ctx->Get_Box(ctx->drop_site);
+        bool has_drop_site = (drop_site != NULL);
+        UI_Box *active = ctx->Get_Box(ctx->active);
+        bool has_active = (active != NULL);
+
+        bool valid_drop_site = (!has_drop_site || drop_site->frame_last_touched != ctx->frame || ctx->drop_site == this->id);
+        if (this->flags & UI_BOX_FLAG_DROPPABLE &&
+             valid_drop_site &&
+             (has_active && ctx->active != this->id && active->flags & UI_BOX_FLAG_DRAGGABLE))
+        {
+            ctx->drop_site = this->id;
         }
 
     } else if (ctx->hot == this->id)

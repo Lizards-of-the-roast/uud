@@ -128,7 +128,7 @@ void Widget_Context::Scroll_End(int axis, std::optional<std::string> id_override
     // TODO: slider styles
     UI_Signal slider =
         Slider(&tmp, 0, max_offset, (axis) ? Widget_Slider_Dir::UTD : Widget_Slider_Dir::LTR, {},
-               {}, "Scroll_Slider[" + id_base);
+               {}, UI_BOX_FLAG_CLICKABLE | UI_BOX_FLAG_CLIP, "Scroll_Slider[" + id_base);
     slider.box->margin = {0};
     float delta = (-max_offset) - tmp;
     if (delta > scroll_div->scroll_step || delta < -scroll_div->scroll_step)
@@ -162,7 +162,7 @@ UI_Signal Widget_Context::Window_Begin(Rect area, bool *should_close, std::strin
     title_sig.box->margin = {0};
     ui->sizes.pop();
     ui->sizes.push({UI_Size_Pixels(size_v), UI_Size_Parent(1.0)});
-    UI_Signal close_button = Button("X", {}, "Window_Title_Button[" + id_base);
+    UI_Signal close_button = Button("X", {}, UI_BOX_FLAG_CLIP | UI_BOX_FLAG_CLICKABLE, "Window_Title_Button[" + id_base);
     close_button.box->margin = {0};
     ui->sizes.pop();
     Div_End();
@@ -219,10 +219,10 @@ UI_Signal Widget_Context::Label(std::string label, std::optional<Rect> area, UI_
 }
 
 UI_Signal Widget_Context::Button(std::string label, std::optional<Rect> area,
+                                 UI_Box_Flags flags,
                                  std::optional<std::string> id_override,
                                  const std::source_location source_loc) {
     V2 fixed_pos = {};
-    UI_Box_Flags flags = UI_BOX_FLAG_CLICKABLE | UI_BOX_FLAG_CLIP;
     if (area.has_value()) {
         flags |= UI_BOX_FLAG_FLOATING;
 
@@ -252,10 +252,10 @@ UI_Signal Widget_Context::Button(std::string label, std::optional<Rect> area,
 }
 
 UI_Signal Widget_Context::Toggle(bool *toggle, std::string label, std::optional<Rect> area,
+                                 UI_Box_Flags flags,
                                  std::optional<std::string> id_override,
                                  const std::source_location source_loc) {
     V2 fixed_pos = {};
-    UI_Box_Flags flags = UI_BOX_FLAG_CLICKABLE | UI_BOX_FLAG_CLIP;
     if (area.has_value()) {
         flags |= UI_BOX_FLAG_FLOATING;
 
@@ -289,10 +289,10 @@ UI_Signal Widget_Context::Toggle(bool *toggle, std::string label, std::optional<
 }
 UI_Signal Widget_Context::Slider(float *value, float min, float max, Widget_Slider_Dir dir,
                                  std::string label, std::optional<Rect> area,
+                                 UI_Box_Flags flags,
                                  std::optional<std::string> id_override,
                                  const std::source_location source_loc) {
     V2 fixed_pos = {};
-    UI_Box_Flags flags = UI_BOX_FLAG_CLICKABLE | UI_BOX_FLAG_CLIP;
     if (area.has_value()) {
         flags |= UI_BOX_FLAG_FLOATING;
 
@@ -350,10 +350,10 @@ UI_Signal Widget_Context::Slider(float *value, float min, float max, Widget_Slid
 }
 
 UI_Signal Widget_Context::Textbox(std::string init_label, std::optional<Rect> area,
+                                  UI_Box_Flags flags,
                                   std::optional<std::string> id_override,
                                   const std::source_location source_loc) {
     V2 fixed_pos = {};
-    UI_Box_Flags flags = UI_BOX_FLAG_TEXTINPUT | UI_BOX_FLAG_CLICKABLE | UI_BOX_FLAG_CLIP;
     if (area.has_value()) {
         flags |= UI_BOX_FLAG_FLOATING;
 
@@ -396,9 +396,10 @@ UI_Signal Widget_Context::Textbox(std::string init_label, std::optional<Rect> ar
 }
 
 UI_Signal Widget_Context::Card(Game::Card card, std::optional<Rect> area,
+                               UI_Box_Flags flags,
                                std::optional<std::string> id_override,
                                const std::source_location source_loc) {
-    UI_Signal sig = this->Button({}, area, id_override, source_loc);
+    UI_Signal sig = this->Button({}, area, flags, id_override, source_loc);
 
     if (Widget_Data *data = std::any_cast<Widget_Data>(&sig.box->userdata)) {
         data->flags = 0x00;

@@ -127,20 +127,26 @@ struct Widget_Context {
                     UI_Box_Flags = UI_BOX_FLAG_CLIP, std::optional<std::string> id_override = {},
                     const std::source_location source_loc = std::source_location::current());
     UI_Signal Button(std::string label = "", std::optional<Rect> area = {},
+                     UI_Box_Flags flags = UI_BOX_FLAG_CLICKABLE | UI_BOX_FLAG_CLIP,
                      std::optional<std::string> id_override = {},
                      const std::source_location source_loc = std::source_location::current());
     UI_Signal Toggle(bool *toggle, std::string label = "", std::optional<Rect> area = {},
+                     UI_Box_Flags flags = UI_BOX_FLAG_CLICKABLE | UI_BOX_FLAG_CLIP,
                      std::optional<std::string> id_override = {},
                      const std::source_location source_loc = std::source_location::current());
     UI_Signal Slider(float *value, float min = 0.0f, float max = 100.0f,
                      Widget_Slider_Dir dir = Widget_Slider_Dir::LTR, std::string label = "",
-                     std::optional<Rect> area = {}, std::optional<std::string> id_override = {},
+                     std::optional<Rect> area = {},
+                     UI_Box_Flags flags = UI_BOX_FLAG_CLICKABLE | UI_BOX_FLAG_CLIP,
+                     std::optional<std::string> id_override = {},
                      const std::source_location source_loc = std::source_location::current());
     UI_Signal Textbox(std::string init_label = "", std::optional<Rect> area = {},
+                      UI_Box_Flags flags = UI_BOX_FLAG_TEXTINPUT | UI_BOX_FLAG_CLICKABLE | UI_BOX_FLAG_CLIP,
                       std::optional<std::string> id_override = {},
                       const std::source_location source_loc = std::source_location::current());
 
     UI_Signal Card(Game::Card card, std::optional<Rect> area = {},
+                   UI_Box_Flags flags = UI_BOX_FLAG_CLICKABLE | UI_BOX_FLAG_CLIP,
                    std::optional<std::string> id_override = {},
                    const std::source_location source_loc = std::source_location::current());
 

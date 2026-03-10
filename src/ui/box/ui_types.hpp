@@ -127,6 +127,8 @@ enum {
     UI_SIG_MOUSE_OVER = (UI_Signal_Flags)0x01 << 31,
 
     UI_SIG_FOCUSED = (UI_Signal_Flags)0x01 << 32,
+    UI_SIG_DROPPED_OUT = (UI_Signal_Flags)0x01 << 33,
+    UI_SIG_DROPPED_IN  = (UI_Signal_Flags)0x01 << 34, /* NOT WORKING YET */
 
     UI_SIG_PRESSED = UI_SIG_LEFT_PRESSED | UI_SIG_MIDDLE_PRESSED | UI_SIG_RIGHT_PRESSED |
                      UI_SIG_X1_PRESSED | UI_SIG_X2_PRESSED,
@@ -151,29 +153,34 @@ struct UI_Signal {
     V2 mouse_pos;
     V2 mouse_delta;
     UI_Signal_Flags flags;
+    UI_ID drop_site;
 };
 
 typedef Uint16 UI_Box_Flags;
 enum {
     // Interaction
-    UI_BOX_FLAG_CLICKABLE = 0x01 << 0,
-    UI_BOX_FLAG_TEXTINPUT = 0x01 << 1,
-    UI_BOX_FLAG_FOCUS_HOT = 0x01 << 2,
-    UI_BOX_FLAG_FOCUS_ACTIVE = 0x01 << 3,
-    UI_BOX_FLAG_VIEW_SCROLL_X = 0x01 << 4,
-    UI_BOX_FLAG_VIEW_SCROLL_Y = 0x01 << 5,
+    UI_BOX_FLAG_CLICKABLE          = 0x01 << 0,
+    UI_BOX_FLAG_TEXTINPUT          = 0x01 << 1,
+    UI_BOX_FLAG_FOCUS_HOT          = 0x01 << 2,
+    UI_BOX_FLAG_FOCUS_ACTIVE       = 0x01 << 3,
+    UI_BOX_FLAG_VIEW_SCROLL_X      = 0x01 << 4,
+    UI_BOX_FLAG_VIEW_SCROLL_Y      = 0x01 << 5,
+    UI_BOX_FLAG_DRAGGABLE          = 0x01 << 6,
+    UI_BOX_FLAG_DROPPABLE          = 0x01 << 7,
 
     // Layout
-    UI_BOX_FLAG_FLOATING_X = 0x01 << 6,  // Fixed X, layout at most positions relative to parent
-    UI_BOX_FLAG_FLOATING_Y = 0x01 << 7,
-    UI_BOX_FLAG_SKIP_VIEW_OFFSET_X = 0x01 << 8,
-    UI_BOX_FLAG_SKIP_VIEW_OFFSET_Y = 0x01 << 9,
+    UI_BOX_FLAG_FLOATING_X         = 0x01 << 8,  // Fixed X, layout at most positions relative to parent
+    UI_BOX_FLAG_FLOATING_Y         = 0x01 << 9,
+    UI_BOX_FLAG_SKIP_VIEW_OFFSET_X = 0x01 << 10,
+    UI_BOX_FLAG_SKIP_VIEW_OFFSET_Y = 0x01 << 11,
 
     // Rendering
-    UI_BOX_FLAG_CLIP = 0x01 << 10,
-    UI_BOX_FLAG_HOT_ANIMATION = 0x01 << 11,
-    UI_BOX_FLAG_ACTIVE_ANIMATION = 0x01 << 12,
+    UI_BOX_FLAG_CLIP               = 0x01 << 12,
+    UI_BOX_FLAG_HOT_ANIMATION      = 0x01 << 13,
+    UI_BOX_FLAG_ACTIVE_ANIMATION   = 0x01 << 14,
 
+
+    UI_BOX_FLAG_DRAG_DROP = UI_BOX_FLAG_DRAGGABLE | UI_BOX_FLAG_DROPPABLE,
     UI_BOX_FLAG_VIEW_SCROLL = UI_BOX_FLAG_VIEW_SCROLL_X | UI_BOX_FLAG_VIEW_SCROLL_Y,
     UI_BOX_FLAG_FLOATING = UI_BOX_FLAG_FLOATING_X | UI_BOX_FLAG_FLOATING_Y,
     UI_BOX_FLAG_SKIP_VIEW_OFFSET = UI_BOX_FLAG_SKIP_VIEW_OFFSET_X | UI_BOX_FLAG_SKIP_VIEW_OFFSET_Y,
