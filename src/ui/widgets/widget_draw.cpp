@@ -181,8 +181,7 @@ void Widget_Context::Draw(UI_Box *box) {
     }
 
     if (data->texture) {
-        SDL_RenderFillRect(renderer, (SDL_FRect *)&box->area);
-        SDL_RenderTexture(renderer, data->texture, NULL, (SDL_FRect *)&box->area);
+        SDL_RenderTextureRotated(renderer, data->texture, NULL, (SDL_FRect *)&box->area, data->texture_rotaton, NULL, data->texture_flip);
     }
 
     if (data->flags & WIDGET_FLAG_DRAW_BORDER) {

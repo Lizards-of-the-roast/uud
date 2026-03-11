@@ -80,6 +80,8 @@ struct Widget_Data {
     Widget_Flags flags;
 
     SDL_Texture *texture;
+    SDL_FlipMode texture_flip;
+    float texture_rotaton;
 
     Widget_Type type;
     Widget_Union u;

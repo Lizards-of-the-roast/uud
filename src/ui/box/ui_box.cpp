@@ -215,7 +215,7 @@ UI_Signal UI_Box::Signal(UI_Context *ctx) {
             ctx->active = 0;
             sig.flags |= SDL_Button_Flag_To_Sig_Flag(ctx->mouse_up_buttons, UI_SIG_LEFT_RELEASED);
 
-            if (this->flags & UI_BOX_FLAG_DRAGGABLE && ctx->drop_site != 0)
+            if (this->flags & UI_BOX_FLAG_DRAGGABLE && sig.flags & UI_SIG_LEFT_RELEASED && ctx->drop_site != 0)
             {
                 sig.flags |= UI_SIG_DROPPED_OUT;
                 sig.drop_site = ctx->drop_site;
@@ -323,8 +323,13 @@ UI_Signal UI_Box::Signal(UI_Context *ctx) {
             ctx->drop_site = this->id;
         }
 
-    } else if (ctx->hot == this->id)
-        ctx->hot = 0;
+    } else
+    {
+        if (ctx->hot == this->id)
+            ctx->hot = 0;
+        if (ctx->drop_site == this->id)
+            ctx->drop_site = 0;
+    }
 
     if (ctx->focused == this->id)
         sig.flags |= UI_SIG_FOCUSED;

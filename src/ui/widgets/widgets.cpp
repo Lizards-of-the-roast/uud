@@ -126,10 +126,10 @@ void Widget_Context::Scroll_End(int axis, std::optional<std::string> id_override
     float tmp = -scroll_div->view_offset[axis];
     float max_offset = SDL_max(0, scroll_div->view_bounds[axis] - scroll_div->area.size()[axis]);
     // TODO: slider styles
-    UI_Signal slider =
+    //UI_Signal slider =
         Slider(&tmp, 0, max_offset, (axis) ? Widget_Slider_Dir::UTD : Widget_Slider_Dir::LTR, {},
                {}, UI_BOX_FLAG_CLICKABLE | UI_BOX_FLAG_CLIP, "Scroll_Slider[" + id_base);
-    slider.box->margin = {0};
+    //slider.box->margin = {0};
     float delta = (-max_offset) - tmp;
     if (delta > scroll_div->scroll_step || delta < -scroll_div->scroll_step)
         scroll_div->view_offset[axis] = -tmp;

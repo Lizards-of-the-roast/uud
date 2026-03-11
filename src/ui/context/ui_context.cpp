@@ -80,6 +80,8 @@ void UI_Context::Free_Box(UI_Box *box) {
         this->hot = 0;
     if (box->id == this->focused)
         this->focused = 0;
+    if (box->id == this->drop_site)
+        this->focused = 0;
 
     box->~UI_Box();
     new (box) UI_Box{};

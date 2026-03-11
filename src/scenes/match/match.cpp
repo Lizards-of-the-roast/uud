@@ -26,6 +26,7 @@ bool Scene_Match(void) {
     SDL_Texture *card_texture = state.texture[paths::card_texture];
     Game::card_textures.default_texture = card_texture;
     SDL_Texture *test_card_texture = state.texture["./res/textures/ankle-biter.png"];
+    SDL_Texture *library_texture = state.texture["./res/textures/library.png"];
     TTF_Font *match_font = state.font[paths::beleren_bold];
 
     Local_Game_State game_state;
@@ -167,7 +168,8 @@ bool Scene_Match(void) {
         if (game_state.Has_Snapshot()) {
             Game::Player_State &p = (Game::Player_State &)game_state.Snapshot().players[0];
             Hand_UI(w, ui, &p);
-            Library_UI(w, ui, card_texture);
+            //Library_UI(w, ui, library_texture);
+            Side_Zones_UI(w, ui, &p, library_texture);
 
             Battlefield_UI(w, ui, &p);
         }

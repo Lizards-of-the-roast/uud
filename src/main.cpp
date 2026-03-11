@@ -79,7 +79,9 @@ int main(void) {
 
     // skip intro for testing
 #ifndef NDEBUG
-    state.scene = state.offline ? Scene::Main_Menu : Scene::Intro;
+    //state.scene = state.offline ? Scene::Main_Menu : Scene::Intro;
+    state.current_game_id = "local";
+    state.scene = Scene::Match;
 #endif
     ////////////////////////
     // Loop
