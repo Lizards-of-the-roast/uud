@@ -20,7 +20,8 @@ const float card_grow_amount = 100.0f;
 UI_ID battlefield_ui = 0;
 UI_ID graveyard_ui = 0;
 UI_ID exile_ui = 0;
-
+UI_ID hand_ui = 0;
+UI_ID library_ui = 0;
 
 /*
 I assume this is the servers job but i dont have the server yet
@@ -43,6 +44,8 @@ static bool Move_Card(Game::Player_State *player, Game::Card_ID card, UI_Signal 
 
     if (sig.drop_site == battlefield_ui)
     {
+        //TODO: check if its actually permanent
+        //      cast it as a spell otherwise
         player->battlefield.push_back(Card_To_Permanent(card, player));
         return true;
     }
@@ -54,6 +57,18 @@ static bool Move_Card(Game::Player_State *player, Game::Card_ID card, UI_Signal 
     else if (sig.drop_site == exile_ui)
     {
         player->exile.push_back(card);
+        return true;
+    }
+    else if (sig.drop_site == hand_ui)
+    {
+        player->hand_count++;
+        player->hand.push_back(card);
+        return true;
+    }
+    else if (sig.drop_site == library_ui)
+    {
+        //do nothing let it die
+        //TODO: place it back at the top of the library
         return true;
     }
     return false;
@@ -69,7 +84,7 @@ void Battlefield_UI(Widget_Context &w, UI_Context &ui, Game::Player_State *playe
     w.styles.push(theme::Button_Primary());
     defer (w.styles.pop());
     UI_Signal div = w.Div_Begin(dst,
-                                 UI_BOX_FLAG_DROPPABLE);
+                                 UI_BOX_FLAG_DROPPABLE | UI_BOX_FLAG_CLIP);
     battlefield_ui = div.box->id;
     defer (w.Div_End());
 
@@ -85,18 +100,32 @@ void Battlefield_UI(Widget_Context &w, UI_Context &ui, Game::Player_State *playe
 
     SCROLL_O(&w, 0, {})
     {
+        UI_Box *scroll = ui.leafs.back();
+        scroll->elem_align.y = UI_ALIGN_BOTTOM;
         ui.sizes.push({UI_Size_Pixels(card_width), UI_Size_Pixels(card_height)});
         defer (ui.sizes.pop());
         for (size_t i = 0; i < player->battlefield.size(); i++)
         {
-            const Game::Permanent_State *p = Game::instances.Find(player->battlefield[i]);
+            Game::Permanent_State *p = (Game::Permanent_State *)Game::instances.Find(player->battlefield[i]);
             const Game::Card *c = Game::instances.Find(p->card);
             UI_Signal sig = w.Card(*c, {}, UI_BOX_FLAG_CLICKABLE | UI_BOX_FLAG_DRAGGABLE);
+            Widget_Data *widget = std::any_cast<Widget_Data>(&sig.box->userdata);
             sig.box->margin = {0};
+            if (sig.flags & UI_SIG_RIGHT_RELEASED)
+                p->tapped = !p->tapped;
+            if (p->tapped)
+            {
+                auto tmp = sig.box->size.x;
+                sig.box->size.x = sig.box->size.y;
+                sig.box->size.y = tmp;
+                widget->texture_rotaton = Widget_Rotation::Rot_90;
+            }
+            else
+                widget->texture_rotaton = Widget_Rotation::Rot_0;
             if (sig.flags & UI_SIG_HOVERING || sig.flags & UI_SIG_LEFT_DOWN)
             {
-                sig.box->size.x.value += card_grow_amount * card_aspect;
-                sig.box->margin.top = -card_grow_amount;
+                sig.box->size.x.value += card_grow_amount * ((!p->tapped) ? card_aspect : 1.0f);
+                sig.box->margin.top = -card_grow_amount * ((p->tapped) ? card_aspect : 1.0f);
             }
             if (Move_Card(player, c->instance_id, sig, battlefield_ui))
                 player->battlefield.erase(player->battlefield.begin() + i);
@@ -109,12 +138,14 @@ void Battlefield_UI(Widget_Context &w, UI_Context &ui, Game::Player_State *playe
 }
 
 void Hand_UI(Widget_Context &w, UI_Context &ui, Game::Player_State *player) {
-    float n = (float)player->hand.size();
-    float div_width = card_width * (float)player->hand.size() - ((card_offset * n * (n + 1))/2);
-    DIV_O(&w, Rect{state.window_width/2 - div_width/2,
-                   state.window_height - card_height / 3.0f, div_width, card_height}) {
+    DIV_O(&w, Rect{state.window_width * 0.2f,
+            state.window_height - card_height / 3.0f, state.window_width * 0.8f, card_height},
+            UI_BOX_FLAG_DROPPABLE
+    ) {
         UI_Box *div = ui.leafs.back();
-        div->flags &= ~UI_BOX_FLAG_CLIP;
+        hand_ui = div->id;
+        //div->flags &= ~UI_BOX_FLAG_CLIP;
+        //div->flags |= UI_BOX_FLAG_DROPPABLE;
         div->elem_align = UI_ALIGN_CENTER;
         div->offset.y = 0;
 
@@ -124,7 +155,7 @@ void Hand_UI(Widget_Context &w, UI_Context &ui, Game::Player_State *player) {
         for (size_t i = 0; i < player->hand.size(); i++) {
             const Game::Card *c = Game::instances.Find(player->hand[i]);
             UI_Signal button = w.Card(*c, {}, UI_BOX_FLAG_CLICKABLE | UI_BOX_FLAG_CLIP | UI_BOX_FLAG_DRAGGABLE, "Card[" + std::to_string(c->instance_id));
-            if (Move_Card(player, c->instance_id, button, 0))
+            if (Move_Card(player, c->instance_id, button, hand_ui))
             {
                 player->hand_count--;
                 player->hand.erase(player->hand.begin() + i);
@@ -147,11 +178,12 @@ void Hand_UI(Widget_Context &w, UI_Context &ui, Game::Player_State *player) {
     }
 }
 
-static void Library_UI(Widget_Context &w, UI_Context &ui, SDL_Texture *card_texture) {
+static void Library_UI(Widget_Context &w, UI_Context &ui, Game::Player_State *player, SDL_Texture *card_texture) {
     UI_Signal library =
     w.Label( {},{},
-              UI_BOX_FLAG_CLICKABLE | UI_BOX_FLAG_CLIP | UI_BOX_FLAG_DRAGGABLE
+              UI_BOX_FLAG_CLICKABLE | UI_BOX_FLAG_CLIP | UI_BOX_FLAG_DRAG_DROP
     );
+    library_ui = library.box->id;
     Widget_Data *widget = std::any_cast<Widget_Data>(&library.box->userdata);
     if (!widget)
         return;
@@ -162,6 +194,16 @@ static void Library_UI(Widget_Context &w, UI_Context &ui, SDL_Texture *card_text
         library.box->margin.right = library.box->margin.bottom = 0.0f;
     widget->flags = 0x00;
     widget->texture = card_texture;
+
+    if (library.flags & UI_SIG_DROPPED_OUT)
+    {
+        //TODO: Actual draw stuff from server
+        //      rn i move a card... then create it
+        Game::Card c = {};
+        c.instance_id = SDL_GetTicksNS();
+        if (Move_Card(player, c.instance_id, library, library_ui))
+            Game::instances.Add(c);
+    }
 }
 static UI_Signal Yard_UI(Widget_Context &w, UI_Context &ui, std::vector<Game::Card_ID> *yard, std::string label)
 {
@@ -230,7 +272,7 @@ void Side_Zones_UI(Widget_Context &w, UI_Context &ui, Game::Player_State *player
     ui.sizes.push({UI_Size_Pixels(card_width), UI_Size_Pixels(card_height)});
     defer (ui.sizes.pop());
 
-    Library_UI(w,ui, library_texture);
+    Library_UI(w,ui, player, library_texture);
 
     w.Spacer(UI_Size_Pixels(margin));
 
@@ -277,6 +319,18 @@ void Drag_Overlay_UI(UI_Context &ui) {
     SDL_FRect drop_rect = {drop_pos.x, drop_pos.y, drop_size.x, drop_size.y};
 
     SDL_SetTextureAlphaMod(widget->texture, 0xFF * 0.7);
-    SDL_RenderTexture(state.renderer, widget->texture, NULL, &drop_rect);
+    //literal copy paste from widget_draw.cpp Widget_Context::Draw(UI_Box *box)
+    float rot = (float)widget->texture_rotaton * 90;
+    if (widget->texture_rotaton == Widget_Rotation::Rot_90 || widget->texture_rotaton == Widget_Rotation::Rot_270)
+    {
+        SDL_FPoint c = {drop_rect.x + drop_rect.w/2, drop_rect.y + drop_rect.h/2};
+        float tmp = drop_rect.w;
+        drop_rect.w = drop_rect.h;
+        drop_rect.h = tmp;
+
+        drop_rect.x = c.x - drop_rect.w/2;
+        drop_rect.y = c.y - drop_rect.h/2;
+    }
+    SDL_RenderTextureRotated(state.renderer, widget->texture, NULL, &drop_rect, rot, NULL, SDL_FLIP_NONE);
     SDL_SetTextureAlphaMod(widget->texture, 0xFF);
 }

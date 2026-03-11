@@ -11,6 +11,7 @@ Widget_Data::Widget_Data(Widget_Context *ctx, Widget_Type type, Widget_Union u) 
     this->style = (ctx->styles.size()) ? ctx->styles.top() : ctx->default_style;
     this->flags = (ctx->default_flags_override.size()) ? ctx->default_flags_override.top() : 0xFF;
     this->texture = NULL;
+    this->texture_rotaton = Widget_Rotation::Rot_0;
     this->type = type;
     this->u = u;
     this->draw_fn = Widget_Draw_Div_Impl;
@@ -181,7 +182,19 @@ void Widget_Context::Draw(UI_Box *box) {
     }
 
     if (data->texture) {
-        SDL_RenderTextureRotated(renderer, data->texture, NULL, (SDL_FRect *)&box->area, data->texture_rotaton, NULL, data->texture_flip);
+        SDL_FRect dst = box->area.sdl();
+        float rot = (float)data->texture_rotaton * 90.0f;
+        if (data->texture_rotaton == Widget_Rotation::Rot_90 || data->texture_rotaton == Widget_Rotation::Rot_270)
+        {
+            SDL_FPoint c = {dst.x + dst.w/2, dst.y + dst.h/2};
+            float tmp = dst.w;
+            dst.w = dst.h;
+            dst.h = tmp;
+
+            dst.x = c.x - dst.w/2;
+            dst.y = c.y - dst.h/2;
+        }
+        SDL_RenderTextureRotated(renderer, data->texture, NULL, &dst, rot, NULL, data->texture_flip);
     }
 
     if (data->flags & WIDGET_FLAG_DRAW_BORDER) {

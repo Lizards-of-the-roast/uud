@@ -75,13 +75,21 @@ struct Widget_Context;
 struct Widget_Data;
 typedef void (*Widget_Draw_Fn)(Widget_Context *ctx, UI_Box *box, Widget_Data *data);
 
+//this goofy rotation thing only exists because i wanted tapping to work
+enum class Widget_Rotation {
+    Rot_0 = 0,
+    Rot_90 = 1,
+    Rot_180 = 2,
+    Rot_270 = 3,
+};
+
 struct Widget_Data {
     std::array<Widget_Style, static_cast<size_t>(Widget_Style_State::Count)> style;
     Widget_Flags flags;
 
     SDL_Texture *texture;
     SDL_FlipMode texture_flip;
-    float texture_rotaton;
+    Widget_Rotation texture_rotaton;
 
     Widget_Type type;
     Widget_Union u;
