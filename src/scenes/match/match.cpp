@@ -140,6 +140,7 @@ bool Scene_Match(void) {
 
         ui.sizes.push({UI_Size_Parent(1.0), UI_Size_Text(4)});
         w.styles.push(hud_style);
+        ui.root.child_layout_axis = 1;
 
         if (game_state.Has_Snapshot()) {
             uint64_t my_id = is_local ? 1 : state.user_id;
@@ -166,24 +167,31 @@ bool Scene_Match(void) {
         // TTF_SetFontSize(match_font, 30);
 
         if (game_state.Has_Snapshot()) {
+
+            ui.sizes.push({UI_Size_Fit(), UI_Size_Fit()});
+            DIV(&w)
+            {
+                Game_UI(w, ui, game_state.Snapshot(), library_texture);
+            }
+            ui.sizes.pop();
+            /*
             Game::Player_State &p = (Game::Player_State &)game_state.Snapshot().players[0];
+            //Game::Player_State &o = (Game::Player_State &)game_state.Snapshot().players[1];
+            Opp_Hand_UI(w, ui, &p);
             Hand_UI(w, ui, &p);
             //Library_UI(w, ui, library_texture);
             Side_Zones_UI(w, ui, &p, library_texture);
 
             Battlefield_UI(w, ui, &p);
+            */
         }
 
-        // TTF_Font *font_btn = state.font[paths::matrix_bold];
-        // TTF_SetFontSize(font_btn, 14);
-        // ui.fonts.push(font_btn);
+        /*
         ui.sizes.push({UI_Size_Fit(), UI_Size_Text(6)});
         w.styles.push(theme::Button_Danger());
         bool leaving = w.Button("Leave Game").flags & UI_SIG_LEFT_RELEASED;
         w.styles.pop();
         ui.sizes.pop();
-        // ui.fonts.pop();
-        // TTF_SetFontSize(match_font, 30);
 
         if (leaving) {
             if (!is_local)
@@ -192,6 +200,7 @@ bool Scene_Match(void) {
             state.scene = Scene::Main_Menu;
             return true;
         }
+        */
 
         ui.End();
 

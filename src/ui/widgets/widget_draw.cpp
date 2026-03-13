@@ -12,6 +12,7 @@ Widget_Data::Widget_Data(Widget_Context *ctx, Widget_Type type, Widget_Union u) 
     this->flags = (ctx->default_flags_override.size()) ? ctx->default_flags_override.top() : 0xFF;
     this->texture = NULL;
     this->texture_rotaton = Widget_Rotation::Rot_0;
+    this->texture_flip = SDL_FLIP_NONE;
     this->type = type;
     this->u = u;
     this->draw_fn = Widget_Draw_Div_Impl;

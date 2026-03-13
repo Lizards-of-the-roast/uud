@@ -23,6 +23,10 @@ UI_ID exile_ui = 0;
 UI_ID hand_ui = 0;
 UI_ID library_ui = 0;
 
+//for a hacky trick
+UI_ID player_battlefield_scroll_id = 0;
+UI_ID opp_battlefield_scroll_id = 0;
+
 /*
 I assume this is the servers job but i dont have the server yet
 */
@@ -74,33 +78,12 @@ static bool Move_Card(Game::Player_State *player, Game::Card_ID card, UI_Signal 
     return false;
 }
 
-void Battlefield_UI(Widget_Context &w, UI_Context &ui, Game::Player_State *player) {
-    Rect dst = {};
-    dst.x = (float)state.window_width * 0.2f;
-    dst.w = (float)state.window_width - dst.x;
-    dst.h = (float)state.window_height * 0.5f;
-    dst.y = (float)state.window_height * 0.5f - dst.h/2;
-
-    w.styles.push(theme::Button_Primary());
-    defer (w.styles.pop());
-    UI_Signal div = w.Div_Begin(dst,
-                                 UI_BOX_FLAG_DROPPABLE | UI_BOX_FLAG_CLIP);
-    battlefield_ui = div.box->id;
-    defer (w.Div_End());
-
-    div.box->child_layout_axis = 1;
-    div.box->elem_align = {UI_ALIGN_LEFT, UI_ALIGN_BOTTOM};
-
-    if (Widget_Data *widget = std::any_cast<Widget_Data>(&div.box->userdata))
-    {
-        widget->flags |= WIDGET_FLAG_DRAW_BORDER;
-    }
-    ui.sizes.push({UI_Size_Fit(), UI_Size_Pixels(card_height)});
-    defer (ui.sizes.pop());
-
-    SCROLL_O(&w, 0, {})
+static void Player_Battlefield_UI(Widget_Context &w, UI_Context &ui, UI_Box *div, Game::Player_State *player)
+{
+    SCROLL_O(&w, 0, Rect{0, div->layout_box.h - card_height, div->layout_box.w, card_height})
     {
         UI_Box *scroll = ui.leafs.back();
+        player_battlefield_scroll_id = scroll->id;
         scroll->elem_align.y = UI_ALIGN_BOTTOM;
         ui.sizes.push({UI_Size_Pixels(card_width), UI_Size_Pixels(card_height)});
         defer (ui.sizes.pop());
@@ -136,57 +119,140 @@ void Battlefield_UI(Widget_Context &w, UI_Context &ui, Game::Player_State *playe
     }
     ui.margins.pop();
 }
-
-void Hand_UI(Widget_Context &w, UI_Context &ui, Game::Player_State *player) {
-    DIV_O(&w, Rect{state.window_width * 0.2f,
-            state.window_height - card_height / 3.0f, state.window_width * 0.8f, card_height},
-            UI_BOX_FLAG_DROPPABLE
-    ) {
-        UI_Box *div = ui.leafs.back();
-        hand_ui = div->id;
-        //div->flags &= ~UI_BOX_FLAG_CLIP;
-        //div->flags |= UI_BOX_FLAG_DROPPABLE;
-        div->elem_align = UI_ALIGN_CENTER;
-        div->offset.y = 0;
+static void Opp_Battlefield_UI(Widget_Context &w, UI_Context &ui, UI_Box *div, Game::Player_State *player)
+{
+    SCROLL_O(&w, 0, Rect{0, 0, div->layout_box.w, card_height})
+    {
+        UI_Box *scroll = ui.leafs.back();
+        opp_battlefield_scroll_id = scroll->id;
 
         ui.sizes.push({UI_Size_Pixels(card_width), UI_Size_Pixels(card_height)});
-        defer(ui.sizes.pop());
-        size_t hovered = INT32_MAX;
-        for (size_t i = 0; i < player->hand.size(); i++) {
-            const Game::Card *c = Game::instances.Find(player->hand[i]);
-            UI_Signal button = w.Card(*c, {}, UI_BOX_FLAG_CLICKABLE | UI_BOX_FLAG_CLIP | UI_BOX_FLAG_DRAGGABLE, "Card[" + std::to_string(c->instance_id));
-            if (Move_Card(player, c->instance_id, button, hand_ui))
+        defer (ui.sizes.pop());
+        for (size_t i = 0; i < player->battlefield.size(); i++)
+        {
+            Game::Permanent_State *p = (Game::Permanent_State *)Game::instances.Find(player->battlefield[i]);
+            const Game::Card *c = Game::instances.Find(p->card);
+            UI_Signal sig = w.Card(*c, {}, UI_BOX_FLAG_CLICKABLE | UI_BOX_FLAG_DRAGGABLE);
+            Widget_Data *widget = std::any_cast<Widget_Data>(&sig.box->userdata);
+            widget->texture_flip = SDL_FLIP_VERTICAL;
+            sig.box->margin = {0};
+            if (p->tapped)
             {
-                player->hand_count--;
-                player->hand.erase(player->hand.begin() + i);
-            }
-            if (button.flags & (UI_SIG_HOVERING | UI_SIG_LEFT_DOWN)) {
-                hovered = i;
-                div->offset.y = -card_height / 3 * 2;
-                button.box->margin.top// = button.box->margin.right
-                                       = -card_grow_amount;
-                button.box->margin.right = -card_grow_amount * card_aspect; 
+                auto tmp = sig.box->size.x;
+                sig.box->size.x = sig.box->size.y;
+                sig.box->size.y = tmp;
+                widget->texture_rotaton = Widget_Rotation::Rot_90;
             }
             else
+                widget->texture_rotaton = Widget_Rotation::Rot_0;
+            if (sig.flags & UI_SIG_HOVERING || sig.flags & UI_SIG_LEFT_DOWN)
             {
-                button.box->margin.top = 0;
-                button.box->margin.right = 0;
+                widget->texture_flip = SDL_FLIP_NONE;
+                sig.box->size.x.value += card_grow_amount * ((!p->tapped) ? card_aspect : 1.0f);
+                sig.box->margin.bottom = -card_grow_amount * ((p->tapped) ? card_aspect : 1.0f);
             }
-            button.box->offset.x = -card_offset * ((!hovered || i < hovered) ? i : i - 1)
-                                                + ((i > hovered) ? card_grow_amount : 0);
         }
     }
 }
 
-static void Library_UI(Widget_Context &w, UI_Context &ui, Game::Player_State *player, SDL_Texture *card_texture) {
+void Battlefield_UI(Widget_Context &w, UI_Context &ui, Game::Player_State *player, Game::Player_State *opp) {
+    UI_Box *div = ui.leafs.back();
+    battlefield_ui = div->id;
+
+    div->child_layout_axis = 1;
+    div->elem_align = {UI_ALIGN_LEFT, UI_ALIGN_BOTTOM};
+
+    if (Widget_Data *widget = std::any_cast<Widget_Data>(&div->userdata))
+    {
+        widget->flags |= WIDGET_FLAG_DRAW_BORDER;
+    }
+
+    //goofy work around for not haveing any way to
+    //deal with z positioning
+    UI_Box *hot = ui.Get_Box(ui.hot);
+    if (hot && hot->parent && hot->parent->id == player_battlefield_scroll_id)
+    {
+        Player_Battlefield_UI(w, ui, div, player);
+        Opp_Battlefield_UI(w, ui, div, opp);
+    }
+    else
+    {
+        Opp_Battlefield_UI(w, ui, div, opp);
+        Player_Battlefield_UI(w, ui, div, player);
+    }
+}
+
+void Hand_UI(Widget_Context &w, UI_Context &ui, Game::Player_State *player) {
+    UI_Box *div = ui.leafs.back();
+    hand_ui = div->id;
+    div->offset.y = card_height / 3 * 2;
+
+    ui.sizes.push({UI_Size_Pixels(card_width), UI_Size_Pixels(card_height)});
+    defer(ui.sizes.pop());
+    size_t hovered = INT32_MAX;
+    for (size_t i = 0; i < player->hand.size(); i++) {
+        const Game::Card *c = Game::instances.Find(player->hand[i]);
+        UI_Signal button = w.Card(*c, {}, UI_BOX_FLAG_CLICKABLE | UI_BOX_FLAG_CLIP | UI_BOX_FLAG_DRAGGABLE, "Card[" + std::to_string(c->instance_id));
+        if (Move_Card(player, c->instance_id, button, hand_ui))
+        {
+            player->hand_count--;
+            player->hand.erase(player->hand.begin() + i);
+        }
+        if (button.flags & (UI_SIG_HOVERING | UI_SIG_LEFT_DOWN)) {
+            hovered = i;
+            div->offset.y = 0;
+            button.box->margin.top// = button.box->margin.right
+                                    = -card_grow_amount;
+            button.box->margin.right = -card_grow_amount * card_aspect; 
+        }
+        else
+        {
+            button.box->margin.top = 0;
+            button.box->margin.right = 0;
+        }
+        button.box->offset.x = -card_offset * ((!hovered || i < hovered) ? i : i - 1)
+                                            + ((i > hovered) ? card_grow_amount : 0);
+    }
+}
+void Opp_Hand_UI(Widget_Context &w, UI_Context &ui, Game::Player_State *player) {
+    UI_Box *div = ui.leafs.back();
+    div->offset.y = -card_height / 3 * 2;
+
+    ui.sizes.push({UI_Size_Pixels(card_width), UI_Size_Pixels(card_height)});
+    defer(ui.sizes.pop());
+    size_t hovered = INT32_MAX;
+    for (size_t i = 0; i < player->hand.size(); i++) {
+        UI_Signal button = w.Card({}, {}, UI_BOX_FLAG_CLICKABLE | UI_BOX_FLAG_CLIP, "Opp_Card[" + std::to_string(i));
+        if (Widget_Data *widget = std::any_cast<Widget_Data>(&button.box->userdata))
+        {
+            widget->texture_flip = SDL_FLIP_VERTICAL;
+        }
+        if (button.flags & (UI_SIG_HOVERING | UI_SIG_LEFT_DOWN)) {
+            hovered = i;
+            div->offset.y = 0;
+            button.box->margin.bottom
+                                    = -card_grow_amount;
+            button.box->margin.right = -card_grow_amount * card_aspect; 
+        }
+        else
+        {
+            button.box->margin.top = 0;
+            button.box->margin.right = 0;
+        }
+        button.box->offset.x = -card_offset * ((!hovered || i < hovered) ? i : i - 1)
+                                            + ((i > hovered) ? card_grow_amount : 0);
+    }
+}
+
+static UI_Signal Library_UI(Widget_Context &w, UI_Context &ui, Game::Player_State *player, SDL_Texture *card_texture, const std::source_location source_loc = std::source_location::current()) {
     UI_Signal library =
     w.Label( {},{},
-              UI_BOX_FLAG_CLICKABLE | UI_BOX_FLAG_CLIP | UI_BOX_FLAG_DRAG_DROP
+              UI_BOX_FLAG_CLICKABLE | UI_BOX_FLAG_CLIP | UI_BOX_FLAG_DRAG_DROP, {}, source_loc
     );
-    library_ui = library.box->id;
+    //library_ui = library.box->id;
     Widget_Data *widget = std::any_cast<Widget_Data>(&library.box->userdata);
     if (!widget)
-        return;
+        return library;
 
     if (library.flags & UI_SIG_HOVERING || library.flags & UI_SIG_LEFT_DOWN)
         library.box->margin.right = library.box->margin.bottom = -30.0f;
@@ -204,6 +270,7 @@ static void Library_UI(Widget_Context &w, UI_Context &ui, Game::Player_State *pl
         if (Move_Card(player, c.instance_id, library, library_ui))
             Game::instances.Add(c);
     }
+    return library;
 }
 static UI_Signal Yard_UI(Widget_Context &w, UI_Context &ui, std::vector<Game::Card_ID> *yard, std::string label)
 {
@@ -263,16 +330,16 @@ static void Exile_UI(Widget_Context &w, UI_Context &ui, Game::Player_State *play
 void Side_Zones_UI(Widget_Context &w, UI_Context &ui, Game::Player_State *player, SDL_Texture *library_texture)
 {
     const float margin = 10.0f;
-    UI_Signal div = w.Div_Begin(Rect{
-        10.0f, state.window_height * 0.25f,
-        card_width, card_height*3 + margin*2
-    });
+    ui.sizes.push({UI_Size_Pixels(card_width + margin * 2), UI_Size_Parent(1.0f)});
+    UI_Signal div = w.Div_Begin();
     defer (w.Div_End());
+
     div.box->child_layout_axis = 1;
+    div.box->elem_align = UI_ALIGN_CENTER;
     ui.sizes.push({UI_Size_Pixels(card_width), UI_Size_Pixels(card_height)});
     defer (ui.sizes.pop());
 
-    Library_UI(w,ui, player, library_texture);
+    library_ui = Library_UI(w,ui, player, library_texture).box->id;
 
     w.Spacer(UI_Size_Pixels(margin));
 
@@ -282,6 +349,67 @@ void Side_Zones_UI(Widget_Context &w, UI_Context &ui, Game::Player_State *player
     w.Spacer(UI_Size_Pixels(margin));
 
     Exile_UI(w, ui, player);
+
+}
+
+static void Opp_Graveyard_UI(Widget_Context &w, UI_Context &ui, Game::Player_State *player)
+{
+    UI_Signal sig = Yard_UI(w, ui, &player->graveyard, "Opp Graveyard");
+    if (!sig.box)
+        return;
+
+    if (Widget_Data *widget = std::any_cast<Widget_Data>(&sig.box->userdata))
+    {
+        widget->texture_flip = SDL_FLIP_VERTICAL;
+    }
+
+    if (player->graveyard.size() && Move_Card(player, player->graveyard.back(), sig, graveyard_ui))
+    {
+        player->graveyard.pop_back();
+    }
+}
+static void Opp_Exile_UI(Widget_Context &w, UI_Context &ui, Game::Player_State *player)
+{
+    UI_Signal sig = Yard_UI(w, ui, &player->exile, "Opp Exile");
+    if (!sig.box)
+        return;
+
+    if (Widget_Data *widget = std::any_cast<Widget_Data>(&sig.box->userdata))
+    {
+        widget->texture_flip = SDL_FLIP_VERTICAL;
+    }
+
+    if (player->exile.size() && Move_Card(player, player->exile.back(), sig, exile_ui))
+    {
+        player->exile.pop_back();
+    }
+}
+
+void Opp_Side_Zones_UI(Widget_Context &w, UI_Context &ui, Game::Player_State *player, SDL_Texture *library_texture)
+{
+    const float margin = 10.0f;
+    ui.sizes.push({UI_Size_Pixels(card_width + margin * 2), UI_Size_Parent(1.0f)});
+    UI_Signal div = w.Div_Begin();
+    defer (w.Div_End());
+
+    div.box->child_layout_axis = 1;
+    div.box->elem_align = UI_ALIGN_CENTER;
+    ui.sizes.push({UI_Size_Pixels(card_width), UI_Size_Pixels(card_height)});
+    defer (ui.sizes.pop());
+
+    Opp_Exile_UI(w, ui, player);
+
+    w.Spacer(UI_Size_Pixels(margin));
+
+    Opp_Graveyard_UI(w, ui, player);
+
+    w.Spacer(UI_Size_Pixels(margin));
+
+    UI_Signal lib = Library_UI(w,ui, player, library_texture);
+    if (Widget_Data *widget = std::any_cast<Widget_Data>(&lib.box->userdata))
+    {
+        widget->texture_flip = (SDL_FlipMode)(SDL_FLIP_HORIZONTAL | SDL_FLIP_VERTICAL);
+    }
 
 }
 
@@ -333,4 +461,58 @@ void Drag_Overlay_UI(UI_Context &ui) {
     }
     SDL_RenderTextureRotated(state.renderer, widget->texture, NULL, &drop_rect, rot, NULL, SDL_FLIP_NONE);
     SDL_SetTextureAlphaMod(widget->texture, 0xFF);
+}
+
+void Game_UI(Widget_Context &w, UI_Context &ui, const Game::Game_Snapshot &snapshot, SDL_Texture *library_texture)
+{
+    Game::Player_State &p = (Game::Player_State &)snapshot.players[0];
+    Game::Player_State &o = (Game::Player_State &)snapshot.players[1];
+    //Game::Player_State &o = p;
+
+    Side_Zones_UI(w, ui, &p, library_texture);
+
+    ui.sizes.push({UI_Size_Fit(), UI_Size_Parent(1.0f)});
+    DIV(&w)
+    {
+        // These have to be floating since the hands
+        // go over the battlefeild
+
+        UI_Box *div = ui.leafs.back();
+
+        div->child_layout_axis = 1;
+        ui.sizes.push({UI_Size_Parent(1.0f), UI_Size_Pixels(card_height)});
+        DIV(&w) {
+            UI_Box *h_div = ui.leafs.back();
+            h_div->flags |= UI_BOX_FLAG_FLOATING;
+            h_div->fixed_position = V2{0, 0};
+            Opp_Hand_UI(w, ui, &o);
+        }
+        ui.sizes.pop();
+
+        ui.sizes.push({UI_Size_Parent(1.0f), UI_Size_Pixels(card_height)});
+        DIV_O(&w, {}, UI_BOX_FLAG_DROPPABLE ) {
+            UI_Box *h_div = ui.leafs.back();
+            h_div->flags |= UI_BOX_FLAG_FLOATING;
+            h_div->fixed_position = V2{0, div->layout_box.h - card_height};
+            Hand_UI(w, ui, &p);
+        }
+        ui.sizes.pop();
+
+        ui.sizes.push({UI_Size_Pixels(div->layout_box.w), UI_Size_Pixels(div->layout_box.h - card_height*2)});
+        w.styles.push(theme::Button_Primary());
+        DIV_O(&w, {},
+              UI_BOX_FLAG_DROPPABLE | UI_BOX_FLAG_CLIP)
+        {
+            UI_Box *b_div = ui.leafs.back();
+            b_div->flags |= UI_BOX_FLAG_FLOATING;
+            b_div->fixed_position = V2{0, card_height};
+            Battlefield_UI(w, ui, &p, &o);
+        }
+        w.styles.pop();
+        ui.sizes.pop();
+
+    }
+    ui.sizes.pop();
+
+    Opp_Side_Zones_UI(w, ui, &p, library_texture);
 }
