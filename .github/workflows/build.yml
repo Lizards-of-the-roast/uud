@@ -15,7 +15,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          sudo apt-get update
+          sudo apt-get update 
           sudo apt-get install -y \
             cmake ninja-build clang-18 libc++-18-dev libc++abi-18-dev \
             clang-tools-18 \
@@ -28,7 +28,7 @@ jobs:
             libpng-dev libjpeg-dev libwebp-dev
 
       - name: Configure
-        run: cmake --preset release
+        run: cmake --preset release -DCMAKE_C_COMPILER_LAUNCHER="" -DCMAKE_CXX_COMPILER_LAUNCHER=""
 
       - name: Build
         run: cmake --build --preset release
