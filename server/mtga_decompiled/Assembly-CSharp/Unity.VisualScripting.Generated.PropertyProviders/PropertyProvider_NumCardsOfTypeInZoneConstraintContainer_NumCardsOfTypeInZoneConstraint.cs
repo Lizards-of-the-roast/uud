@@ -1,6 +1,0 @@
-namespace Unity.VisualScripting.Generated.PropertyProviders;
-
-[SerializedPropertyProvider(typeof(NumCardsOfTypeInZoneConstraintContainer.NumCardsOfTypeInZoneConstraint))]
-public class PropertyProvider_NumCardsOfTypeInZoneConstraintContainer_NumCardsOfTypeInZoneConstraint : SerializedPropertyProvider<NumCardsOfTypeInZoneConstraintContainer.NumCardsOfTypeInZoneConstraint>
-{
-}
