@@ -49,4 +49,13 @@ enum class TriggerType {
 #undef X
 };
 
+inline const char* trigger_type_to_string(TriggerType t) {
+    switch (t) {
+#define X(method, enum_val) case TriggerType::enum_val: return #enum_val;
+        CARD_TRIGGER_LIST(X)
+#undef X
+    }
+    return "Unknown";
+}
+
 }  // namespace cle::triggers

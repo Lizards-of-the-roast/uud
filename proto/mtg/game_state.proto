@@ -155,6 +155,9 @@ message AbilityActivatedEvent {
 message TriggerFiredEvent {
     uint64 source_id = 1;
     string trigger_type = 2;
+    uint64 stack_entry_id = 3;
+    string description = 4;
+    uint64 controller_id = 5;
 }
 
 message TokenCreatedEvent {

@@ -116,6 +116,7 @@ target_link_libraries(uud
     SDL3_image
     SDL3_ttf
     mtg_proto_client
+    ${UUD_GRPC_OPENSSL}
 )
 
 set_property(TARGET uud PROPERTY CXX_STANDARD 23)

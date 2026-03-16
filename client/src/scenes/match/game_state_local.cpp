@@ -13,8 +13,11 @@ using namespace Game;
 void Local_Game_State::Apply_Snapshot(const Game_Snapshot &snapshot) {
     snapshot_ = snapshot;
     has_snapshot_ = true;
-    drawn_card_ids_.clear();
-    next_stack_id_ = 1;
+}
+
+static bool Stack_Has_Entry(const std::vector<Stack_Entry> &stack, uint64_t id) {
+    return std::any_of(stack.begin(), stack.end(),
+                       [id](const Stack_Entry &s) { return s.entry_id == id; });
 }
 
 static Player_State *Find_Player(Game_Snapshot &snap, uint64_t player_id) {
@@ -81,23 +84,6 @@ void Local_Game_State::Apply_Event(const Game_Event &event) {
                         activated_this_phase_.clear();
                     }
 
-                    drawn_card_ids_.clear();
-
-                    if (e.new_phase == Phase::Untap) {
-                        for (auto &player : snapshot_.players)
-                            player.mana_pool = {};
-                        if (auto *active = Find_Player(snapshot_, e.active_player_id)) {
-                            for (auto perm_id : active->battlefield) {
-                                auto *perm = const_cast<Permanent_State *>(instances.Find(perm_id));
-                                if (perm) {
-                                    perm->tapped = false;
-                                    perm->summoning_sick = false;
-                                    perm->damage_marked = 0;
-                                }
-                            }
-                        }
-                    }
-
                     if (e.new_phase == Phase::Main_2 || e.new_phase == Phase::End_Step ||
                         e.new_phase == Phase::Untap) {
                         for (auto &player : snapshot_.players) {
@@ -124,7 +110,6 @@ void Local_Game_State::Apply_Event(const Game_Event &event) {
             } else if constexpr (std::is_same_v<T, Card_Drawn_Event>) {
                 if (has_snapshot_) {
                     instances.Upsert(e.card);
-                    drawn_card_ids_.insert(e.card.instance_id);
                     if (auto *p = Find_Player(snapshot_, e.player_id)) {
                         if (std::find(p->hand.begin(), p->hand.end(), e.card.instance_id) ==
                             p->hand.end())
@@ -155,9 +140,10 @@ void Local_Game_State::Apply_Event(const Game_Event &event) {
                     }
                     log_.Add("Cast " + (e.card.name.empty() ? "a spell" : e.card.name), 0xFFD700FF);
                     pending_card_anims.push_back({e.card.instance_id, e.card.name, 0, 4});
-                    if (e.card.type != Card_Type::Land) {
+                    if (e.card.type != Card_Type::Land && e.stack_entry_id != 0 &&
+                        !Stack_Has_Entry(snapshot_.stack, e.stack_entry_id)) {
                         Stack_Entry entry;
-                        entry.entry_id = next_stack_id_++;
+                        entry.entry_id = e.stack_entry_id;
                         entry.spell = e.card;
                         entry.controller_id = e.player_id;
                         snapshot_.stack.push_back(std::move(entry));
@@ -215,10 +201,8 @@ void Local_Game_State::Apply_Event(const Game_Event &event) {
                     if (auto *p = Find_Player(snapshot_, e.player_id)) {
                         bool is_draw_transfer =
                             (e.from_zone == Zone_Type::Library && e.to_zone == Zone_Type::Hand);
-                        if (is_draw_transfer && drawn_card_ids_.contains(e.card_id))
-                            return;
 
-                        if (is_draw_transfer && e.player_id != local_user_id_) {
+                        if (is_draw_transfer) {
                             Card_Anim_Hint h;
                             h.card_id = e.card_id;
                             h.from_zone = 2;
@@ -408,19 +392,35 @@ void Local_Game_State::Apply_Event(const Game_Event &event) {
                     auto it = std::find_if(stk.begin(), stk.end(), [&](const Stack_Entry &s) {
                         return s.entry_id == e.stack_entry_id;
                     });
-                    if (it == stk.end() && !e.card_name.empty()) {
-                        it = std::find_if(stk.begin(), stk.end(), [&](const Stack_Entry &s) {
-                            return s.spell.has_value() && s.spell->name == e.card_name;
-                        });
-                    }
-                    if (it == stk.end() && !stk.empty())
-                        it = stk.end() - 1;
                     if (it != stk.end())
                         stk.erase(it);
                     log_.Add((e.card_name.empty() ? "Spell" : e.card_name) + " resolved");
                 }
             } else if constexpr (std::is_same_v<T, Ability_Activated_Event>) {
+                if (has_snapshot_ && e.stack_entry_id != 0 &&
+                    !Stack_Has_Entry(snapshot_.stack, e.stack_entry_id)) {
+                    Stack_Entry entry;
+                    entry.entry_id = e.stack_entry_id;
+                    entry.ability_description = e.ability_text;
+                    snapshot_.stack.push_back(std::move(entry));
+                }
+                log_.Add(e.ability_text.empty() ? "Ability activated"
+                                                : e.ability_text,
+                         0xAA80FFFF);
             } else if constexpr (std::is_same_v<T, Trigger_Fired_Event>) {
+                if (has_snapshot_ && e.stack_entry_id != 0 &&
+                    !Stack_Has_Entry(snapshot_.stack, e.stack_entry_id)) {
+                    Stack_Entry entry;
+                    entry.entry_id = e.stack_entry_id;
+                    entry.ability_description =
+                        e.description.empty() ? e.trigger_type : e.description;
+                    entry.controller_id = e.controller_id;
+                    snapshot_.stack.push_back(std::move(entry));
+                }
+                log_.Add(e.description.empty()
+                             ? (e.trigger_type.empty() ? "Triggered ability" : e.trigger_type)
+                             : e.description,
+                         0x80AAFFFF);
             } else if constexpr (std::is_same_v<T, Player_Eliminated_Event>) {
                 std::cerr << "local_state: player eliminated id=" << e.player_id
                           << " reason=" << e.reason << '\n';
@@ -428,6 +428,15 @@ void Local_Game_State::Apply_Event(const Game_Event &event) {
             } else if constexpr (std::is_same_v<T, Rope_Warning_Event>) {
                 std::cerr << "local_state: rope warning player=" << e.player_id
                           << " seconds=" << e.seconds_remaining << '\n';
+            } else if constexpr (std::is_same_v<T, Game_Log_Entry_Event>) {
+                uint32_t color = 0xFFFFFFFF;
+                if (e.category == "combat")
+                    color = 0xFF6060FF;
+                else if (e.category == "spell")
+                    color = 0x80CCFFFF;
+                else if (e.category == "life")
+                    color = 0x60FF60FF;
+                log_.Add(e.text, color);
             } else if constexpr (std::is_same_v<T, Unknown_Event>) {
                 std::cerr << "game: ignoring unknown event: " << e.description << '\n';
             }

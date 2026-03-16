@@ -109,8 +109,18 @@ void GameContextImpl::draw_cards(uint64_t player_id, int count) {
         *drawn->mutable_card() = cle::serialization::serialize_card(**card);
         game_.broadcaster().emit_to_player(player_id, std::move(event));
 
-        emit_zone_transfer((*card)->instance_id(), proto::ZONE_LIBRARY, proto::ZONE_HAND,
-                           player_id);
+        for (const auto& p : game_.players()) {
+            if (p.id() == player_id)
+                continue;
+            proto::GameEvent zt_event;
+            zt_event.set_game_id(game_.game_id());
+            auto* zt = zt_event.mutable_zone_transfer();
+            zt->set_card_id((*card)->instance_id());
+            zt->set_from_zone(proto::ZONE_LIBRARY);
+            zt->set_to_zone(proto::ZONE_HAND);
+            zt->set_player_id(player_id);
+            game_.broadcaster().emit_to_player(p.id(), std::move(zt_event));
+        }
     }
 }
 

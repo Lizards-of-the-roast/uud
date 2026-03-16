@@ -77,6 +77,9 @@ struct Ability_Activated_Event {
 struct Trigger_Fired_Event {
     uint64_t source_id = 0;
     std::string trigger_type;
+    uint64_t stack_entry_id = 0;
+    std::string description;
+    uint64_t controller_id = 0;
 };
 
 struct Token_Created_Event {
@@ -141,6 +144,12 @@ struct Rope_Warning_Event {
     int seconds_remaining = 0;
 };
 
+struct Game_Log_Entry_Event {
+    std::string text;
+    uint64_t player_id = 0;
+    std::string category;
+};
+
 struct Unknown_Event {
     std::string description;
 };
@@ -173,6 +182,7 @@ struct Game_Event {
         Draw_Declined_Event,
         Player_Eliminated_Event,
         Rope_Warning_Event,
+        Game_Log_Entry_Event,
         Unknown_Event>
         event;
 };

@@ -434,7 +434,10 @@ Game_Event From_Proto(const mtg::proto::GameEvent &proto) {
             break;
         case mtg::proto::GameEvent::kTriggerFired:
             ge.event = Trigger_Fired_Event{proto.trigger_fired().source_id(),
-                                           proto.trigger_fired().trigger_type()};
+                                           proto.trigger_fired().trigger_type(),
+                                           proto.trigger_fired().stack_entry_id(),
+                                           proto.trigger_fired().description(),
+                                           proto.trigger_fired().controller_id()};
             break;
         case mtg::proto::GameEvent::kTokenCreated:
             ge.event = Token_Created_Event{From_Proto(proto.token_created().token())};
@@ -498,8 +501,13 @@ Game_Event From_Proto(const mtg::proto::GameEvent &proto) {
                                            proto.rope_warning().seconds_remaining()};
             break;
         case mtg::proto::GameEvent::kFloatingManaWarning:
-        case mtg::proto::GameEvent::kGameLogEntry:
             ge.event = Unknown_Event{"Ignored server event"};
+            break;
+        case mtg::proto::GameEvent::kGameLogEntry:
+            ge.event = Game_Log_Entry_Event{
+                proto.game_log_entry().text(),
+                proto.game_log_entry().player_id(),
+                proto.game_log_entry().category()};
             break;
         default:
             ge.event = Unknown_Event{"Unrecognized server event"};

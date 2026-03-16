@@ -411,6 +411,16 @@ void Game::game_loop() {
 
             run_phase(static_cast<Phase>(phase_idx));
 
+            if (static_cast<Phase>(phase_idx) == Phase::Untap) {
+                for (const auto& p : players_) {
+                    proto::GameEvent snap_event;
+                    snap_event.set_game_id(game_id_);
+                    auto* se = snap_event.mutable_snapshot();
+                    *se->mutable_snapshot() = build_snapshot(p.id());
+                    broadcaster_.emit_to_player(p.id(), std::move(snap_event));
+                }
+            }
+
             {
                 std::lock_guard const lock{mutex_};
                 auto win = win_checker_.check(*this);
@@ -896,7 +906,24 @@ void Game::fire_triggers(cle::triggers::TriggerType type,
                 .effect = trig.effect,
             };
             entry.controller_id = trig.controller_id;
-            stack_.push(std::move(entry));
+            uint64_t stack_id = stack_.push(std::move(entry));
+
+            std::string desc = "Triggered ability";
+            auto* src_perm = zones_.find_permanent(trig.source_id);
+            if (src_perm && src_perm->card()) {
+                desc = src_perm->card()->name() + " - " +
+                       cle::triggers::trigger_type_to_string(type);
+            }
+
+            proto::GameEvent ge;
+            ge.set_game_id(game_id_);
+            auto* tf = ge.mutable_trigger_fired();
+            tf->set_source_id(trig.source_id);
+            tf->set_trigger_type(cle::triggers::trigger_type_to_string(type));
+            tf->set_stack_entry_id(stack_id);
+            tf->set_description(desc);
+            tf->set_controller_id(trig.controller_id);
+            broadcaster_.emit(std::move(ge));
         }
     };
 
@@ -1815,7 +1842,18 @@ void Game::resolve_stack_entry(StackEntry entry) {
                             .effect = *etb,
                         };
                         etb_stack_entry.controller_id = entry.controller_id;
-                        stack_.push(std::move(etb_stack_entry));
+                        uint64_t etb_stack_id = stack_.push(std::move(etb_stack_entry));
+
+                        proto::GameEvent tfe;
+                        tfe.set_game_id(game_id_);
+                        auto* tf = tfe.mutable_trigger_fired();
+                        tf->set_source_id(perm_id);
+                        tf->set_trigger_type(cle::triggers::trigger_type_to_string(
+                            cle::triggers::TriggerType::OnEnterBattlefield));
+                        tf->set_stack_entry_id(etb_stack_id);
+                        tf->set_description(card_name + " enters the battlefield");
+                        tf->set_controller_id(entry.controller_id);
+                        broadcaster_.emit(std::move(tfe));
                     }
 
                     {

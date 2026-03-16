@@ -15,6 +15,7 @@ if(gRPC_FOUND)
     set(UUD_GRPC_LIB gRPC::grpc++ CACHE INTERNAL "")
     set(UUD_GRPC_REFLECTION gRPC::grpc++_reflection CACHE INTERNAL "")
     set(UUD_GRPC_CPP_PLUGIN $<TARGET_FILE:gRPC::grpc_cpp_plugin> CACHE INTERNAL "")
+    set(UUD_GRPC_OPENSSL "" CACHE INTERNAL "")
     return()
 endif()
 
@@ -48,12 +49,21 @@ FetchContent_Declare(
     GIT_TAG        93571f6142f823167d54bc1169fed567b2407d94 # v1.70.0
     GIT_SHALLOW    TRUE
     GIT_PROGRESS   TRUE
+    GIT_SUBMODULES
+        third_party/abseil-cpp
+        third_party/cares/cares
+        third_party/protobuf
+        third_party/re2
+        third_party/zlib
     EXCLUDE_FROM_ALL
 )
 
 uud_fetch_content_quiet(grpc)
 uud_silence_warnings_in_dir("${grpc_BINARY_DIR}")
 
+find_package(OpenSSL REQUIRED)
+
 set(UUD_GRPC_LIB grpc++ CACHE INTERNAL "")
 set(UUD_GRPC_REFLECTION grpc++_reflection CACHE INTERNAL "")
 set(UUD_GRPC_CPP_PLUGIN $<TARGET_FILE:grpc_cpp_plugin> CACHE INTERNAL "")
+set(UUD_GRPC_OPENSSL "OpenSSL::SSL;OpenSSL::Crypto" CACHE INTERNAL "")

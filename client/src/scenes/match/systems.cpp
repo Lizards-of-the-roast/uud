@@ -926,7 +926,8 @@ void Combat_Lines_UI(SDL_Renderer *renderer, Combat_UI_State *combat) {
     }
 }
 
-static void Stack_UI(Widget_Context &w, UI_Context &ui, const Game::Game_Snapshot &snapshot) {
+static void Stack_UI(Widget_Context &w, UI_Context &ui, const Game::Game_Snapshot &snapshot,
+                     Combat_UI_State *combat = nullptr) {
     if (snapshot.stack.empty())
         return;
 
@@ -962,6 +963,8 @@ static void Stack_UI(Widget_Context &w, UI_Context &ui, const Game::Game_Snapsho
             if (entry.spell.has_value())
                 wd->texture = Game::card_textures.Get(entry.spell->name);
         }
+        if (combat && entry.spell.has_value() && (sig.flags & UI_SIG_HOVERING))
+            combat->hovered_card_id = entry.spell->instance_id;
     }
 }
 
@@ -1029,7 +1032,7 @@ void Game_UI(Widget_Context &w, UI_Context &ui, const Game::Game_Snapshot &snaps
     }
     ui.sizes.pop();
 
-    Stack_UI(w, ui, snapshot);
+    Stack_UI(w, ui, snapshot, combat);
 
     Opp_Side_Zones_UI(w, ui, &o, library_texture, font, is_local);
 }

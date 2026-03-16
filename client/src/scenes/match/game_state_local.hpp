@@ -124,7 +124,5 @@ private:
     bool draw_offered_by_us_ = false;
     std::set<uint64_t> activated_this_phase_;
     int last_phase_turn_key_ = -1;
-    std::set<uint64_t> drawn_card_ids_;
-    uint64_t next_stack_id_ = 1;
     Game_Log log_;
 };

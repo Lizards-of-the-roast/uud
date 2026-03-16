@@ -190,7 +190,7 @@ target_link_libraries(mtg_server_lib PUBLIC prometheus-cpp::pull prometheus-cpp:
 
 # exec
 add_executable(mtg-server src/main.cpp)
-target_link_libraries(mtg-server PRIVATE mtg_server_lib mtg_compile_options)
+target_link_libraries(mtg-server PRIVATE mtg_server_lib mtg_compile_options ${UUD_GRPC_OPENSSL})
 
 file(COPY "${CMAKE_SOURCE_DIR}/cards" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
 file(COPY config DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
