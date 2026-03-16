@@ -1,0 +1,42 @@
+syntax = "proto3";
+package mtg.proto;
+
+message JoinQueueRequest {
+    string deck_id = 2;
+}
+
+message JoinQueueResponse {
+    string queue_ticket = 1;
+}
+
+message LeaveQueueRequest {
+    string queue_ticket = 1;
+}
+
+message LeaveQueueResponse {}
+
+message QueueStatusRequest {
+    string queue_ticket = 1;
+}
+
+message QueueStatusResponse {
+    bool matched = 1;
+    string game_id = 2;
+    int32 queue_position = 3;
+    int32 estimated_wait_seconds = 4;
+    int32 elo = 5;
+}
+
+message GetQueueInfoRequest {}
+
+message GetQueueInfoResponse {
+    int32 total_queued = 1;
+    int32 queued_players = 2;
+}
+
+service MatchmakingService {
+    rpc JoinQueue(JoinQueueRequest) returns (JoinQueueResponse);
+    rpc LeaveQueue(LeaveQueueRequest) returns (LeaveQueueResponse);
+    rpc QueueStatus(QueueStatusRequest) returns (stream QueueStatusResponse);
+    rpc GetQueueInfo(GetQueueInfoRequest) returns (GetQueueInfoResponse);
+}

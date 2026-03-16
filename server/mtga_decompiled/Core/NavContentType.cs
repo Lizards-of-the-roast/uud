@@ -1,0 +1,23 @@
+public enum NavContentType
+{
+	None,
+	EventLanding,
+	Home,
+	Draft,
+	Store,
+	DeckListViewer,
+	BoosterChamber,
+	DeckBuilder,
+	ConstructedDeckSelect,
+	Profile,
+	SealedBoosterOpen,
+	LearnToPlay,
+	RewardTrack,
+	RewardTree,
+	ChallengeEventLanding,
+	TableDraftQueue,
+	PacketSelect,
+	Achievements,
+	PrizeWall,
+	FactionalizedEvent
+}

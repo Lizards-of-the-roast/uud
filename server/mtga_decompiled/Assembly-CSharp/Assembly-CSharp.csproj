@@ -1,0 +1,111 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>Assembly-CSharp</AssemblyName>
+    <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
+    <TargetFramework>netstandard2.1</TargetFramework>
+  </PropertyGroup>
+  <PropertyGroup>
+    <LangVersion>12.0</LangVersion>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup />
+  <ItemGroup />
+  <ItemGroup>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>..\..\..\..\..\Program Files\Wizards of the Coast\MTGA\MTGA_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.AnimationModule">
+      <HintPath>..\..\..\..\..\Program Files\Wizards of the Coast\MTGA\MTGA_Data\Managed\UnityEngine.AnimationModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.ParticleSystemModule">
+      <HintPath>..\..\..\..\..\Program Files\Wizards of the Coast\MTGA\MTGA_Data\Managed\UnityEngine.ParticleSystemModule.dll</HintPath>
+    </Reference>
+    <Reference Include="Core">
+      <HintPath>..\..\..\..\..\Program Files\Wizards of the Coast\MTGA\MTGA_Data\Managed\Core.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UI">
+      <HintPath>..\..\..\..\..\Program Files\Wizards of the Coast\MTGA\MTGA_Data\Managed\UnityEngine.UI.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.TextMeshPro">
+      <HintPath>..\..\..\..\..\Program Files\Wizards of the Coast\MTGA\MTGA_Data\Managed\Unity.TextMeshPro.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.RenderPipelines.Universal.Runtime">
+      <HintPath>..\..\..\..\..\Program Files\Wizards of the Coast\MTGA\MTGA_Data\Managed\Unity.RenderPipelines.Universal.Runtime.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.RenderPipelines.Core.Runtime">
+      <HintPath>..\..\..\..\..\Program Files\Wizards of the Coast\MTGA\MTGA_Data\Managed\Unity.RenderPipelines.Core.Runtime.dll</HintPath>
+    </Reference>
+    <Reference Include="SharedClientCore">
+      <HintPath>..\..\..\..\..\Program Files\Wizards of the Coast\MTGA\MTGA_Data\Managed\SharedClientCore.dll</HintPath>
+    </Reference>
+    <Reference Include="Wizards.Arena.Models.Protobuf">
+      <HintPath>..\..\..\..\..\Program Files\Wizards of the Coast\MTGA\MTGA_Data\Managed\Wizards.Arena.Models.Protobuf.dll</HintPath>
+    </Reference>
+    <Reference Include="Wizards.Arena.Promises">
+      <HintPath>..\..\..\..\..\Program Files\Wizards of the Coast\MTGA\MTGA_Data\Managed\Wizards.Arena.Promises.dll</HintPath>
+    </Reference>
+    <Reference Include="Google.Protobuf">
+      <HintPath>..\..\..\..\..\Program Files\Wizards of the Coast\MTGA\MTGA_Data\Managed\Google.Protobuf.dll</HintPath>
+    </Reference>
+    <Reference Include="Wizards.Arena.Models">
+      <HintPath>..\..\..\..\..\Program Files\Wizards of the Coast\MTGA\MTGA_Data\Managed\Wizards.Arena.Models.dll</HintPath>
+    </Reference>
+    <Reference Include="Wizards.Arena.TcpConnection">
+      <HintPath>..\..\..\..\..\Program Files\Wizards of the Coast\MTGA\MTGA_Data\Managed\Wizards.Arena.TcpConnection.dll</HintPath>
+    </Reference>
+    <Reference Include="DOTween">
+      <HintPath>..\..\..\..\..\Program Files\Wizards of the Coast\MTGA\MTGA_Data\Managed\DOTween.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.VisualScripting.Core">
+      <HintPath>..\..\..\..\..\Program Files\Wizards of the Coast\MTGA\MTGA_Data\Managed\Unity.VisualScripting.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.TextCoreFontEngineModule">
+      <HintPath>..\..\..\..\..\Program Files\Wizards of the Coast\MTGA\MTGA_Data\Managed\UnityEngine.TextCoreFontEngineModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.TextCoreTextEngineModule">
+      <HintPath>..\..\..\..\..\Program Files\Wizards of the Coast\MTGA\MTGA_Data\Managed\UnityEngine.TextCoreTextEngineModule.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Mathematics">
+      <HintPath>..\..\..\..\..\Program Files\Wizards of the Coast\MTGA\MTGA_Data\Managed\Unity.Mathematics.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.InputSystem">
+      <HintPath>..\..\..\..\..\Program Files\Wizards of the Coast\MTGA\MTGA_Data\Managed\Unity.InputSystem.dll</HintPath>
+    </Reference>
+    <Reference Include="DynamicTimelineBinding">
+      <HintPath>..\..\..\..\..\Program Files\Wizards of the Coast\MTGA\MTGA_Data\Managed\DynamicTimelineBinding.dll</HintPath>
+    </Reference>
+    <Reference Include="Wizards.GeneralUtilities">
+      <HintPath>..\..\..\..\..\Program Files\Wizards of the Coast\MTGA\MTGA_Data\Managed\Wizards.GeneralUtilities.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.PhysicsModule">
+      <HintPath>..\..\..\..\..\Program Files\Wizards of the Coast\MTGA\MTGA_Data\Managed\UnityEngine.PhysicsModule.dll</HintPath>
+    </Reference>
+    <Reference Include="HasbroGo">
+      <HintPath>..\..\..\..\..\Program Files\Wizards of the Coast\MTGA\MTGA_Data\Managed\HasbroGo.dll</HintPath>
+    </Reference>
+    <Reference Include="HasbroGoUnity">
+      <HintPath>..\..\..\..\..\Program Files\Wizards of the Coast\MTGA\MTGA_Data\Managed\HasbroGoUnity.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\..\..\..\..\Program Files\Wizards of the Coast\MTGA\MTGA_Data\Managed\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.InputLegacyModule">
+      <HintPath>..\..\..\..\..\Program Files\Wizards of the Coast\MTGA\MTGA_Data\Managed\UnityEngine.InputLegacyModule.dll</HintPath>
+    </Reference>
+    <Reference Include="Wizards.Mtga.Interfaces">
+      <HintPath>..\..\..\..\..\Program Files\Wizards of the Coast\MTGA\MTGA_Data\Managed\Wizards.Mtga.Interfaces.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.DirectorModule">
+      <HintPath>..\..\..\..\..\Program Files\Wizards of the Coast\MTGA\MTGA_Data\Managed\UnityEngine.DirectorModule.dll</HintPath>
+    </Reference>
+    <Reference Include="Wizards.Arena.Enums">
+      <HintPath>..\..\..\..\..\Program Files\Wizards of the Coast\MTGA\MTGA_Data\Managed\Wizards.Arena.Enums.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.IMGUIModule">
+      <HintPath>..\..\..\..\..\Program Files\Wizards of the Coast\MTGA\MTGA_Data\Managed\UnityEngine.IMGUIModule.dll</HintPath>
+    </Reference>
+    <Reference Include="Wizards.Arena.MessageSerialization">
+      <HintPath>..\..\..\..\..\Program Files\Wizards of the Coast\MTGA\MTGA_Data\Managed\Wizards.Arena.MessageSerialization.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+</Project>

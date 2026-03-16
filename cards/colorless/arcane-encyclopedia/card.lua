@@ -1,0 +1,8 @@
+return Artifact("Arcane Encyclopedia")
+    :mana_cost("{3}")
+    :colors({"Colorless"})
+    :oracle_text("{3},{T}:Draw a card")
+    :activated_ability("{3}{T}", "{3},{T}: Draw a card", function(ctx, event)
+        ctx:draw_cards(event.player_id, 1)
+    end, false, false)
+    :build()

@@ -1,0 +1,28 @@
+server:
+  listen_address: "0.0.0.0:50051"
+  max_games: 100
+  action_timeout_seconds: 60
+
+database:
+  postgres_url: "postgres://mtg_user:password@localhost:5432/mtg_db"
+  redis_url: "redis://localhost:6379"
+
+auth:
+  jwt_secret: "28cb3621e06f285943eb72c3cd7ea1f75530f41bbf1b1c67d7aa352eb1d759a5"
+  access_token_ttl_seconds: 3600
+  refresh_token_ttl_seconds: 2592000
+
+matchmaking:
+  poll_interval_ms: 500
+  max_queue_wait_seconds: 300
+
+logging:
+  level: "info"
+  json: false
+
+metrics:
+  port: 9090
+
+cards:
+  data_path: "./cards"
+  lua_scripts_path: "./cards"

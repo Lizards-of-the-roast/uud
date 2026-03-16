@@ -1,0 +1,7 @@
+return Creature("Catacomb Crocodile")
+    :mana_cost("{4}{B}")
+    :colors({"Black"})
+    :subtypes({"Crocodile"})
+    :power_toughness(3, 7)
+    :flavor_text("'I am sewer-king!' said Rat. 'I am quick and cunning and I know every tunnel.'\n 'No, I am king!' said Zombie. 'I am cold and deadly and no rot can harm me.'\n Then Croc came and ate them both.")
+    :build()

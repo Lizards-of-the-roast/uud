@@ -1,0 +1,8 @@
+return Land("Swamp")
+    :subtypes({"Swamp"})
+    :colors({"Colorless"})
+    :oracle_text("{T}: Add {B}.")
+    :activated_ability("{T}", "{T}: Add {B}", function(ctx, event)
+        ctx:add_mana(event.player_id, "B", 1)
+    end, false, true)
+    :build()

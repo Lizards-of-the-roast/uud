@@ -1,0 +1,11 @@
+return Instant("Murder")
+    :mana_cost("{1}{B}{B}")
+    :colors({"Black"})
+    :oracle_text("Destroy target creature.")
+    :flavor_text("Razorkin have only one hobby.")
+    :on_cast(function(ctx, event)
+        local target = ctx:choose_target(event.player_id, "creature")
+        if target == 0 then return end
+        ctx:destroy_permanent(target)
+    end)
+    :build()

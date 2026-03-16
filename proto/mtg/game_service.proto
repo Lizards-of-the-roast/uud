@@ -1,0 +1,252 @@
+syntax = "proto3";
+package mtg.proto;
+
+import "mtg/game_state.proto";
+import "mtg/common.proto";
+
+message CreateGameRequest {}
+
+message CreateGameResponse {
+    string game_id = 1;
+}
+
+message JoinGameRequest {
+    string game_id = 1;
+}
+
+message JoinGameResponse {
+    bool success = 1;
+    string error = 2;
+}
+
+message LeaveGameRequest {
+    string game_id = 1;
+}
+
+message LeaveGameResponse {}
+
+message ListGamesRequest {}
+
+message ListGamesResponse {
+    repeated GameSummary games = 1;
+}
+
+message GameSummary {
+    string game_id = 1;
+    int32 player_count = 2;
+    int32 max_players = 3;
+    string status = 5;
+}
+
+message SubmitDeckRequest {
+    string game_id = 1;
+    repeated string card_names = 2;
+    string preset_deck_name = 3;
+    repeated string sideboard = 4;
+}
+
+message SubmitDeckResponse {
+    bool valid = 1;
+    repeated string errors = 2;
+}
+
+message GetGameStateRequest {
+    string game_id = 1;
+}
+
+message GetGameStateResponse {
+    GameSnapshot snapshot = 1;
+}
+
+message PlayerAction {
+    string game_id = 1;
+    string prompt_id = 2;
+    oneof action {
+        PassPriorityAction pass = 10;
+        PlayCardAction play_card = 11;
+        ActivateAbilityAction activate_ability = 12;
+        DeclareAttackersAction declare_attackers = 13;
+        DeclareBlockersAction declare_blockers = 14;
+        SelectTargetAction select_target = 15;
+        SelectModeAction select_mode = 16;
+        YesNoAction yes_no = 17;
+        DiscardAction discard = 18;
+        SelectColorAction select_color = 19;
+        SelectCreatureTypeAction select_creature_type = 20;
+        PayManaAction pay_mana = 21;
+        ConcedeAction concede = 22;
+        PlayLandAction play_land = 23;
+        DrawOfferAction draw_offer = 26;
+        DrawResponseAction draw_response = 27;
+        OrderBlockersAction order_blockers = 24;
+        DamageAssignmentAction damage_assignment = 25;
+        SetAutoPassAction set_auto_pass = 28;
+        SideboardSwapAction sideboard_swap = 29;
+        UndoAction undo = 30;
+    }
+}
+
+message PassPriorityAction {}
+
+message PlayCardAction {
+    uint64 card_instance_id = 1;
+    int32 x_value = 2;
+    bool kicked = 3;
+    bool flashback = 4;
+    repeated uint64 convoke_ids = 5;
+    int32 delve_count = 6;
+}
+
+message PlayLandAction {
+    uint64 card_instance_id = 1;
+}
+
+message ActivateAbilityAction {
+    uint64 permanent_id = 1;
+    int32 ability_index = 2;
+}
+
+message DeclareAttackersAction {
+    repeated AttackerDeclaration attackers = 1;
+}
+
+message AttackerDeclaration {
+    uint64 creature_id = 1;
+    uint64 defending_player_id = 2;
+}
+
+message DeclareBlockersAction {
+    repeated BlockerDeclaration blockers = 1;
+}
+
+message BlockerDeclaration {
+    uint64 blocker_id = 1;
+    uint64 attacker_id = 2;
+}
+
+message SelectTargetAction {
+    uint64 target_id = 1;
+}
+
+message SelectModeAction {
+    repeated int32 chosen_modes = 1;
+}
+
+message YesNoAction {
+    bool choice = 1;
+}
+
+message DiscardAction {
+    repeated uint64 card_instance_ids = 1;
+}
+
+message SelectColorAction {
+    string color = 1;
+}
+
+message SelectCreatureTypeAction {
+    string creature_type = 1;
+}
+
+message PayManaAction {
+    ManaPoolProto payment = 1;
+}
+
+message ConcedeAction {}
+
+message DrawOfferAction {}
+
+message DrawResponseAction {
+    bool accept = 1;
+}
+
+message OrderBlockersAction {
+    repeated uint64 ordered_blocker_ids = 1;
+}
+
+message DamageAssignmentAction {
+    repeated int32 damage_to_each_blocker = 1;
+    int32 damage_to_player = 2;
+}
+
+enum AutoPassMode {
+    AUTO_PASS_DISABLED = 0;
+    AUTO_PASS_NO_ACTIONS = 1;
+    AUTO_PASS_UNTIL_END_OF_TURN = 2;
+    AUTO_PASS_FULL_CONTROL = 3;
+}
+
+message SetAutoPassAction {
+    AutoPassMode mode = 1;
+}
+
+message SideboardSwapAction {
+    repeated string cards_in = 1;
+    repeated string cards_out = 2;
+}
+
+message UndoAction {}
+
+message StreamRequest {
+    string game_id = 1;
+    uint64 last_sequence = 2;
+}
+
+message ListPresetDecksRequest {}
+
+message ListPresetDecksResponse {
+    repeated PresetDeckInfo decks = 1;
+}
+
+message PresetDeckInfo {
+    string name = 1;
+    int32 card_count = 2;
+}
+
+message GetMatchHistoryRequest {
+    int32 limit = 1;
+    int32 offset = 2;
+}
+
+message GetMatchHistoryResponse {
+    repeated MatchHistoryEntry matches = 1;
+    int32 total_count = 2;
+}
+
+message MatchHistoryEntry {
+    string game_id = 1;
+    uint64 winner_id = 3;
+    int32 duration_seconds = 4;
+    string started_at = 5;
+    string finished_at = 6;
+    repeated MatchHistoryPlayer players = 7;
+}
+
+message MatchHistoryPlayer {
+    uint64 player_id = 1;
+    int32 final_life = 2;
+}
+
+message RejoinGameRequest {
+    string game_id = 1;
+}
+
+message RejoinGameResponse {
+    bool success = 1;
+    string error = 2;
+    GameSnapshot snapshot = 3;
+}
+
+service GameService {
+    rpc CreateGame(CreateGameRequest) returns (CreateGameResponse);
+    rpc JoinGame(JoinGameRequest) returns (JoinGameResponse);
+    rpc LeaveGame(LeaveGameRequest) returns (LeaveGameResponse);
+    rpc ListGames(ListGamesRequest) returns (ListGamesResponse);
+    rpc SubmitDeck(SubmitDeckRequest) returns (SubmitDeckResponse);
+    rpc GetGameState(GetGameStateRequest) returns (GetGameStateResponse);
+    rpc RejoinGame(RejoinGameRequest) returns (RejoinGameResponse);
+    rpc ListPresetDecks(ListPresetDecksRequest) returns (ListPresetDecksResponse);
+    rpc GetMatchHistory(GetMatchHistoryRequest) returns (GetMatchHistoryResponse);
+    rpc StreamGameState(StreamRequest) returns (stream GameEvent);
+    rpc SubmitAction(stream PlayerAction) returns (stream GameEvent);
+}

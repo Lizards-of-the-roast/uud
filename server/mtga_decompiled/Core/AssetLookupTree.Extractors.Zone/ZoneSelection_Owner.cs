@@ -1,0 +1,12 @@
+using AssetLookupTree.Blackboard;
+using GreClient.Rules;
+
+namespace AssetLookupTree.Extractors.Zone;
+
+public class ZoneSelection_Owner : Zone_Owner_Base
+{
+	protected override MtgZone GetZone(IBlackboard bb)
+	{
+		return bb.ZoneSelection;
+	}
+}

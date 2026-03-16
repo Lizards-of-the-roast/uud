@@ -1,0 +1,8 @@
+return Land("Forest")
+    :subtypes({"Forest"})
+    :colors({"Colorless"})
+    :oracle_text("{T}: Add {G}.")
+    :activated_ability("{T}", "{T}: Add {G}", function(ctx, event)
+        ctx:add_mana(event.player_id, "G", 1)
+    end, false, true)
+    :build()

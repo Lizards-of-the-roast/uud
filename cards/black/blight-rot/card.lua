@@ -1,0 +1,11 @@
+return Instant("Blight Rot")
+    :mana_cost("{2}{B}")
+    :colors({"Black"})
+    :oracle_text("Put 4 -1/-1 counters on target creature.")
+    :flavor_text("The scratch became a sore, the sore became a wound, the wound became an infection, and the infection became a funeral.")
+    :on_cast(function(ctx, event)
+        local target = ctx:choose_target(event.player_id, "creature")
+        if target == 0 then return end
+        ctx:add_counter(target, "-1/-1", 4)
+    end)
+    :build()

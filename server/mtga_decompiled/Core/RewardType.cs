@@ -1,0 +1,28 @@
+public enum RewardType
+{
+	None,
+	Pet,
+	Gold,
+	Gem,
+	Voucher,
+	SealedToken,
+	DraftToken,
+	EventToken,
+	EventTicket,
+	Xp,
+	MythicQualifier,
+	Pack,
+	DeckBox,
+	Card,
+	Style,
+	StyleFlavor,
+	Sleeve,
+	Avatar,
+	Emote,
+	CompleteSet,
+	Orb,
+	BpOrb,
+	AlchemyCard,
+	PrizeWallToken,
+	Title
+}

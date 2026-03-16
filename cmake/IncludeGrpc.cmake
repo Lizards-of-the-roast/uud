@@ -1,0 +1,59 @@
+option(UUD_FORCE_GRPC_FROM_SOURCE "Force building gRPC from source" OFF)
+
+if(NOT UUD_FORCE_GRPC_FROM_SOURCE)
+    find_package(gRPC CONFIG QUIET)
+endif()
+
+if(gRPC_FOUND)
+    if(NOT TARGET protobuf::libprotobuf)
+        find_package(Protobuf REQUIRED)
+    endif()
+
+    message(STATUS "Using system-installed gRPc")
+    set(UUD_GRPC_FROM_SOURCE FALSE CACHE INTERNAL "")
+
+    set(UUD_GRPC_LIB gRPC::grpc++ CACHE INTERNAL "")
+    set(UUD_GRPC_REFLECTION gRPC::grpc++_reflection CACHE INTERNAL "")
+    set(UUD_GRPC_CPP_PLUGIN $<TARGET_FILE:gRPC::grpc_cpp_plugin> CACHE INTERNAL "")
+    return()
+endif()
+
+message(STATUS "System gRPC not found, building from source")
+set(UUD_GRPC_FROM_SOURCE TRUE CACHE INTERNAL "")
+
+include(FetchContent)
+
+set(gRPC_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(gRPC_BUILD_CSHARP_EXT OFF CACHE BOOL "" FORCE)
+set(gRPC_BUILD_GRPC_CSHARP_PLUGIN OFF CACHE BOOL "" FORCE)
+set(gRPC_BUILD_GRPC_NODE_PLUGIN OFF CACHE BOOL "" FORCE)
+set(gRPC_BUILD_GRPC_OBJECTIVE_C_PLUGIN OFF CACHE BOOL "" FORCE)
+set(gRPC_BUILD_GRPC_PHP_PLUGIN OFF CACHE BOOL "" FORCE)
+set(gRPC_BUILD_GRPC_PYTHON_PLUGIN OFF CACHE BOOL "" FORCE)
+set(gRPC_BUILD_GRPC_RUBY_PLUGIN OFF CACHE BOOL "" FORCE)
+set(gRPC_INSTALL OFF CACHE BOOL "" FORCE)
+
+set(protobuf_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(protobuf_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(protobuf_INSTALL OFF CACHE BOOL "" FORCE)
+set(utf8_range_ENABLE_TESTS OFF CACHE BOOL "" FORCE)
+set(utf8_range_ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
+set(ABSL_PROPAGATE_CXX_STD ON CACHE BOOL "" FORCE)
+set(ABSL_ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
+set(ABSL_BUILD_TESTING OFF CACHE BOOL "" FORCE)
+
+FetchContent_Declare(
+    grpc
+    GIT_REPOSITORY https://github.com/grpc/grpc.git
+    GIT_TAG        93571f6142f823167d54bc1169fed567b2407d94 # v1.70.0
+    GIT_SHALLOW    TRUE
+    GIT_PROGRESS   TRUE
+    EXCLUDE_FROM_ALL
+)
+
+uud_fetch_content_quiet(grpc)
+uud_silence_warnings_in_dir("${grpc_BINARY_DIR}")
+
+set(UUD_GRPC_LIB grpc++ CACHE INTERNAL "")
+set(UUD_GRPC_REFLECTION grpc++_reflection CACHE INTERNAL "")
+set(UUD_GRPC_CPP_PLUGIN $<TARGET_FILE:grpc_cpp_plugin> CACHE INTERNAL "")

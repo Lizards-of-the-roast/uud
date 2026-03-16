@@ -1,0 +1,49 @@
+syntax = "proto3";
+package mtg.proto;
+
+import "cle/card.proto";
+
+message ManaPoolProto {
+    int32 white = 1;
+    int32 blue = 2;
+    int32 black = 3;
+    int32 red = 4;
+    int32 green = 5;
+    int32 colorless = 6;
+}
+
+enum Phase {
+    PHASE_UNTAP = 0;
+    PHASE_UPKEEP = 1;
+    PHASE_DRAW = 2;
+    PHASE_MAIN_1 = 3;
+    PHASE_BEGINNING_OF_COMBAT = 4;
+    PHASE_DECLARE_ATTACKERS = 5;
+    PHASE_DECLARE_BLOCKERS = 6;
+    PHASE_FIRST_STRIKE_DAMAGE = 7;
+    PHASE_COMBAT_DAMAGE = 8;
+    PHASE_END_OF_COMBAT = 9;
+    PHASE_MAIN_2 = 10;
+    PHASE_END_STEP = 11;
+    PHASE_CLEANUP = 12;
+}
+
+enum ZoneType {
+    ZONE_LIBRARY = 0;
+    ZONE_HAND = 1;
+    ZONE_BATTLEFIELD = 2;
+    ZONE_GRAVEYARD = 3;
+    ZONE_EXILE = 4;
+    ZONE_STACK = 5;
+    ZONE_COMMAND = 6;
+}
+
+message Counter {
+    string type = 1;
+    int32 count = 2;
+}
+
+message CardInfo {
+    cle.proto.CardData card_data = 1;
+    string lua_source_path = 2;
+}

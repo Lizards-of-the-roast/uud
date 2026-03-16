@@ -1,0 +1,13 @@
+return Creature("Bile-Vial Boggart")
+    :mana_cost("{B}")
+    :colors({"Black"})
+    :subtypes({"Goblin", "Assassin"})
+    :power_toughness(1, 1)
+    :oracle_text("When this creature dies, put a -1/-1 counter on up to one target creature")
+    :flavor_text("It took years to finesse his potion of necroskitter slime and bogslither teeth. Finally, he would prank the fae.")
+    :on_death(function(ctx, event)
+        local target = ctx:choose_target(event.player_id, "creature")
+        if target == 0 then return end
+        ctx:add_counter(target, "-1/-1", 1)
+    end)
+    :build()

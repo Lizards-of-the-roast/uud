@@ -1,0 +1,9 @@
+build/
+.git/
+.github/
+tests/
+*.md
+.clang-format
+.clang-tidy
+.dockerignore
+CMakePresets.json
