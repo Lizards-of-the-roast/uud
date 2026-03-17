@@ -1334,7 +1334,7 @@ bool Scene_Match(void) {
         ui.End();
 
         w.Draw();
-        Draw_Pending_Card_Overlays(state.renderer, match_font);
+        //Draw_Pending_Card_Overlays(state.renderer, match_font);
 
         Drag_Overlay_UI(ui);
         Combat_Lines_UI(state.renderer, &combat_ui);

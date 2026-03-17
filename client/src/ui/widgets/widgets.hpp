@@ -5,6 +5,7 @@
 #include "ui/context/ui_context.hpp"
 
 #include "game/card.hpp"
+#include "game/permanent.hpp"
 
 #define DIV_O(CTX, ...) \
     for (int _i_ = ((CTX)->Div_Begin(__VA_ARGS__), 0); !_i_; _i_++, (CTX)->Div_End())
@@ -22,6 +23,7 @@ enum class Widget_Type {
     Toggle,
     Slider,
     Textbox,
+    Card,
 };
 
 // struct Widget_Label_Data {};
@@ -42,6 +44,10 @@ struct Widget_Slider_Data {
     float min;
     float max;
 };
+struct Widget_Card_Data {
+    Game::Card_ID card;
+    Game::Permanent_ID perm;
+};
 
 enum {
     WIDGET_FLAG_DRAW_BACKGROUND = 0x01 << 0,
@@ -53,6 +59,7 @@ typedef Uint16 Widget_Flags;
 union Widget_Union {
     Widget_Toggle_Data toggle;
     Widget_Slider_Data slider;
+    Widget_Card_Data card;
 };
 
 struct Widget_Style {
@@ -160,6 +167,11 @@ struct Widget_Context {
                    std::optional<std::string> id_override = {},
                    const std::source_location source_loc = std::source_location::current());
 
+    UI_Signal Card_Overlayed(Game::Card_ID card, Game::Permanent_ID perm = 0, std::optional<Rect> area = {},
+                   UI_Box_Flags flags = UI_BOX_FLAG_CLICKABLE | UI_BOX_FLAG_CLIP,
+                   std::optional<std::string> id_override = {},
+                   const std::source_location source_loc = std::source_location::current());
+
     Widget_Context(SDL_Renderer *renderer, UI_Context *context);
 
     // Rendering
@@ -172,4 +184,5 @@ struct Widget_Context {
     void Toggle_Draw(UI_Box *box, Widget_Data *data);
     void Slider_Draw(UI_Box *box, Widget_Data *data);
     void Textbox_Draw(UI_Box *box, Widget_Data *data);
+    void Card_Draw(UI_Box *box, Widget_Data *data);
 };

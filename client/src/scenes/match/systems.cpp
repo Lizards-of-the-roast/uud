@@ -4,7 +4,6 @@
 #include <cmath>
 #include <variant>
 
-#include "card_render.hpp"
 #include "core/defer.hpp"
 #include "core/state.hpp"
 #include "game/instances.hpp"
@@ -18,6 +17,7 @@ struct Card_Overlay_Entry {
     Game::Permanent_State perm;
     bool has_perm;
 };
+/*
 static std::vector<Card_Overlay_Entry> pending_overlays;
 
 void Draw_Pending_Card_Overlays(SDL_Renderer *renderer, TTF_Font *font) {
@@ -28,6 +28,7 @@ void Draw_Pending_Card_Overlays(SDL_Renderer *renderer, TTF_Font *font) {
     }
     pending_overlays.clear();
 }
+*/
 
 const float card_width = 143.0f;
 const float card_height = 200.0f;
@@ -154,10 +155,10 @@ static void Player_Battlefield_UI(Widget_Context &w, UI_Context &ui, UI_Box *div
             if (!c)
                 continue;
             ui.Push_ID(player->battlefield[i]);
-            UI_Signal sig = w.Card(*c, {}, UI_BOX_FLAG_CLICKABLE | UI_BOX_FLAG_DRAGGABLE);
+            UI_Signal sig = w.Card_Overlayed(p->card, p->permanent_id, {}, UI_BOX_FLAG_CLICKABLE | UI_BOX_FLAG_DRAGGABLE);
             ui.Pop_ID();
             Track_Card_Position(player->battlefield[i], sig.box->layout_box);
-            pending_overlays.push_back({sig.box, *c, *p, true});
+            //pending_overlays.push_back({sig.box, *c, *p, true});
             Widget_Data *widget = std::any_cast<Widget_Data>(&sig.box->userdata);
             sig.box->margin = {0};
             if (is_local && sig.flags & UI_SIG_RIGHT_RELEASED)
@@ -305,10 +306,10 @@ static void Opp_Battlefield_UI(Widget_Context &w, UI_Context &ui, UI_Box *div,
             if (!c)
                 continue;
             ui.Push_ID(player->battlefield[i]);
-            UI_Signal sig = w.Card(*c, {}, UI_BOX_FLAG_CLICKABLE | UI_BOX_FLAG_DRAGGABLE);
+            UI_Signal sig = w.Card_Overlayed(p->card, p->permanent_id, {}, UI_BOX_FLAG_CLICKABLE | UI_BOX_FLAG_DRAGGABLE);
             ui.Pop_ID();
             Track_Card_Position(player->battlefield[i], sig.box->layout_box);
-            pending_overlays.push_back({sig.box, *c, *p, true});
+            //pending_overlays.push_back({sig.box, *c, *p, true});
             Widget_Data *widget = std::any_cast<Widget_Data>(&sig.box->userdata);
             widget->texture_flip = SDL_FLIP_VERTICAL;
             sig.box->margin = {0};
@@ -421,10 +422,10 @@ void Hand_UI(Widget_Context &w, UI_Context &ui, Game::Player_State *player, bool
         if (!c)
             continue;
         UI_Signal button =
-            w.Card(*c, {}, UI_BOX_FLAG_CLICKABLE | UI_BOX_FLAG_CLIP | UI_BOX_FLAG_DRAGGABLE,
+            w.Card_Overlayed(player->hand[i], 0, {}, UI_BOX_FLAG_CLICKABLE | UI_BOX_FLAG_CLIP | UI_BOX_FLAG_DRAGGABLE,
                    "Card[" + std::to_string(c->instance_id));
         Track_Card_Position(player->hand[i], button.box->layout_box);
-        pending_overlays.push_back({button.box, *c, {}, false});
+        //pending_overlays.push_back({button.box, *c, {}, false});
         if (!is_local) {
             if ((button.flags & UI_SIG_DROPPED_OUT) && button.drop_site != hand_ui) {
                 drag_play = {c->instance_id, true};

@@ -409,3 +409,38 @@ UI_Signal Widget_Context::Card(Game::Card card, std::optional<Rect> area,
 
     return sig;
 }
+
+UI_Signal Widget_Context::Card_Overlayed(Game::Card_ID card, Game::Permanent_ID perm, std::optional<Rect> area,
+                                UI_Box_Flags flags,
+                                std::optional<std::string> id_override,
+                                const std::source_location source_loc){
+    V2 fixed_pos = {};
+    if (area.has_value()) {
+        flags |= UI_BOX_FLAG_FLOATING;
+
+        ui->sizes.push(G2<UI_Size>{
+            .x = UI_Size_Pixels(area.value().w, 1),
+            .y = UI_Size_Pixels(area.value().h, 1),
+        });
+        fixed_pos = area.value().pos();
+    }
+    UI_Signal sig = ui->Box_Make(fixed_pos, flags, id_override, source_loc);
+    if (area.has_value())
+        ui->sizes.pop();
+
+    if (Widget_Data *data = std::any_cast<Widget_Data>(&sig.box->userdata);
+        data && data->type == Widget_Type::Card) {
+        data->style = (this->styles.size()) ? this->styles.top() : this->default_style;
+        data->flags =
+            (this->default_flags_override.size()) ? this->default_flags_override.top() : 0xFF;
+        data->u.card.card = card;
+        data->u.card.perm = perm;
+        data->flags = 0x00;
+        if (const Game::Card *c = Game::instances.Find(card))
+            data->texture = Game::card_textures.Get(c->name);
+    } else {
+        sig.box->userdata =
+            Widget_Data(this, Widget_Type::Card, Widget_Union{ .card = {card, perm} });
+    }
+    return sig;
+}

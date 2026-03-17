@@ -98,7 +98,6 @@ add_executable(uud
     src/scenes/match/match.cpp
     src/scenes/match/game_state_local.cpp
     src/scenes/match/systems.cpp
-    src/scenes/match/card_render.cpp
     src/ui/box/ui_box.cpp
     src/ui/context/ui_context.cpp
     src/ui/context/ui_layout.cpp
