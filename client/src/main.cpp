@@ -63,7 +63,7 @@ int main(int argc, char *argv[]) {
         renderer_backend = argv[2];
         bool backend_supported = false;
         for (int i = 0; !backend_supported && i < SDL_GetNumRenderDrivers(); i++)
-            backend_supported = strcmp(renderer_backend, SDL_GetRenderDriver(i));
+            backend_supported = !strcmp(renderer_backend, SDL_GetRenderDriver(i));
         if (!backend_supported)
         {
             SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "renderer \"%s\" not supported", renderer_backend);

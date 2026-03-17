@@ -55,6 +55,9 @@ struct UI_Context {
     SDL_Window *window;
     float window_width, window_height;
 
+    SDL_Cursor *c_hover;
+    SDL_Cursor *c_text;
+
     bool debug_overlay_enabled;
     bool debug_dump_enabled;
     bool debug_dump_once_requested;

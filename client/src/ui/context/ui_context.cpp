@@ -100,6 +100,9 @@ UI_Context::UI_Context(SDL_Window *window, TTF_TextEngine *text_engine) {
     this->debug_dump_enabled = Parse_Bool_Env("UUD_UI_DUMP");
     this->debug_show_root = Parse_Bool_Env("UUD_UI_DEBUG_SHOW_ROOT");
 
+    this->c_hover = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_POINTER);
+    this->c_text = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_TEXT);
+
     /*
     this->active = 0;
     this->hot    = 0;
@@ -110,6 +113,9 @@ UI_Context::UI_Context(SDL_Window *window, TTF_TextEngine *text_engine) {
 UI_Context::~UI_Context() {
     for (UI_Box *box : this->box_pool)
         delete box;
+
+    SDL_DestroyCursor(this->c_hover);
+    SDL_DestroyCursor(this->c_text);
 }
 
 UI_Box *UI_Context::Alloc_Box() {
@@ -446,6 +452,17 @@ void UI_Context::End() {
     this->Debug_Dump_Layout_JSON();
 
     this->frame += 1;
+
+    UI_Box *hot = this->Get_Box(this->hot);
+    if (hot)
+    {
+        if (hot->flags & UI_BOX_FLAG_TEXTINPUT)
+            SDL_SetCursor(this->c_text);
+        else
+            SDL_SetCursor(this->c_hover);
+    }
+    else
+        SDL_SetCursor(SDL_GetDefaultCursor());
 
     return;
 }
