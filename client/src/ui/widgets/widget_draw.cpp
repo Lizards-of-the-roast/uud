@@ -488,17 +488,13 @@ void Widget_Context::Card_Draw(UI_Box *box, Widget_Data *data) {
     //XXX: hardcoded
     TTF_Font *font = state.font[paths::beleren_bold];
 
-    const float border = 3.0f;
-    SDL_Color frame = Card_Frame_Color(card);
-    SDL_SetRenderDrawColor(renderer, frame.r, frame.g, frame.b, frame.a);
-    SDL_FRect top = {box->area.x, box->area.y, box->area.w, border};
-    SDL_RenderFillRect(renderer, &top);
-    SDL_FRect bot = {box->area.x, box->area.y + box->area.h - border, box->area.w, border};
-    SDL_RenderFillRect(renderer, &bot);
-    SDL_FRect left = {box->area.x, box->area.y, border, box->area.h};
-    SDL_RenderFillRect(renderer, &left);
-    SDL_FRect right = {box->area.x + box->area.w - border, box->area.y, border, box->area.h};
-    SDL_RenderFillRect(renderer, &right);
+    if ((~data->flags) & WIDGET_FLAG_DRAW_BORDER)
+    {
+        const float border = 3.0f;
+        SDL_Color frame = Card_Frame_Color(card);
+        SDL_SetRenderDrawColor(renderer, frame.r, frame.g, frame.b, frame.a);
+        Draw_Rect(renderer, box->area, border);
+    }
 
     if (font && !card.name.empty()) {
         // Dark background strip for name
