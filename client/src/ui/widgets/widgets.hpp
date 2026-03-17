@@ -38,11 +38,17 @@ enum class Widget_Slider_Dir {
     UTD,
     DTU,
 };
+enum class Widget_Slider_Style {
+    PROGRESS = 0,
+    SCROLL = 1,
+};
 struct Widget_Slider_Data {
     float value;
     Widget_Slider_Dir dir;
+    Widget_Slider_Style style;
     float min;
     float max;
+    float scroll_size;
 };
 struct Widget_Card_Data {
     Game::Card_ID card;
@@ -152,7 +158,7 @@ struct Widget_Context {
                      std::optional<std::string> id_override = {},
                      const std::source_location source_loc = std::source_location::current());
     UI_Signal Slider(float *value, float min = 0.0f, float max = 100.0f,
-                     Widget_Slider_Dir dir = Widget_Slider_Dir::LTR, std::string label = "",
+                     Widget_Slider_Dir dir = Widget_Slider_Dir::LTR, Widget_Slider_Style style = Widget_Slider_Style::PROGRESS, std::string label = "",
                      std::optional<Rect> area = {},
                      UI_Box_Flags flags = UI_BOX_FLAG_CLICKABLE | UI_BOX_FLAG_CLIP,
                      std::optional<std::string> id_override = {},

@@ -128,10 +128,12 @@ void Widget_Context::Scroll_End(int axis, bool hide, std::optional<std::string> 
         size[!axis] = UI_Size_Parent(0.05f);
         ui->sizes.push(size);
         // TODO: slider styles
-        //UI_Signal slider =
-            Slider(&tmp, 0, max_offset, (axis) ? Widget_Slider_Dir::UTD : Widget_Slider_Dir::LTR, {},
+        UI_Signal slider =
+            Slider(&tmp, 0, max_offset, (axis) ? Widget_Slider_Dir::UTD : Widget_Slider_Dir::LTR, Widget_Slider_Style::SCROLL, {},
                 {}, UI_BOX_FLAG_CLICKABLE | UI_BOX_FLAG_CLIP, "Scroll_Slider[" + id_base);
         ui->sizes.pop();
+        if (Widget_Data *widget = std::any_cast<Widget_Data>(&slider.box->userdata))
+            widget->u.slider.scroll_size = slider.box->area.size()[axis] * (scroll_div->area.size()[axis] / scroll_div->view_bounds[axis]);
         //slider.box->margin = {0};
         float delta = (-max_offset) - tmp;
         if (delta > scroll_div->scroll_step || delta < -scroll_div->scroll_step)
@@ -290,7 +292,7 @@ UI_Signal Widget_Context::Toggle(bool *toggle, std::string label, std::optional<
         ui, label, this->Get_Style(sig.box, std::any_cast<Widget_Data>(&sig.box->userdata)).text);
     return sig;
 }
-UI_Signal Widget_Context::Slider(float *value, float min, float max, Widget_Slider_Dir dir,
+UI_Signal Widget_Context::Slider(float *value, float min, float max, Widget_Slider_Dir dir, Widget_Slider_Style style,
                                  std::string label, std::optional<Rect> area,
                                  UI_Box_Flags flags,
                                  std::optional<std::string> id_override,
@@ -340,10 +342,10 @@ UI_Signal Widget_Context::Slider(float *value, float min, float max, Widget_Slid
         data->style = (this->styles.size()) ? this->styles.top() : this->default_style;
         data->flags =
             (this->default_flags_override.size()) ? this->default_flags_override.top() : 0xFF;
-        data->u.slider = Widget_Slider_Data{*value, dir, min, max};
+        data->u.slider = Widget_Slider_Data{*value, dir, style, min, max};
     } else {
         sig.box->userdata =
-            Widget_Data(this, Widget_Type::Slider, Widget_Union{.slider = {*value, dir, min, max}});
+            Widget_Data(this, Widget_Type::Slider, Widget_Union{.slider = {*value, dir, style, min, max}});
     }
 
     sig.box->Text_Create(

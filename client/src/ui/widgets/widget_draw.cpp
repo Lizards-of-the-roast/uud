@@ -276,28 +276,61 @@ void Widget_Context::Slider_Draw(UI_Box *box, Widget_Data *data) {
     SDL_SetRenderDrawColorFloat(renderer, 0.3f, 0.3f, 0.3f, 1.0f);
     SDL_RenderFillRect(renderer, (SDL_FRect *)&box->area);
 
-    SDL_FRect dst = box->area;
-
     float v =
         (data->u.slider.value - data->u.slider.min) / (data->u.slider.max - data->u.slider.min);
-    switch (data->u.slider.dir) {
-        case Widget_Slider_Dir::LTR:
-            dst.w *= v;
+
+    SDL_FRect dst = box->area;
+    switch (data->u.slider.style)
+    {
+        case Widget_Slider_Style::PROGRESS:
+        {
+            switch (data->u.slider.dir) {
+                case Widget_Slider_Dir::LTR:
+                    dst.w *= v;
+                    break;
+                case Widget_Slider_Dir::RTL:
+                    dst.x += dst.w * (1 - v);
+                    dst.w -= dst.w * (1 - v);
+                    break;
+                case Widget_Slider_Dir::UTD:
+                    dst.h *= v;
+                    break;
+                case Widget_Slider_Dir::DTU:
+                    dst.y += dst.h * (1 - v);
+                    dst.h -= dst.h * (1 - v);
+                    break;
+            }
+            SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0xFF, 0xFF);
+            SDL_RenderFillRect(renderer, &dst);
             break;
-        case Widget_Slider_Dir::RTL:
-            dst.x += dst.w * (1 - v);
-            dst.w -= dst.w * (1 - v);
-            break;
-        case Widget_Slider_Dir::UTD:
-            dst.h *= v;
-            break;
-        case Widget_Slider_Dir::DTU:
-            dst.y += dst.h * (1 - v);
-            dst.h -= dst.h * (1 - v);
-            break;
+        }
+        case Widget_Slider_Style::SCROLL:
+        {
+            float scroll_size = (data->u.slider.scroll_size) ? data->u.slider.scroll_size : 10;
+            switch (data->u.slider.dir) {
+                case Widget_Slider_Dir::LTR:
+                    dst.w = scroll_size;
+                    dst.x += box->area.w * v - dst.w * v;
+                    break;
+                case Widget_Slider_Dir::RTL:
+                    dst.w = scroll_size;
+                    dst.x += box->area.w * (1 - v) - dst.w * v;
+                    break;
+                case Widget_Slider_Dir::UTD:
+                    dst.h = scroll_size;
+                    dst.y += box->area.h * v - dst.h * v;
+                    break;
+                case Widget_Slider_Dir::DTU:
+                    dst.h = scroll_size;
+                    dst.y += box->area.h * (1 - v) - dst.h * v;
+                    break;
+            }
+            SDL_SetRenderDrawColor(renderer, 0x67, 0x67, 0x67, 0xFF);
+            SDL_RenderFillRect(renderer, &dst);
+            SDL_SetRenderDrawColor(renderer, 0xCE, 0xCE, 0xCE, 0xFF);
+            SDL_RenderRect(renderer, &dst);
+        }
     }
-    SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0xFF, 0xFF);
-    SDL_RenderFillRect(renderer, &dst);
 
     return;
 }
