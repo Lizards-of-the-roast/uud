@@ -344,6 +344,24 @@ grpc::Status GameServiceImpl::RejoinGame(grpc::ServerContext* context,
     return grpc::Status::OK;
 }
 
+grpc::Status GameServiceImpl::GetActiveGame(grpc::ServerContext* context,
+                                             const proto::GetActiveGameRequest* /*request*/,
+                                             proto::GetActiveGameResponse* response) {
+    auto user_id = extract_user_id(context);
+    if (!user_id) {
+        return {grpc::StatusCode::UNAUTHENTICATED, "Authentication required"};
+    }
+
+    auto game_id = game_manager_.find_active_game(*user_id);
+    if (!game_id.empty()) {
+        response->set_has_active_game(true);
+        response->set_game_id(game_id);
+    } else {
+        response->set_has_active_game(false);
+    }
+    return grpc::Status::OK;
+}
+
 grpc::Status GameServiceImpl::ListPresetDecks(
     [[maybe_unused]] grpc::ServerContext* context,
     [[maybe_unused]] const proto::ListPresetDecksRequest* request,

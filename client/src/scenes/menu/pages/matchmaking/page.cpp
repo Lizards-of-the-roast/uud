@@ -41,6 +41,7 @@ bool Menu_Matchmaking_Page(Widget_Context &w, UI_Context &ui, Menu_Tab &tab) {
         static bool decks_fetched = false;
         static int selected_deck_idx = 0;
         static int player_elo = 0;
+        static bool active_game_checked = false;
 
         if (!was_active) {
             if (state.offline || !matchmaking_client.In_Queue()) {
@@ -51,12 +52,25 @@ bool Menu_Matchmaking_Page(Widget_Context &w, UI_Context &ui, Menu_Tab &tab) {
             if (!state.offline) {
                 if (!decks_fetched)
                     game_client.List_Preset_Decks();
+                if (!active_game_checked)
+                    game_client.Get_Active_Game();
                 matchmaking_client.Get_Queue_Info();
             }
             was_active = true;
         }
 
         if (!state.offline) {
+            if (auto ag = game_client.Poll_Active_Game()) {
+                active_game_checked = true;
+                if (ag->has_active_game) {
+                    state.current_game_id = ag->game_id;
+                    state.joined_via_matchmaking = true;
+                    state.scene = Scene::Match;
+                    was_active = false;
+                    return true;
+                }
+            }
+
             if (auto result = game_client.Poll_Preset_Decks()) {
                 if (result->success) {
                     preset_decks = result->decks;
@@ -93,6 +107,8 @@ bool Menu_Matchmaking_Page(Widget_Context &w, UI_Context &ui, Menu_Tab &tab) {
                     state.joined_via_matchmaking = true;
                     if (selected_deck_idx >= 0 && selected_deck_idx < static_cast<int>(preset_decks.size()))
                         state.selected_deck_name = preset_decks[selected_deck_idx].name;
+                    else if (!preset_decks.empty())
+                        state.selected_deck_name = preset_decks[0].name;
                     state.scene = Scene::Match;
                     status_text.clear();
                     was_active = false;
@@ -194,6 +210,7 @@ bool Menu_Matchmaking_Page(Widget_Context &w, UI_Context &ui, Menu_Tab &tab) {
             player_elo = 0;
             was_active = false;
             decks_fetched = false;
+            active_game_checked = false;
             preset_decks.clear();
             tab = Menu_Tab::None;
         }

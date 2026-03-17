@@ -278,6 +278,29 @@ void Game_Client::Get_State(const std::string &game_id) {
     }).detach();
 }
 
+void Game_Client::Get_Active_Game() {
+    std::thread([this]() {
+        auto stub = net.Game();
+        Active_Game_Result result;
+        if (!stub) {
+            active_game_results_.Push(result);
+            return;
+        }
+
+        grpc::ClientContext ctx;
+        net.Attach_Auth(ctx);
+        mtg::proto::GetActiveGameRequest req;
+        mtg::proto::GetActiveGameResponse resp;
+        grpc::Status status = stub->GetActiveGame(&ctx, req, &resp);
+
+        if (status.ok() && resp.has_active_game()) {
+            result.has_active_game = true;
+            result.game_id = resp.game_id();
+        }
+        active_game_results_.Push(result);
+    }).detach();
+}
+
 void Game_Client::List_Preset_Decks() {
     std::thread([this]() {
         auto stub = net.Game();
@@ -550,6 +573,7 @@ void Game_Client::Drain_All() {
     leave_results_.Clear();
     list_results_.Clear();
     rejoin_results_.Clear();
+    active_game_results_.Clear();
     preset_decks_results_.Clear();
     match_history_results_.Clear();
     deck_results_.Clear();
@@ -595,6 +619,10 @@ std::optional<Preset_Decks_Result> Game_Client::Poll_Preset_Decks() {
 
 std::optional<Match_History_Result> Game_Client::Poll_Match_History() {
     return match_history_results_.Poll();
+}
+
+std::optional<Active_Game_Result> Game_Client::Poll_Active_Game() {
+    return active_game_results_.Poll();
 }
 
 bool Game_Client::Stream_Active() {

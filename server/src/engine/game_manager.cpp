@@ -98,6 +98,20 @@ auto GameManager::list_games() const -> std::vector<GameListEntry> {
     return result;
 }
 
+auto GameManager::find_active_game(uint64_t player_id) const -> std::string {
+    std::lock_guard const lock{mutex_};
+    for (const auto& [id, game] : games_) {
+        auto s = game->state();
+        if (s == GameState::Finished)
+            continue;
+        for (const auto& p : game->players()) {
+            if (p.id() == player_id)
+                return id;
+        }
+    }
+    return {};
+}
+
 std::string GameManager::generate_game_id() {
     return std::format("game-{:06}", next_id_++);
 }

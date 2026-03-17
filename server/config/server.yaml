@@ -2,6 +2,9 @@ server:
   listen_address: "0.0.0.0:50051"
   max_games: 100
   action_timeout_seconds: 60
+  max_concurrent_streams: 200
+  keepalive_time_ms: 30000
+  keepalive_timeout_ms: 5000
 
 database:
   postgres_url: "postgres://mtg_user:password@localhost:5432/mtg_db"
@@ -22,6 +25,16 @@ logging:
 
 metrics:
   port: 9090
+
+rate_limit:
+  rps: 100
+
+game:
+  clock_seconds: 600
+
+cleanup:
+  disconnect_timeout_seconds: 120
+  reap_interval_seconds: 10
 
 cards:
   data_path: "./cards"

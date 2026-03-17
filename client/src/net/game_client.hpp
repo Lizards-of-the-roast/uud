@@ -39,6 +39,11 @@ struct Game_Rejoin_Result {
     std::optional<Game::Game_Snapshot> snapshot;
 };
 
+struct Active_Game_Result {
+    bool has_active_game = false;
+    std::string game_id;
+};
+
 struct Preset_Decks_Result {
     bool success;
     std::vector<Game::Preset_Deck_Info> decks;
@@ -66,6 +71,7 @@ struct Game_Client {
     void Get_State(const std::string &game_id);
     void List_Preset_Decks();
     void Get_Match_History(int limit = 10, int offset = 0);
+    void Get_Active_Game();
 
     void Start_Action_Stream(const std::string &game_id);
     bool Send_Action(const Game::Player_Action &action);
@@ -83,6 +89,7 @@ struct Game_Client {
     std::optional<Game_Rejoin_Result> Poll_Rejoin();
     std::optional<Preset_Decks_Result> Poll_Preset_Decks();
     std::optional<Match_History_Result> Poll_Match_History();
+    std::optional<Active_Game_Result> Poll_Active_Game();
     std::optional<Game::Deck_Submission_Result> Poll_Deck();
     std::optional<Game::Game_Snapshot> Poll_Snapshot();
     std::optional<Game::Game_Event> Poll_Event();
@@ -98,6 +105,7 @@ private:
     Async_Queue<Game_Rejoin_Result> rejoin_results_;
     Async_Queue<Preset_Decks_Result> preset_decks_results_;
     Async_Queue<Match_History_Result> match_history_results_;
+    Async_Queue<Active_Game_Result> active_game_results_;
     Async_Queue<Game::Deck_Submission_Result> deck_results_;
     Async_Queue<Game::Game_Snapshot> snapshots_;
     Async_Queue<Game::Game_Event> events_;

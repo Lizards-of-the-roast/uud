@@ -47,6 +47,10 @@ public:
     grpc::Status RejoinGame(grpc::ServerContext* context, const proto::RejoinGameRequest* request,
                             proto::RejoinGameResponse* response) override;
 
+    grpc::Status GetActiveGame(grpc::ServerContext* context,
+                               const proto::GetActiveGameRequest* request,
+                               proto::GetActiveGameResponse* response) override;
+
     grpc::Status ListPresetDecks(grpc::ServerContext* context,
                                  const proto::ListPresetDecksRequest* request,
                                  proto::ListPresetDecksResponse* response) override;

@@ -56,6 +56,7 @@ public:
         int player_count;
     };
     [[nodiscard]] auto list_games() const -> std::vector<GameListEntry>;
+    [[nodiscard]] auto find_active_game(uint64_t player_id) const -> std::string;
 
     void set_on_game_finish(GameFinishCallback cb) { on_game_finish_ = std::move(cb); }
 

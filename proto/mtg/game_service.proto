@@ -227,6 +227,13 @@ message MatchHistoryPlayer {
     int32 final_life = 2;
 }
 
+message GetActiveGameRequest {}
+
+message GetActiveGameResponse {
+    bool has_active_game = 1;
+    string game_id = 2;
+}
+
 message RejoinGameRequest {
     string game_id = 1;
 }
@@ -245,6 +252,7 @@ service GameService {
     rpc SubmitDeck(SubmitDeckRequest) returns (SubmitDeckResponse);
     rpc GetGameState(GetGameStateRequest) returns (GetGameStateResponse);
     rpc RejoinGame(RejoinGameRequest) returns (RejoinGameResponse);
+    rpc GetActiveGame(GetActiveGameRequest) returns (GetActiveGameResponse);
     rpc ListPresetDecks(ListPresetDecksRequest) returns (ListPresetDecksResponse);
     rpc GetMatchHistory(GetMatchHistoryRequest) returns (GetMatchHistoryResponse);
     rpc StreamGameState(StreamRequest) returns (stream GameEvent);
