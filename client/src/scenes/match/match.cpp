@@ -1374,7 +1374,8 @@ bool Scene_Match(void) {
                     SDL_Texture *tex = Game::card_textures.Get(card->name);
                     if (tex) {
                         SDL_FRect art = {x, y, detail_w, detail_h * 0.55f};
-                        SDL_RenderTexture(state.renderer, tex, NULL, &art);
+                        SDL_FRect art_src = {0, 0, (float)tex->w, (float)tex->h * 0.55f};
+                        SDL_RenderTexture(state.renderer, tex, &art_src, &art);
                     }
 
                     float text_y = y + detail_h * 0.58f;
