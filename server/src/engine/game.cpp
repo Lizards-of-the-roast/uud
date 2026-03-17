@@ -1015,7 +1015,9 @@ auto Game::send_priority_prompt(uint64_t player_id) -> PriorityPromptResult {
     auto* pp = prompt.mutable_priority();
     pp->add_legal_actions("pass");
 
-    bool const can_land = player->can_play_land() && turns_.is_main_phase() && stack_.is_empty();
+    bool const is_active_player = player_id == turns_.active_player_id();
+    bool const can_land =
+        player->can_play_land() && is_active_player && turns_.is_main_phase() && stack_.is_empty();
     pp->set_can_play_land(can_land);
 
     auto& hand = zones_.get_hand(player_id);
@@ -1030,7 +1032,8 @@ auto Game::send_priority_prompt(uint64_t player_id) -> PriorityPromptResult {
         bool const is_instant_speed =
             card->type() == cle::core::CardType::Instant ||
             std::ranges::find(card->keywords(), "Flash") != card->keywords().end();
-        if (!is_instant_speed && (!turns_.is_main_phase() || !stack_.is_empty())) {
+        if (!is_instant_speed &&
+            (!is_active_player || !turns_.is_main_phase() || !stack_.is_empty())) {
             continue;
         }
 
@@ -1042,7 +1045,7 @@ auto Game::send_priority_prompt(uint64_t player_id) -> PriorityPromptResult {
 
         if (card->adventure()) {
             bool const adv_instant = card->adventure()->type == cle::core::CardType::Instant;
-            if (adv_instant || (turns_.is_main_phase() && stack_.is_empty())) {
+            if (adv_instant || (is_active_player && turns_.is_main_phase() && stack_.is_empty())) {
                 if (player->mana_pool().can_pay_cost(card->adventure()->mana_cost)) {
                     pp->add_legal_actions("play_card_adventure");
                 }
@@ -1061,7 +1064,8 @@ auto Game::send_priority_prompt(uint64_t player_id) -> PriorityPromptResult {
         bool const is_instant_speed =
             card->type() == cle::core::CardType::Instant ||
             std::ranges::find(card->keywords(), "Flash") != card->keywords().end();
-        if (!is_instant_speed && (!turns_.is_main_phase() || !stack_.is_empty())) {
+        if (!is_instant_speed &&
+            (!is_active_player || !turns_.is_main_phase() || !stack_.is_empty())) {
             continue;
         }
         pp->add_castable_card_ids(card->instance_id());
@@ -1078,7 +1082,7 @@ auto Game::send_priority_prompt(uint64_t player_id) -> PriorityPromptResult {
         bool has_activatable = false;
         for (const auto& ability : abilities) {
             if (ability.sorcery_speed_only && !ability.is_mana_ability) {
-                if (!turns_.is_main_phase() || !stack_.is_empty()) {
+                if (!is_active_player || !turns_.is_main_phase() || !stack_.is_empty()) {
                     continue;
                 }
             }
@@ -1146,7 +1150,8 @@ void Game::process_action(uint64_t player_id, const ActionData& action) {
         bool const has_flash =
             std::ranges::find(card->keywords(), "Flash") != card->keywords().end();
         if (!is_instant && !has_flash) {
-            if (!turns_.is_main_phase() || !stack_.is_empty()) {
+            if (player_id != turns_.active_player_id() || !turns_.is_main_phase() ||
+                !stack_.is_empty()) {
                 spdlog::warn("Player {} tried to cast sorcery-speed {} at illegal time", player_id,
                              card->name());
                 zones_.get_hand(player_id).push_back(card);
@@ -1391,7 +1396,8 @@ void Game::process_action(uint64_t player_id, const ActionData& action) {
         if ((player == nullptr) || !player->can_play_land()) {
             return;
         }
-        if (!turns_.is_main_phase() || !stack_.is_empty()) {
+        if (player_id != turns_.active_player_id() || !turns_.is_main_phase() ||
+            !stack_.is_empty()) {
             spdlog::warn("Player {} tried to play land outside main phase or with non-empty stack",
                          player_id);
             return;

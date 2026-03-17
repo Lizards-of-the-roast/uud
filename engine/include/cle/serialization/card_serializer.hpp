@@ -4,11 +4,11 @@
 #include <filesystem>
 #include <string>
 
+#include <cle/card.pb.h>
 #include <cle/core/card.hpp>
 #include <cle/core/card_type.hpp>
 #include <cle/core/color.hpp>
 #include <cle/lua/engine.hpp>
-#include <cle/card.pb.h>
 
 namespace cle::serialization {
 
