@@ -184,14 +184,14 @@ void Game::eliminate_player(uint64_t player_id) {
     auto* queue = get_action_queue(player_id);
     if (queue != nullptr) {
         [[maybe_unused]] auto ok = queue->submit(ActionData{.player_id = player_id,
-                                                              .prompt_id = {},
-                                                              .action_type = "concede",
-                                                              .target_id = 0,
-                                                              .ids = {},
-                                                              .indices = {},
-                                                              .flag = false,
-                                                              .text = "forced",
-                                                              .mana_payment = {}});
+                                                            .prompt_id = {},
+                                                            .action_type = "concede",
+                                                            .target_id = 0,
+                                                            .ids = {},
+                                                            .indices = {},
+                                                            .flag = false,
+                                                            .text = "forced",
+                                                            .mana_payment = {}});
         spdlog::info("Game {}: reaper submitted concede for player {}", game_id_, player_id);
     }
 }
@@ -243,15 +243,15 @@ void Game::stop() {
     reconnect_cv_.notify_all();
     for (auto& [id, queue] : action_queues_) {
         [[maybe_unused]] auto ok = queue->submit(ActionData{.player_id = id,
-                                                              .prompt_id = {},
-                                                              .action_type = "shutdown",
-                                                              .target_id = 0,
-                                                              .ids = {},
-                                                              .indices = {},
-                                                              .flag = false,
-                                                              .text = {},
-                                                              .x_value = 0,
-                                                              .mana_payment = {}});
+                                                            .prompt_id = {},
+                                                            .action_type = "shutdown",
+                                                            .target_id = 0,
+                                                            .ids = {},
+                                                            .indices = {},
+                                                            .flag = false,
+                                                            .text = {},
+                                                            .x_value = 0,
+                                                            .mana_payment = {}});
     }
     if (game_thread_.joinable()) {
         game_thread_.join();
@@ -567,8 +567,7 @@ void Game::run_phase(Phase phase) {
                                     defender_id = default_defender;
                                 }
                                 auto* atk_perm = zones_.find_permanent(creature_id);
-                                if (atk_perm == nullptr ||
-                                    atk_perm->controller_id() != active_id) {
+                                if (atk_perm == nullptr || atk_perm->controller_id() != active_id) {
                                     continue;
                                 }
                                 if (combat_.validate_attacker(creature_id, zones_)) {
@@ -911,8 +910,8 @@ void Game::fire_triggers(cle::triggers::TriggerType type,
             std::string desc = "Triggered ability";
             auto* src_perm = zones_.find_permanent(trig.source_id);
             if (src_perm && src_perm->card()) {
-                desc = src_perm->card()->name() + " - " +
-                       cle::triggers::trigger_type_to_string(type);
+                desc =
+                    src_perm->card()->name() + " - " + cle::triggers::trigger_type_to_string(type);
             }
 
             proto::GameEvent ge;
@@ -943,10 +942,9 @@ void Game::fire_triggers(cle::triggers::TriggerType type,
             for (size_t i = 0; i < controller_trigs.size(); ++i) {
                 indices.push_back(static_cast<int>(i));
             }
-            auto chosen =
-                game_context_->choose_mode(controller_id, static_cast<int>(indices.size()),
-                                           static_cast<int>(indices.size()),
-                                           static_cast<int>(indices.size()));
+            auto chosen = game_context_->choose_mode(
+                controller_id, static_cast<int>(indices.size()), static_cast<int>(indices.size()),
+                static_cast<int>(indices.size()));
             if (chosen.size() == controller_trigs.size()) {
                 std::vector<PendingTrigger> reordered;
                 for (int idx : chosen) {
@@ -1043,8 +1041,7 @@ auto Game::send_priority_prompt(uint64_t player_id) -> PriorityPromptResult {
         pp->add_legal_actions("play_card");
 
         if (card->adventure()) {
-            bool const adv_instant =
-                card->adventure()->type == cle::core::CardType::Instant;
+            bool const adv_instant = card->adventure()->type == cle::core::CardType::Instant;
             if (adv_instant || (turns_.is_main_phase() && stack_.is_empty())) {
                 if (player->mana_pool().can_pay_cost(card->adventure()->mana_cost)) {
                     pp->add_legal_actions("play_card_adventure");
@@ -1150,8 +1147,8 @@ void Game::process_action(uint64_t player_id, const ActionData& action) {
             std::ranges::find(card->keywords(), "Flash") != card->keywords().end();
         if (!is_instant && !has_flash) {
             if (!turns_.is_main_phase() || !stack_.is_empty()) {
-                spdlog::warn("Player {} tried to cast sorcery-speed {} at illegal time",
-                             player_id, card->name());
+                spdlog::warn("Player {} tried to cast sorcery-speed {} at illegal time", player_id,
+                             card->name());
                 zones_.get_hand(player_id).push_back(card);
                 return;
             }
@@ -1247,8 +1244,7 @@ void Game::process_action(uint64_t player_id, const ActionData& action) {
             mana_cost.colorless = std::max(0, mana_cost.colorless - delved);
         }
 
-        bool const has_cost =
-            mana_cost.mana_value() > 0 || !mana_cost.hybrid_costs.empty();
+        bool const has_cost = mana_cost.mana_value() > 0 || !mana_cost.hybrid_costs.empty();
 
         if (has_cost) {
             auto_tap_lands(player_id, mana_cost);
@@ -1286,7 +1282,8 @@ void Game::process_action(uint64_t player_id, const ActionData& action) {
         cp->set_stack_entry_id(stack_id);
         broadcaster_.emit(std::move(event));
 
-        emit_game_log(find_player(player_id)->username() + " casts " + card_name, player_id, "spell");
+        emit_game_log(find_player(player_id)->username() + " casts " + card_name, player_id,
+                      "spell");
         spdlog::debug("Player {} cast {}", player_id, card_name);
         priority_.interrupt();
 
@@ -1447,7 +1444,8 @@ void Game::process_action(uint64_t player_id, const ActionData& action) {
             fire_triggers(cle::triggers::TriggerType::OnLandfall, lf_event);
         }
 
-        emit_game_log(find_player(player_id)->username() + " plays " + card_name, player_id, "land");
+        emit_game_log(find_player(player_id)->username() + " plays " + card_name, player_id,
+                      "land");
         spdlog::debug("Player {} played land {}", player_id, card_name);
 
     } else if (action.action_type == "activate_ability") {
@@ -1599,15 +1597,14 @@ void Game::process_action(uint64_t player_id, const ActionData& action) {
             for (auto& c : cards_out) {
                 hand.push_back(c);
             }
-            spdlog::warn("Player {} sideboard swap count mismatch: {} out, {} in",
-                         player_id, cards_out.size(), names_in.size());
+            spdlog::warn("Player {} sideboard swap count mismatch: {} out, {} in", player_id,
+                         cards_out.size(), names_in.size());
             return;
         }
 
         std::vector<std::shared_ptr<cle::core::Card>> cards_in;
         for (const auto& name : names_in) {
-            auto it = std::ranges::find_if(
-                sb, [&](const auto& c) { return c->name() == name; });
+            auto it = std::ranges::find_if(sb, [&](const auto& c) { return c->name() == name; });
             if (it != sb.end()) {
                 cards_in.push_back(*it);
                 sb.erase(it);
@@ -1711,7 +1708,8 @@ void Game::process_action(uint64_t player_id, const ActionData& action) {
         }
 
         if (action.flag) {
-            result_ = GameOverResult{.winner_id = 0, .reason = "Draw agreed by mutual consent", .is_draw = true};
+            result_ = GameOverResult{
+                .winner_id = 0, .reason = "Draw agreed by mutual consent", .is_draw = true};
             state_.store(GameState::Finished);
             running_ = false;
 
@@ -1799,12 +1797,10 @@ void Game::resolve_stack_entry(StackEntry entry) {
                     if (owner_id == 0) {
                         owner_id = entry.controller_id;
                     }
-                    auto perm_id =
-                        zones_.add_to_battlefield(card, entry.controller_id, owner_id);
+                    auto perm_id = zones_.add_to_battlefield(card, entry.controller_id, owner_id);
                     spdlog::debug("Spell {} resolved -> permanent {}", card_name, perm_id);
 
-                    if (card_type == cle::core::CardType::Enchantment &&
-                        !entry.targets.empty()) {
+                    if (card_type == cle::core::CardType::Enchantment && !entry.targets.empty()) {
                         auto* aura_perm = zones_.find_permanent(perm_id);
                         auto* target_perm = zones_.find_permanent(entry.targets[0]);
                         if (aura_perm != nullptr && target_perm != nullptr) {
@@ -1877,8 +1873,7 @@ void Game::resolve_stack_entry(StackEntry entry) {
                         }
                     }
                 } else {
-                    if (entry.adventure && card->adventure() &&
-                        card->adventure()->effect.valid()) {
+                    if (entry.adventure && card->adventure() && card->adventure()->effect.valid()) {
                         try {
                             cle::triggers::TriggerEvent te;
                             te.type = cle::triggers::TriggerType::OnCast;
@@ -1888,29 +1883,24 @@ void Game::resolve_stack_entry(StackEntry entry) {
                             card->adventure()->effect(
                                 static_cast<cle::game::GameContext&>(*game_context_), te);
                         } catch (const std::exception& e) {
-                            spdlog::error("Adventure effect error for {}: {}", card_name,
-                                          e.what());
+                            spdlog::error("Adventure effect error for {}: {}", card_name, e.what());
                         }
                         zones_.add_to_exile(card, entry.controller_id);
                     } else {
-                        auto on_cast =
-                            card->get_trigger(cle::triggers::TriggerType::OnCast);
+                        auto on_cast = card->get_trigger(cle::triggers::TriggerType::OnCast);
                         if (on_cast && on_cast->valid()) {
                             try {
                                 cle::triggers::TriggerEvent te;
                                 te.type = cle::triggers::TriggerType::OnCast;
                                 te.player_id = entry.controller_id;
                                 te.source_id = card->instance_id();
-                                te.target_id =
-                                    entry.targets.empty() ? 0 : entry.targets[0];
+                                te.target_id = entry.targets.empty() ? 0 : entry.targets[0];
                                 te.amount = entry.x_value;
                                 te.extra_data = entry.kicked ? "kicked" : "";
-                                (*on_cast)(
-                                    static_cast<cle::game::GameContext&>(*game_context_),
-                                    te);
+                                (*on_cast)(static_cast<cle::game::GameContext&>(*game_context_),
+                                           te);
                             } catch (const std::exception& e) {
-                                spdlog::error("Spell effect error for {}: {}", card_name,
-                                              e.what());
+                                spdlog::error("Spell effect error for {}: {}", card_name, e.what());
                             }
                         }
                         if (entry.flashback) {
@@ -1974,248 +1964,266 @@ void Game::run_priority_round() {
         priority_.begin_round(turns_.active_player_id());
     }
 
-    while (running_ && !priority_.all_passed()) {
-        uint64_t holder;
-        std::shared_ptr<ActionQueue> queue;
-        std::string current_prompt_id;
-        {
-            std::lock_guard const lock{mutex_};
-            holder = priority_.current_priority_holder();
-            auto it = action_queues_.find(holder);
-            if (it == action_queues_.end()) {
-                priority_.pass();
-                continue;
-            }
-            queue = it->second;
+    for (;;) {
+        while (running_ && !priority_.all_passed()) {
+            uint64_t holder;
+            std::shared_ptr<ActionQueue> queue;
+            std::string current_prompt_id;
+            {
+                std::lock_guard const lock{mutex_};
+                holder = priority_.current_priority_holder();
+                auto it = action_queues_.find(holder);
+                if (it == action_queues_.end()) {
+                    priority_.pass();
+                    continue;
+                }
+                queue = it->second;
 
-            AutoPassMode mode = get_auto_pass(holder);
-            if (mode == AutoPassMode::UntilEndOfTurn) {
-                spdlog::debug("Game {}: auto-passing for player {} (until end of turn)",
-                              game_id_, holder);
-                priority_.pass();
-                continue;
-            }
+                AutoPassMode mode = get_auto_pass(holder);
+                if (mode == AutoPassMode::UntilEndOfTurn) {
+                    spdlog::debug("Game {}: auto-passing for player {} (until end of turn)",
+                                  game_id_, holder);
+                    priority_.pass();
+                    continue;
+                }
 
-            if (mode == AutoPassMode::NoActions) {
-                auto* player = find_player(holder);
-                if (player != nullptr) {
-                    bool const can_land =
-                        player->can_play_land() && turns_.is_main_phase() && stack_.is_empty();
-                    bool has_castable = false;
-                    for (const auto& card : zones_.get_hand(holder)) {
-                        if (card->type() == cle::core::CardType::Land) {
+                if (mode == AutoPassMode::NoActions) {
+                    auto* player = find_player(holder);
+                    if (player != nullptr) {
+                        bool const can_land =
+                            player->can_play_land() && turns_.is_main_phase() && stack_.is_empty();
+                        bool has_castable = false;
+                        for (const auto& card : zones_.get_hand(holder)) {
+                            if (card->type() == cle::core::CardType::Land) {
+                                continue;
+                            }
+                            bool const is_instant_speed =
+                                card->type() == cle::core::CardType::Instant ||
+                                std::ranges::find(card->keywords(), "Flash") !=
+                                    card->keywords().end();
+                            if (!is_instant_speed &&
+                                (!turns_.is_main_phase() || !stack_.is_empty())) {
+                                continue;
+                            }
+                            if (player->mana_pool().can_pay_cost(card->mana_cost())) {
+                                has_castable = true;
+                                break;
+                            }
+                        }
+                        bool has_activatable = false;
+                        for (auto perm_id : zones_.get_permanents_controlled_by(holder)) {
+                            auto* perm = zones_.find_permanent(perm_id);
+                            if (perm != nullptr && !perm->card()->activated_abilities().empty()) {
+                                has_activatable = true;
+                                break;
+                            }
+                        }
+                        if (!can_land && !has_castable && !has_activatable) {
+                            spdlog::debug("Game {}: auto-passing for player {} (no actions)",
+                                          game_id_, holder);
+                            priority_.pass();
                             continue;
                         }
-                        bool const is_instant_speed =
-                            card->type() == cle::core::CardType::Instant ||
-                            std::ranges::find(card->keywords(), "Flash") !=
-                                card->keywords().end();
-                        if (!is_instant_speed &&
-                            (!turns_.is_main_phase() || !stack_.is_empty())) {
-                            continue;
-                        }
-                        if (player->mana_pool().can_pay_cost(card->mana_cost())) {
-                            has_castable = true;
-                            break;
-                        }
                     }
-                    bool has_activatable = false;
-                    for (auto perm_id : zones_.get_permanents_controlled_by(holder)) {
-                        auto* perm = zones_.find_permanent(perm_id);
-                        if (perm != nullptr && !perm->card()->activated_abilities().empty()) {
-                            has_activatable = true;
-                            break;
-                        }
-                    }
-                    if (!can_land && !has_castable && !has_activatable) {
-                        spdlog::debug("Game {}: auto-passing for player {} (no actions)",
-                                      game_id_, holder);
-                        priority_.pass();
-                        continue;
-                    }
+                }
+
+                if (pending_concede_.find(holder) != pending_concede_.end()) {
+                    current_prompt_id.clear();
+                } else {
+                    auto prompt_result = send_priority_prompt(holder);
+                    current_prompt_id = std::move(prompt_result.prompt_id);
                 }
             }
 
-            if (pending_concede_.find(holder) != pending_concede_.end()) {
-                current_prompt_id.clear();
-            } else {
-                auto prompt_result = send_priority_prompt(holder);
-                current_prompt_id = std::move(prompt_result.prompt_id);
+            if (!wait_for_connected_player(holder)) {
+                break;
             }
-        }
 
-        if (!wait_for_connected_player(holder)) {
-            break;
-        }
-
-        if (clock_.is_enabled()) {
-            clock_.start_clock(holder);
-        }
-
-        auto wait_timeout = std::chrono::seconds(action_timeout_seconds_);
-        if (clock_.is_enabled()) {
-            clock_.update();
-            auto remaining = clock_.remaining_time(holder);
-            if (remaining < wait_timeout) {
-                wait_timeout = std::chrono::duration_cast<std::chrono::seconds>(remaining) +
-                               std::chrono::seconds{1};
+            if (clock_.is_enabled()) {
+                clock_.start_clock(holder);
             }
-        }
 
-        bool rope_sent = false;
-        constexpr auto rope_threshold = std::chrono::seconds(15);
+            auto wait_timeout = std::chrono::seconds(action_timeout_seconds_);
+            if (clock_.is_enabled()) {
+                clock_.update();
+                auto remaining = clock_.remaining_time(holder);
+                if (remaining < wait_timeout) {
+                    wait_timeout = std::chrono::duration_cast<std::chrono::seconds>(remaining) +
+                                   std::chrono::seconds{1};
+                }
+            }
 
-        std::optional<ActionData> action;
-        constexpr int max_stale_retries = 8;
-        auto deadline = std::chrono::steady_clock::now() + wait_timeout;
-        auto rope_deadline = std::chrono::steady_clock::now() +
-            (wait_timeout > rope_threshold ? wait_timeout - rope_threshold : wait_timeout);
+            bool rope_sent = false;
+            constexpr auto rope_threshold = std::chrono::seconds(15);
 
-        for (int attempt = 0; attempt < max_stale_retries; ++attempt) {
-            while (!action && running_ && std::chrono::steady_clock::now() < deadline) {
-                auto gen_before = shared_notify_->generation.load(std::memory_order_acquire);
+            std::optional<ActionData> action;
+            constexpr int max_stale_retries = 8;
+            auto deadline = std::chrono::steady_clock::now() + wait_timeout;
+            auto rope_deadline =
+                std::chrono::steady_clock::now() +
+                (wait_timeout > rope_threshold ? wait_timeout - rope_threshold : wait_timeout);
 
-                action = queue->try_take();
+            for (int attempt = 0; attempt < max_stale_retries; ++attempt) {
+                while (!action && running_ && std::chrono::steady_clock::now() < deadline) {
+                    auto gen_before = shared_notify_->generation.load(std::memory_order_acquire);
 
-                if (!action) {
-                    std::lock_guard const poll_lock{mutex_};
-                    for (auto& [pid, pqueue] : action_queues_) {
-                        if (pid == holder) continue;
-                        if (pending_draw_offer_from_ == 0) {
-                            if (auto a = pqueue->try_take_if("draw_offer"))
+                    action = queue->try_take();
+
+                    if (!action) {
+                        std::lock_guard const poll_lock{mutex_};
+                        for (auto& [pid, pqueue] : action_queues_) {
+                            if (pid == holder)
+                                continue;
+                            if (pending_draw_offer_from_ == 0) {
+                                if (auto a = pqueue->try_take_if("draw_offer"))
+                                    process_action(pid, *a);
+                            }
+                            if (pending_draw_offer_from_ != 0) {
+                                if (auto a = pqueue->try_take_if("draw_response"))
+                                    process_action(pid, *a);
+                            }
+                            if (auto a = pqueue->try_take_if("concede_request"))
                                 process_action(pid, *a);
+                            if (pending_concede_.find(pid) != pending_concede_.end()) {
+                                if (auto a = pqueue->try_take_if("yes_no"))
+                                    process_action(pid, *a);
+                            }
                         }
-                        if (pending_draw_offer_from_ != 0) {
-                            if (auto a = pqueue->try_take_if("draw_response"))
-                                process_action(pid, *a);
+                        if (!running_)
+                            break;
+                    }
+
+                    if (!rope_sent && std::chrono::steady_clock::now() >= rope_deadline) {
+                        rope_sent = true;
+                        proto::GameEvent rope_event;
+                        rope_event.set_game_id(game_id_);
+                        auto* rw = rope_event.mutable_rope_warning();
+                        rw->set_player_id(holder);
+                        rw->set_seconds_remaining(static_cast<int32_t>(rope_threshold.count()));
+                        broadcaster_.emit(std::move(rope_event));
+                    }
+
+                    if (!action && running_) {
+                        auto remaining = deadline - std::chrono::steady_clock::now();
+                        if (remaining <= std::chrono::milliseconds(0))
+                            break;
+                        std::unique_lock sn_lock{shared_notify_->mutex};
+                        shared_notify_->cv.wait_for(sn_lock, remaining, [&] {
+                            return shared_notify_->generation.load(std::memory_order_acquire) !=
+                                   gen_before;
+                        });
+                    }
+                }
+
+                if (!action || !running_) {
+                    break;
+                }
+                if (action->action_type == "concede" || action->action_type == "concede_request" ||
+                    action->action_type == "shutdown" || action->action_type == "set_auto_pass" ||
+                    action->action_type == "draw_offer" || action->action_type == "draw_response") {
+                    break;
+                }
+                if (action->action_type == "yes_no" &&
+                    pending_concede_.find(holder) != pending_concede_.end()) {
+                    break;
+                }
+                if (!action->prompt_id.empty() && action->prompt_id == current_prompt_id) {
+                    break;
+                }
+                spdlog::debug("Game {}: player {} sent stale action (prompt_id={}, expected={})",
+                              game_id_, holder, action->prompt_id, current_prompt_id);
+                action.reset();
+            }
+
+            if (clock_.is_enabled()) {
+                clock_.stop_clock();
+                if (clock_.is_expired(holder)) {
+                    std::lock_guard const lock{mutex_};
+                    auto* player = find_player(holder);
+                    if ((player != nullptr) && player->is_alive()) {
+                        player->eliminate();
+                        spdlog::info("Game {}: player {} lost on time", game_id_, holder);
+                        auto win = win_checker_.check(*this);
+                        if (win) {
+                            result_ = *win;
+                            state_.store(GameState::Finished);
+                            running_ = false;
+                            proto::GameEvent go_event;
+                            go_event.set_game_id(game_id_);
+                            auto* go = go_event.mutable_game_over();
+                            go->set_winner_id(win->winner_id);
+                            go->set_reason("Opponent ran out of time");
+                            go->set_is_draw(win->is_draw);
+                            broadcaster_.emit(std::move(go_event));
                         }
+                    }
+                    break;
+                }
+            }
+
+            {
+                std::lock_guard const lock{mutex_};
+
+                for (auto& [pid, pqueue] : action_queues_) {
+                    if (pid == holder)
+                        continue;
+
+                    if (pending_draw_offer_from_ == 0) {
+                        if (auto a = pqueue->try_take_if("draw_offer"))
+                            process_action(pid, *a);
+                    }
+                    if (pending_draw_offer_from_ != 0) {
+                        if (auto a = pqueue->try_take_if("draw_response"))
+                            process_action(pid, *a);
+                    }
+                    {
                         if (auto a = pqueue->try_take_if("concede_request"))
                             process_action(pid, *a);
-                        if (pending_concede_.find(pid) != pending_concede_.end()) {
-                            if (auto a = pqueue->try_take_if("yes_no"))
-                                process_action(pid, *a);
-                        }
                     }
-                    if (!running_) break;
-                }
-
-                if (!rope_sent && std::chrono::steady_clock::now() >= rope_deadline) {
-                    rope_sent = true;
-                    proto::GameEvent rope_event;
-                    rope_event.set_game_id(game_id_);
-                    auto* rw = rope_event.mutable_rope_warning();
-                    rw->set_player_id(holder);
-                    rw->set_seconds_remaining(
-                        static_cast<int32_t>(rope_threshold.count()));
-                    broadcaster_.emit(std::move(rope_event));
-                }
-
-                if (!action && running_) {
-                    auto remaining = deadline - std::chrono::steady_clock::now();
-                    if (remaining <= std::chrono::milliseconds(0)) break;
-                    std::unique_lock sn_lock{shared_notify_->mutex};
-                    shared_notify_->cv.wait_for(sn_lock, remaining, [&] {
-                        return shared_notify_->generation.load(std::memory_order_acquire)
-                               != gen_before;
-                    });
-                }
-            }
-
-            if (!action || !running_) {
-                break;
-            }
-            if (action->action_type == "concede" || action->action_type == "concede_request" ||
-                action->action_type == "shutdown" ||
-                action->action_type == "set_auto_pass" || action->action_type == "draw_offer" ||
-                action->action_type == "draw_response") {
-                break;
-            }
-            if (action->action_type == "yes_no" &&
-                pending_concede_.find(holder) != pending_concede_.end()) {
-                break;
-            }
-            if (!action->prompt_id.empty() && action->prompt_id == current_prompt_id) {
-                break;
-            }
-            spdlog::debug("Game {}: player {} sent stale action (prompt_id={}, expected={})",
-                          game_id_, holder, action->prompt_id, current_prompt_id);
-            action.reset();
-        }
-
-        if (clock_.is_enabled()) {
-            clock_.stop_clock();
-            if (clock_.is_expired(holder)) {
-                std::lock_guard const lock{mutex_};
-                auto* player = find_player(holder);
-                if ((player != nullptr) && player->is_alive()) {
-                    player->eliminate();
-                    spdlog::info("Game {}: player {} lost on time", game_id_, holder);
-                    auto win = win_checker_.check(*this);
-                    if (win) {
-                        result_ = *win;
-                        state_.store(GameState::Finished);
-                        running_ = false;
-                        proto::GameEvent go_event;
-                        go_event.set_game_id(game_id_);
-                        auto* go = go_event.mutable_game_over();
-                        go->set_winner_id(win->winner_id);
-                        go->set_reason("Opponent ran out of time");
-                        go->set_is_draw(win->is_draw);
-                        broadcaster_.emit(std::move(go_event));
+                    if (pending_concede_.find(pid) != pending_concede_.end()) {
+                        if (auto a = pqueue->try_take_if("yes_no"))
+                            process_action(pid, *a);
                     }
                 }
-                break;
+                if (pending_concede_.find(holder) != pending_concede_.end()) {
+                    if (auto a = queue->try_take_if("yes_no"))
+                        process_action(holder, *a);
+                }
+
+                if (!running_) {
+                    break;
+                }
+
+                if (!action || action->action_type == "pass" || action->action_type == "shutdown") {
+                    priority_.pass();
+                } else {
+                    process_action(holder, *action);
+                }
+
+                check_state_based_actions();
+
+                if (priority_.all_passed() && !stack_.is_empty()) {
+                    auto top = stack_.resolve_top();
+                    if (top) {
+                        resolve_stack_entry(std::move(*top));
+                    }
+                    check_state_based_actions();
+                    priority_.begin_round(turns_.active_player_id());
+                }
             }
         }
 
         {
             std::lock_guard const lock{mutex_};
-
-            for (auto& [pid, pqueue] : action_queues_) {
-                if (pid == holder) continue;
-
-                if (pending_draw_offer_from_ == 0) {
-                    if (auto a = pqueue->try_take_if("draw_offer"))
-                        process_action(pid, *a);
-                }
-                if (pending_draw_offer_from_ != 0) {
-                    if (auto a = pqueue->try_take_if("draw_response"))
-                        process_action(pid, *a);
-                }
-                {
-                    if (auto a = pqueue->try_take_if("concede_request"))
-                        process_action(pid, *a);
-                }
-                if (pending_concede_.find(pid) != pending_concede_.end()) {
-                    if (auto a = pqueue->try_take_if("yes_no"))
-                        process_action(pid, *a);
-                }
-            }
-            if (pending_concede_.find(holder) != pending_concede_.end()) {
-                if (auto a = queue->try_take_if("yes_no"))
-                    process_action(holder, *a);
-            }
-
-            if (!running_) {
+            if (!running_ || stack_.is_empty()) {
                 break;
             }
-
-            if (!action || action->action_type == "pass" || action->action_type == "shutdown") {
-                priority_.pass();
-            } else {
-                process_action(holder, *action);
+            auto top = stack_.resolve_top();
+            if (top) {
+                resolve_stack_entry(std::move(*top));
             }
-
             check_state_based_actions();
-
-            if (priority_.all_passed() && !stack_.is_empty()) {
-                auto top = stack_.resolve_top();
-                if (top) {
-                    resolve_stack_entry(std::move(*top));
-                }
-                check_state_based_actions();
-                priority_.begin_round(turns_.active_player_id());
-            }
+            priority_.begin_round(turns_.active_player_id());
         }
     }
 }
@@ -2333,7 +2341,7 @@ auto Game::build_snapshot(uint64_t viewer_player_id) const -> proto::GameSnapsho
 }
 
 void Game::prompt_trample_damage(uint64_t attacker_id,
-                                  std::unique_lock<std::recursive_mutex>& lock) {
+                                 std::unique_lock<std::recursive_mutex>& lock) {
     uint64_t const active_id = turns_.active_player_id();
     auto* attacker = zones_.find_permanent(attacker_id);
     if (attacker == nullptr) {
@@ -2431,8 +2439,7 @@ void Game::prompt_trample_damage(uint64_t attacker_id,
                               player_dmg);
 }
 
-void Game::emit_game_log(const std::string& text, uint64_t player_id,
-                         const std::string& category) {
+void Game::emit_game_log(const std::string& text, uint64_t player_id, const std::string& category) {
     proto::GameEvent event;
     event.set_game_id(game_id_);
     auto* log = event.mutable_game_log_entry();
@@ -2496,11 +2503,16 @@ void Game::auto_tap_lands(uint64_t player_id, const cle::mana::ManaCost& cost) {
     }
 
     auto needed = [&](const std::string& c) -> bool {
-        if (c == "W") return cost.white > 0;
-        if (c == "U") return cost.blue > 0;
-        if (c == "B") return cost.black > 0;
-        if (c == "R") return cost.red > 0;
-        if (c == "G") return cost.green > 0;
+        if (c == "W")
+            return cost.white > 0;
+        if (c == "U")
+            return cost.blue > 0;
+        if (c == "B")
+            return cost.black > 0;
+        if (c == "R")
+            return cost.red > 0;
+        if (c == "G")
+            return cost.green > 0;
         return false;
     };
 
