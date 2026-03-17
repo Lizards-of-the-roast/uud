@@ -11,25 +11,6 @@
 #include "game/textures.hpp"
 #include "scenes/common/ui_theme.hpp"
 
-struct Card_Overlay_Entry {
-    UI_Box *box;
-    Game::Card card;
-    Game::Permanent_State perm;
-    bool has_perm;
-};
-/*
-static std::vector<Card_Overlay_Entry> pending_overlays;
-
-void Draw_Pending_Card_Overlays(SDL_Renderer *renderer, TTF_Font *font) {
-    for (const auto &entry : pending_overlays) {
-        SDL_FRect rect = entry.box->area.sdl();
-        const Game::Permanent_State *perm_ptr = entry.has_perm ? &entry.perm : nullptr;
-        Draw_Card_Overlay(renderer, rect, entry.card, perm_ptr, font);
-    }
-    pending_overlays.clear();
-}
-*/
-
 const float card_width = 143.0f;
 const float card_height = 200.0f;
 const float card_aspect = card_width / card_height;

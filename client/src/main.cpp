@@ -15,7 +15,7 @@ static void Signal_Handler(int) {
     state.scene = Scene::Exit;
 }
 
-int main(void) {
+int main(int argc, char *argv[]) {
     ////////////////////////
     // INIT
 
@@ -43,15 +43,40 @@ int main(void) {
     SDL_GetWindowSize(state.window, &state.window_width, &state.window_height);
 
     // Renderer
-    /*
-    SDL_Log("Available Renderers:");
-    for (int i = 0; i < SDL_GetNumRenderDrivers(); i++)
-    {
-        SDL_Log("\t%s", SDL_GetRenderDriver(i));
-    }
-    */
 
-    state.renderer = SDL_CreateRenderer(state.window, NULL);
+    // allow passing renderer with --renderer
+    // XXX: very hardcoded right now
+    char *renderer_backend = NULL;
+    if (argc > 1 && !strcmp(argv[1], "--renderer"))
+    {
+        if (argc < 3)
+        {
+            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Must provide renderer argument");
+            SDL_Log("Available Renderers:");
+            for (int i = 0; i < SDL_GetNumRenderDrivers(); i++)
+            {
+                SDL_Log("\t%s", SDL_GetRenderDriver(i));
+            }
+            return 1;
+        }
+
+        renderer_backend = argv[2];
+        bool backend_supported = false;
+        for (int i = 0; !backend_supported && i < SDL_GetNumRenderDrivers(); i++)
+            backend_supported = strcmp(renderer_backend, SDL_GetRenderDriver(i));
+        if (!backend_supported)
+        {
+            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "renderer \"%s\" not supported", renderer_backend);
+            SDL_Log("Available Renderers:");
+            for (int i = 0; i < SDL_GetNumRenderDrivers(); i++)
+            {
+                SDL_Log("\t%s", SDL_GetRenderDriver(i));
+            }
+            return 1;
+        }
+    }
+
+    state.renderer = SDL_CreateRenderer(state.window, renderer_backend);
     if (!state.renderer) {
         std::cerr << "ERROR: " << "Couldnt Create Renderer" << SDL_GetError() << '\n';
         return 1;
