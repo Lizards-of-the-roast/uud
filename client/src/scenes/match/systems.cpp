@@ -924,7 +924,8 @@ static void Stack_UI(Widget_Context &w, UI_Context &ui, const Game::Game_Snapsho
         wd->flags = WIDGET_FLAG_DRAW_BORDER;
     }
 
-    const float entry_height = 40.0f;
+    //const float entry_height = 40.0f;
+    const float entry_height = card_height;
     ui.sizes.push({UI_Size_Pixels(stack_width - 4.0f), UI_Size_Pixels(entry_height)});
     defer(ui.sizes.pop());
 
