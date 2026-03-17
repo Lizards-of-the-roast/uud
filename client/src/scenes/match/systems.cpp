@@ -755,7 +755,7 @@ void Opp_Side_Zones_UI(Widget_Context &w, UI_Context &ui, Game::Player_State *pl
 
     Opp_Info_Panel(w, ui, player, font);
 
-    w.Spacer(UI_Size_Pixels(margin));
+    w.Spacer(UI_Size_Pixels(margin * 2));
 
     ui.sizes.push({UI_Size_Pixels(card_width), UI_Size_Pixels(card_height)});
     defer(ui.sizes.pop());

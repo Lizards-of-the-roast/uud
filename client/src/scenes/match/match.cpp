@@ -1382,14 +1382,18 @@ bool Scene_Match(void) {
                     auto render_line = [&](const std::string &text, SDL_Color col) {
                         if (text.empty())
                             return;
+
+                        int w = 0, h = 0;
                         TTF_Text *ttf =
                             TTF_CreateText(text_engine, match_font, text.c_str(), text.length());
                         if (ttf) {
-                            SDL_SetRenderDrawColor(state.renderer, col.r, col.g, col.b, col.a);
+                            TTF_SetTextWrapWidth(ttf, detail_w);
+                            TTF_SetTextColor(ttf, col.r, col.g, col.b, col.a);
                             TTF_DrawRendererText(ttf, x + 8, text_y);
+                            TTF_GetTextSize(ttf, &w, &h);
                             TTF_DestroyText(ttf);
                         }
-                        text_y += 20;
+                        text_y += h;
                     };
                     render_line(card->name, {0xFF, 0xFF, 0xFF, 0xFF});
                     render_line(Format_Mana_Cost(card->mana_cost), {0xD4, 0xAF, 0x37, 0xFF});
