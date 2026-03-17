@@ -64,7 +64,7 @@ bool Menu_Match_History_Page(Widget_Context &w, UI_Context &ui, Menu_Tab &tab) {
             w.styles.push(theme::Label_Body());
             ui.sizes.push({UI_Size_Parent(1.0), UI_Size_Parent(0.5)});
             defer(ui.sizes.pop());
-            SCROLL_O(&w, 1, {}, UI_BOX_FLAG_CLIP)
+            SCROLL_O(&w, 1, true, {}, UI_BOX_FLAG_CLIP)
             {
                 ui.sizes.push({UI_Size_Parent(1.0), UI_Size_Text(6)});
                 defer(ui.sizes.pop());

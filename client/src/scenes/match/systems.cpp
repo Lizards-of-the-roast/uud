@@ -121,7 +121,7 @@ static bool Move_Card(Game::Player_State *player, Game::Card_ID card, UI_Signal 
 static void Player_Battlefield_UI(Widget_Context &w, UI_Context &ui, UI_Box *div,
                                   Game::Player_State *player, Combat_UI_State *combat,
                                   bool is_local) {
-    SCROLL_O(&w, 0, Rect{0, div->layout_box.h - card_height, div->layout_box.w, card_height}) {
+    SCROLL_O(&w, 0, true, Rect{0, div->layout_box.h - card_height, div->layout_box.w, card_height}) {
         UI_Box *scroll = ui.leafs.back();
         player_battlefield_scroll_id = scroll->id;
         scroll->elem_align.y = UI_ALIGN_BOTTOM;
@@ -272,7 +272,7 @@ static void Player_Battlefield_UI(Widget_Context &w, UI_Context &ui, UI_Box *div
 }
 static void Opp_Battlefield_UI(Widget_Context &w, UI_Context &ui, UI_Box *div,
                                Game::Player_State *player, Combat_UI_State *combat) {
-    SCROLL_O(&w, 0, Rect{0, 0, div->layout_box.w, card_height}) {
+    SCROLL_O(&w, 0, true, Rect{0, 0, div->layout_box.w, card_height}) {
         UI_Box *scroll = ui.leafs.back();
         opp_battlefield_scroll_id = scroll->id;
 

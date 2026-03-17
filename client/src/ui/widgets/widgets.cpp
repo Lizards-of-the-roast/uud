@@ -95,48 +95,50 @@ UI_Signal Widget_Context::Div_Begin(std::optional<Rect> area, UI_Box_Flags flags
 void Widget_Context::Div_End() {
     ui->parents.pop();
 }
-UI_Signal Widget_Context::Scroll_Begin(int axis, std::optional<Rect> area, UI_Box_Flags flags,
+UI_Signal Widget_Context::Scroll_Begin(int axis, bool hide, std::optional<Rect> area, UI_Box_Flags flags,
                                        std::optional<std::string> id_override,
                                        const std::source_location source_loc) {
     std::string id_base = id_override.value_or(ui->Source_Loc_Str(source_loc));
     Div_Begin(area, {}, "Scroll_div[" + id_base).box->child_layout_axis = !axis;
     // TODO: better sizing for scroll bars
-    G2<UI_Size> size;
-    size[axis] = UI_Size_Parent(1.0f);
-    size[!axis] = UI_Size_Parent(0.95f);
-    ui->sizes.push(size);
+    ui->sizes.push({UI_Size_Parent(1.0f), UI_Size_Parent(1.0f)});
     UI_Signal sig = Div_Begin({}, flags | (UI_BOX_FLAG_VIEW_SCROLL_X << axis), id_base);
     sig.box->margin = {0};
     sig.box->child_layout_axis = axis;
+    float max_offset = SDL_max(0, sig.box->view_bounds[axis] - sig.box->area.size()[axis]);
+    if (!hide || max_offset > 0)
+        sig.box->size[!axis] = UI_Size_Parent(0.95f);
     return sig;
 }
 // TODO: not have axis need to be passed twice
-void Widget_Context::Scroll_End(int axis, std::optional<std::string> id_override,
+void Widget_Context::Scroll_End(int axis, bool hide, std::optional<std::string> id_override,
                                 const std::source_location source_loc) {
     std::string id_base = id_override.value_or(ui->Source_Loc_Str(source_loc));
 
     UI_Box *scroll_div = ui->parents.top();
     Div_End();
-
     ui->sizes.pop();
-    G2<UI_Size> size;
-    size[axis] = UI_Size_Parent(1.0f);
-    size[!axis] = UI_Size_Parent(0.05f);
-    ui->sizes.push(size);
 
     float tmp = -scroll_div->view_offset[axis];
     float max_offset = SDL_max(0, scroll_div->view_bounds[axis] - scroll_div->area.size()[axis]);
-    // TODO: slider styles
-    //UI_Signal slider =
-        Slider(&tmp, 0, max_offset, (axis) ? Widget_Slider_Dir::UTD : Widget_Slider_Dir::LTR, {},
-               {}, UI_BOX_FLAG_CLICKABLE | UI_BOX_FLAG_CLIP, "Scroll_Slider[" + id_base);
-    //slider.box->margin = {0};
-    float delta = (-max_offset) - tmp;
-    if (delta > scroll_div->scroll_step || delta < -scroll_div->scroll_step)
-        scroll_div->view_offset[axis] = -tmp;
+    if (!hide || max_offset > 0)
+    {
+        G2<UI_Size> size;
+        size[axis] = UI_Size_Parent(1.0f);
+        size[!axis] = UI_Size_Parent(0.05f);
+        ui->sizes.push(size);
+        // TODO: slider styles
+        //UI_Signal slider =
+            Slider(&tmp, 0, max_offset, (axis) ? Widget_Slider_Dir::UTD : Widget_Slider_Dir::LTR, {},
+                {}, UI_BOX_FLAG_CLICKABLE | UI_BOX_FLAG_CLIP, "Scroll_Slider[" + id_base);
+        ui->sizes.pop();
+        //slider.box->margin = {0};
+        float delta = (-max_offset) - tmp;
+        if (delta > scroll_div->scroll_step || delta < -scroll_div->scroll_step)
+            scroll_div->view_offset[axis] = -tmp;
+    }
 
     Div_End();
-    ui->sizes.pop();
 }
 UI_Signal Widget_Context::Window_Begin(Rect area, bool *should_close, std::string title,
                                        UI_Box_Flags flags, std::optional<std::string> id_override,

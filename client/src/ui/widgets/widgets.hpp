@@ -11,10 +11,10 @@
     for (int _i_ = ((CTX)->Div_Begin(__VA_ARGS__), 0); !_i_; _i_++, (CTX)->Div_End())
 #define DIV(CTX) for (int _i_ = ((CTX)->Div_Begin(), 0); !_i_; _i_++, (CTX)->Div_End())
 
-#define SCROLL_O(CTX, AXIS, ...)                                      \
-    for (int _i_ = ((CTX)->Scroll_Begin(AXIS, __VA_ARGS__), 0); !_i_; \
-         _i_++, (CTX)->Scroll_End(AXIS))
-#define SCROLL(CTX, AXIS) for (int _i_ = ((CTX)->Scroll_Begin(AXIS), 0); !_i_; _i_++, (CTX)->Scroll_End(AXIS))
+#define SCROLL_O(CTX, AXIS, HIDE, ...)                                      \
+    for (int _i_ = ((CTX)->Scroll_Begin(AXIS, HIDE, __VA_ARGS__), 0); !_i_; \
+         _i_++, (CTX)->Scroll_End(AXIS, HIDE))
+#define SCROLL(CTX, AXIS, HIDE) for (int _i_ = ((CTX)->Scroll_Begin(AXIS, HIDE), 0); !_i_; _i_++, (CTX)->Scroll_End(AXIS, HIDE))
 
 enum class Widget_Type {
     Div,
@@ -128,10 +128,10 @@ struct Widget_Context {
                         const std::source_location source_loc = std::source_location::current());
     void Div_End();
 
-    UI_Signal Scroll_Begin(int axis = 1, std::optional<Rect> area = {}, UI_Box_Flags flags = 0,
+    UI_Signal Scroll_Begin(int axis = 1, bool hide = false, std::optional<Rect> area = {}, UI_Box_Flags flags = 0,
                            std::optional<std::string> id_override = {},
                            const std::source_location source_loc = std::source_location::current());
-    void Scroll_End(int axis = 1, std::optional<std::string> id_override = {},
+    void Scroll_End(int axis = 1, bool hide = false, std::optional<std::string> id_override = {},
                     const std::source_location source_loc = std::source_location::current());
 
     UI_Signal Window_Begin(Rect area, bool *should_close, std::string title = "",
