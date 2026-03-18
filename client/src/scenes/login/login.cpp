@@ -15,6 +15,8 @@
 #include <SDL3_image/SDL_image.h>
 #include <SDL3_ttf/SDL_ttf.h>
 
+#define NGROK "https://c2b4-140-203-12-65.ngrok-free.app"
+
 #define FILTER_USERNAME          \
     "abcdefghijklmnopqrstuvwxyz" \
     "ABCDEFGHIJKLMNOPQRSTUVWXYZ" \
@@ -188,7 +190,7 @@ bool Scene_Login(void) {
                 w.Label("Server Address");
                 w.styles.pop();
                 w.styles.push(theme::Textbox());
-                UI_Signal server_sig = w.Textbox(state.server_address);
+                UI_Signal server_sig = w.Textbox(NGROK);
                 w.styles.pop();
 
                 if (!error_text.empty())
@@ -264,7 +266,7 @@ bool Scene_Login(void) {
                 w.Label("Server Address");
                 w.styles.pop();
                 w.styles.push(theme::Textbox());
-                UI_Signal server_sig = w.Textbox();
+                UI_Signal server_sig = w.Textbox(NGROK);
                 w.styles.pop();
 
                 if (!error_text.empty())

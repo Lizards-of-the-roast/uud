@@ -269,6 +269,10 @@ void UI_Context::Pass_Event(SDL_Event event) {
                         break;
                     case SDLK_DOWN:
                         break;
+                    case SDLK_V:
+                        if (event.key.mod & SDL_KMOD_CTRL)
+                            box->Text_Insert(this, SDL_GetClipboardText());
+                        break;
                 }
 
                 break;
