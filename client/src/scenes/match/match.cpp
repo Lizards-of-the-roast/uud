@@ -104,8 +104,7 @@ bool Scene_Match(void) {
     int auto_pass_mode = 0;
     int last_auto_pass_turn = 0;
     Combat_UI_State combat_ui;
-    Uint64 last_priority_tick = 0;
-    bool had_priority_last_frame = false;
+    Uint64 last_clock_tick = 0;
     uint64_t hover_card_id = 0;
     Uint64 hover_start_ms = 0;
     bool showing_detail = false;
@@ -334,21 +333,14 @@ bool Scene_Match(void) {
         }
 
         if (game_state.Has_Snapshot()) {
-            auto *me = game_state.My_State_Mut(is_local ? 1 : state.user_id);
-            if (me && me->has_priority) {
-                if (!had_priority_last_frame) {
-                    last_priority_tick = SDL_GetTicks();
-                    had_priority_last_frame = true;
-                }
-                Uint64 now = SDL_GetTicks();
-                Uint64 elapsed = now - last_priority_tick;
-                if (me->clock_remaining_ms > static_cast<int>(elapsed))
-                    me->clock_remaining_ms -= static_cast<int>(elapsed);
-                else
-                    me->clock_remaining_ms = 0;
-                last_priority_tick = now;
-            } else {
-                had_priority_last_frame = false;
+            Uint64 now = SDL_GetTicks();
+            if (last_clock_tick == 0)
+                last_clock_tick = now;
+            int elapsed = static_cast<int>(now - last_clock_tick);
+            last_clock_tick = now;
+            for (auto &player : game_state.Snapshot_Mut().players) {
+                if (player.has_priority && player.clock_remaining_ms > 0)
+                    player.clock_remaining_ms = std::max(0, player.clock_remaining_ms - elapsed);
             }
         }
 
@@ -378,7 +370,7 @@ bool Scene_Match(void) {
                     UI_Box *inner = ui.leafs.back();
                     inner->flags |= UI_BOX_FLAG_FLOATING;
                     inner->fixed_position = V2{0, 0};
-                    Game_UI(w, ui, game_state.Snapshot(), library_texture, match_font, my_id,
+                    Game_UI(w, ui, game_state.Snapshot_Mut(), library_texture, match_font, my_id,
                             &leaving, &combat_ui, is_local);
                 }
                 ui.sizes.pop();

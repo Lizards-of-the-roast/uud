@@ -105,6 +105,14 @@ void Local_Game_State::Apply_Event(const Game_Event &event) {
                     snapshot_.priority_player_id = e.player_id;
                     for (auto &player : snapshot_.players)
                         player.has_priority = (player.player_id == e.player_id);
+                    for (const auto &cu : e.clocks) {
+                        for (auto &player : snapshot_.players) {
+                            if (player.player_id == cu.player_id) {
+                                player.clock_remaining_ms = cu.clock_remaining_ms;
+                                break;
+                            }
+                        }
+                    }
                 }
 
             } else if constexpr (std::is_same_v<T, Card_Drawn_Event>) {
@@ -449,6 +457,10 @@ bool Local_Game_State::Has_Snapshot() const {
 }
 
 const Game_Snapshot &Local_Game_State::Snapshot() const {
+    return snapshot_;
+}
+
+Game_Snapshot &Local_Game_State::Snapshot_Mut() {
     return snapshot_;
 }
 

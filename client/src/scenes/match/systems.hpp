@@ -22,7 +22,7 @@ void Combat_Lines_UI(SDL_Renderer *renderer, Combat_UI_State *combat);
 
 void Opp_Hand_UI(Widget_Context &w, UI_Context &ui, Game::Player_State *player);
 
-void Game_UI(Widget_Context &w, UI_Context &ui, const Game::Game_Snapshot &snapshot,
+void Game_UI(Widget_Context &w, UI_Context &ui, Game::Game_Snapshot &snapshot,
              SDL_Texture *library_texture, TTF_Font *font, uint64_t my_user_id = 0,
              bool *leave_pressed = nullptr, Combat_UI_State *combat = nullptr,
              bool is_local = true);

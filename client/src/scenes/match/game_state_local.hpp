@@ -78,6 +78,7 @@ struct Local_Game_State {
 
     bool Has_Snapshot() const;
     const Game::Game_Snapshot &Snapshot() const;
+    Game::Game_Snapshot &Snapshot_Mut();
 
     const Game::Player_State *My_State(uint64_t my_user_id) const;
     const Game::Player_State *Opponent_State(uint64_t my_user_id) const;

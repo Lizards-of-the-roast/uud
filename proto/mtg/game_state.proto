@@ -129,6 +129,12 @@ message PhaseChangedEvent {
 
 message PriorityChangedEvent {
     uint64 player_id = 1;
+    repeated PlayerClockUpdate clocks = 2;
+}
+
+message PlayerClockUpdate {
+    uint64 player_id = 1;
+    int32 clock_remaining_ms = 2;
 }
 
 message AttackDeclaredEvent {

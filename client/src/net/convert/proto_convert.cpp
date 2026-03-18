@@ -412,9 +412,14 @@ Game_Event From_Proto(const mtg::proto::GameEvent &proto) {
                                            proto.phase_changed().active_player_id(),
                                            proto.phase_changed().turn_number()};
             break;
-        case mtg::proto::GameEvent::kPriorityChanged:
-            ge.event = Priority_Changed_Event{proto.priority_changed().player_id()};
+        case mtg::proto::GameEvent::kPriorityChanged: {
+            Priority_Changed_Event pce;
+            pce.player_id = proto.priority_changed().player_id();
+            for (const auto& cu : proto.priority_changed().clocks())
+                pce.clocks.push_back({cu.player_id(), cu.clock_remaining_ms()});
+            ge.event = std::move(pce);
             break;
+        }
         case mtg::proto::GameEvent::kAttackDeclared:
             ge.event = Attack_Declared_Event{proto.attack_declared().attacker_id(),
                                              proto.attack_declared().defending_player_id()};

@@ -538,8 +538,7 @@ static void Exile_UI(Widget_Context &w, UI_Context &ui, Game::Player_State *play
 }
 
 static void Player_Info_Panel(Widget_Context &w, UI_Context &ui, Game::Player_State *player,
-                              TTF_Font *font, const Game::Game_Snapshot *snapshot,
-                              bool *leave_pressed) {
+                              TTF_Font *font) {
     ui.sizes.push({UI_Size_Parent(1.0f), UI_Size_Child()});
     UI_Signal div = w.Div_Begin();
     defer(w.Div_End());
@@ -554,7 +553,11 @@ static void Player_Info_Panel(Widget_Context &w, UI_Context &ui, Game::Player_St
     ui.margins.push({m, m, m / 2, m / 2});
     defer(ui.margins.pop());
 
-    w.styles.push(theme::Label_Title(font));
+    auto hp_style = theme::Label_Title(font);
+    if (player->has_priority)
+        for (auto &s : hp_style)
+            s.text.color = theme::TEXT_SUCCESS;
+    w.styles.push(hp_style);
     w.Label(std::to_string(player->life_total) + " HP");
     w.styles.pop();
 
@@ -586,6 +589,21 @@ static void Player_Info_Panel(Widget_Context &w, UI_Context &ui, Game::Player_St
         w.Label(clock);
         w.styles.pop();
     }
+
+}
+
+void Side_Zones_UI(Widget_Context &w, UI_Context &ui, Game::Player_State *player,
+                   SDL_Texture *library_texture, TTF_Font *font,
+                   const Game::Game_Snapshot *snapshot, bool *leave_pressed, bool is_local) {
+    const float margin = 10.0f;
+    ui.sizes.push({UI_Size_Pixels(card_width + margin * 2), UI_Size_Parent(1.0f)});
+    UI_Signal div = w.Div_Begin();
+    defer(w.Div_End());
+
+    div.box->child_layout_axis = 1;
+    div.box->elem_align = UI_ALIGN_CENTER;
+
+    Player_Info_Panel(w, ui, player, font);
 
     if (snapshot) {
         auto phase_name = [](Game::Phase p) -> const char * {
@@ -620,6 +638,7 @@ static void Player_Info_Panel(Widget_Context &w, UI_Context &ui, Game::Player_St
                     return "???";
             }
         };
+        ui.sizes.push({UI_Size_Parent(1.0f), UI_Size_Text(2)});
         auto body = theme::Label_Body(font);
         for (auto &s : body)
             s.text.color = theme::TEXT_GOLD;
@@ -627,29 +646,8 @@ static void Player_Info_Panel(Widget_Context &w, UI_Context &ui, Game::Player_St
         w.Label(std::string(phase_name(snapshot->current_phase)) + " | T" +
                 std::to_string(snapshot->turn_number));
         w.styles.pop();
-    }
-
-    if (leave_pressed) {
-        w.styles.push(theme::Button_Danger(font));
-        ui.sizes.push({UI_Size_Parent(0.9f), UI_Size_Text(2)});
-        *leave_pressed = w.Button("Leave").flags & UI_SIG_LEFT_RELEASED;
         ui.sizes.pop();
-        w.styles.pop();
     }
-}
-
-void Side_Zones_UI(Widget_Context &w, UI_Context &ui, Game::Player_State *player,
-                   SDL_Texture *library_texture, TTF_Font *font,
-                   const Game::Game_Snapshot *snapshot, bool *leave_pressed, bool is_local) {
-    const float margin = 10.0f;
-    ui.sizes.push({UI_Size_Pixels(card_width + margin * 2), UI_Size_Parent(1.0f)});
-    UI_Signal div = w.Div_Begin();
-    defer(w.Div_End());
-
-    div.box->child_layout_axis = 1;
-    div.box->elem_align = UI_ALIGN_CENTER;
-
-    Player_Info_Panel(w, ui, player, font, snapshot, leave_pressed);
 
     w.Spacer(UI_Size_Pixels(margin));
 
@@ -669,6 +667,15 @@ void Side_Zones_UI(Widget_Context &w, UI_Context &ui, Game::Player_State *player
     w.Spacer(UI_Size_Pixels(margin));
 
     Exile_UI(w, ui, player, is_local);
+
+    if (leave_pressed) {
+        w.Spacer(UI_Size_Fit());
+        w.styles.push(theme::Button_Danger(font));
+        ui.sizes.push({UI_Size_Parent(0.9f), UI_Size_Text(2)});
+        *leave_pressed = w.Button("Leave").flags & UI_SIG_LEFT_RELEASED;
+        ui.sizes.pop();
+        w.styles.pop();
+    }
 }
 
 static void Opp_Graveyard_UI(Widget_Context &w, UI_Context &ui, Game::Player_State *player,
@@ -720,12 +727,16 @@ static void Opp_Info_Panel(Widget_Context &w, UI_Context &ui, Game::Player_State
 
     auto name_style = theme::Label_Body(font);
     for (auto &s : name_style)
-        s.text.color = theme::TEXT_INFO;
+        s.text.color = player->has_priority ? theme::TEXT_GOLD : theme::TEXT_INFO;
     w.styles.push(name_style);
     w.Label(player->username.empty() ? "Opponent" : player->username);
     w.styles.pop();
 
-    w.styles.push(theme::Label_Title(font));
+    auto hp_style = theme::Label_Title(font);
+    if (player->has_priority)
+        for (auto &s : hp_style)
+            s.text.color = theme::TEXT_GOLD;
+    w.styles.push(hp_style);
     w.Label(std::to_string(player->life_total) + " HP");
     w.styles.pop();
 
@@ -951,7 +962,7 @@ static void Stack_UI(Widget_Context &w, UI_Context &ui, const Game::Game_Snapsho
     }
 }
 
-void Game_UI(Widget_Context &w, UI_Context &ui, const Game::Game_Snapshot &snapshot,
+void Game_UI(Widget_Context &w, UI_Context &ui, Game::Game_Snapshot &snapshot,
              SDL_Texture *library_texture, TTF_Font *font, uint64_t my_user_id, bool *leave_pressed,
              Combat_UI_State *combat, bool is_local) {
     if (snapshot.players.empty())
@@ -970,8 +981,8 @@ void Game_UI(Widget_Context &w, UI_Context &ui, const Game::Game_Snapshot &snaps
     if (snapshot.players.size() < 2)
         opp_idx = my_idx;
 
-    Game::Player_State p = snapshot.players[my_idx];
-    Game::Player_State o = snapshot.players[opp_idx];
+    Game::Player_State &p = snapshot.players[my_idx];
+    Game::Player_State &o = snapshot.players[opp_idx];
 
     Side_Zones_UI(w, ui, &p, library_texture, font, &snapshot, leave_pressed, is_local);
 

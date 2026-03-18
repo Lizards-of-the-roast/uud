@@ -49,8 +49,14 @@ struct Phase_Changed_Event {
     int turn_number = 0;
 };
 
+struct Clock_Update {
+    uint64_t player_id = 0;
+    int clock_remaining_ms = 0;
+};
+
 struct Priority_Changed_Event {
     uint64_t player_id = 0;
+    std::vector<Clock_Update> clocks;
 };
 
 struct Attack_Declared_Event {
