@@ -9,23 +9,19 @@
     {
       "name": "base",
       "hidden": true,
-      "generator": "Ninja",
+      "generator": "Unix Makefiles",
       "binaryDir": "${sourceDir}/build/${presetName}",
       "warnings": {
         "dev": false,
         "deprecated": false
       },
       "cacheVariables": {
-        "CMAKE_CXX_COMPILER": "clang++-18",
-        "CMAKE_C_COMPILER": "clang-18",
-        "CMAKE_CXX_COMPILER_CLANG_SCAN_DEPS": "clang-scan-deps-18",
-        "CMAKE_CXX_FLAGS": "-stdlib=libc++",
-        "CMAKE_EXE_LINKER_FLAGS": "-stdlib=libc++",
-        "CMAKE_SHARED_LINKER_FLAGS": "-stdlib=libc++",
+        "CMAKE_CXX_COMPILER": "g++",
+        "CMAKE_C_COMPILER": "gcc",
         "CMAKE_C_COMPILER_LAUNCHER": "sccache",
         "CMAKE_CXX_COMPILER_LAUNCHER": "sccache",
-        "UUD_FORCE_GRPC_FROM_SOURCE": "ON",
-        "CLE_FORCE_LUA_FROM_SOURCE": "ON"
+        "UUD_FORCE_GRPC_FROM_SOURCE": "OFF",
+        "CLE_FORCE_LUA_FROM_SOURCE": "OFF"
       }
     },
     {
