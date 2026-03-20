@@ -603,6 +603,8 @@ void Side_Zones_UI(Widget_Context &w, UI_Context &ui, Game::Player_State *player
     div.box->child_layout_axis = 1;
     div.box->elem_align = UI_ALIGN_CENTER;
 
+    div.box->fixed_position = V2{0, card_height};
+
     Player_Info_Panel(w, ui, player, font);
 
     if (snapshot) {
