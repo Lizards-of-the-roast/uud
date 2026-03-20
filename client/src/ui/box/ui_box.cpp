@@ -228,7 +228,7 @@ UI_Signal UI_Box::Signal(UI_Context *ctx) {
                 if (this->flags & UI_BOX_FLAG_TEXTINPUT && ctx->focused != this->id) {
                     ctx->focused = this->id;
                     SDL_StartTextInput(ctx->window);
-                    SDL_Log("Began Text Input");
+                    //SDL_Log("Began Text Input");
                 }
             } else if (ctx->hot)
                 ctx->hot = 0;

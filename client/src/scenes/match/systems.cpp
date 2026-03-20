@@ -596,14 +596,15 @@ void Side_Zones_UI(Widget_Context &w, UI_Context &ui, Game::Player_State *player
                    SDL_Texture *library_texture, TTF_Font *font,
                    const Game::Game_Snapshot *snapshot, bool *leave_pressed, bool is_local) {
     const float margin = 10.0f;
-    ui.sizes.push({UI_Size_Pixels(card_width + margin * 2), UI_Size_Parent(1.0f)});
+    ui.sizes.push({UI_Size_Pixels(card_width + margin * 2), UI_Size_Child()});
     UI_Signal div = w.Div_Begin();
     defer(w.Div_End());
 
     div.box->child_layout_axis = 1;
     div.box->elem_align = UI_ALIGN_CENTER;
 
-    div.box->fixed_position = V2{0, card_height};
+    //this ui is soo cooked
+    div.box->fixed_position = V2{0, div.box->area.h/2};
 
     Player_Info_Panel(w, ui, player, font);
 

@@ -639,15 +639,14 @@ bool Scene_Match(void) {
                     }
 
                     const float prompt_w = 220.0f;
-                    const float prompt_h = 60.0f;
+                    const float prompt_h = 120.0f;
                     const float side_w = 163.0f;
                     ui.sizes.push({UI_Size_Pixels(prompt_w), UI_Size_Pixels(prompt_h)});
                     DIV(&w) {
                         UI_Box *bar = ui.leafs.back();
                         bar->flags |= UI_BOX_FLAG_FLOATING;
-                        float hand_top = board->layout_box.h - 100.0f;
                         bar->fixed_position = V2{board->layout_box.w - side_w - prompt_w - 10,
-                                                 hand_top - prompt_h - 5};
+                                                 board->layout_box.h - 200.0f};
                         theme::Apply_Panel(bar, theme::Panel());
                         bar->child_layout_axis = 1;
                         bar->elem_align = {UI_ALIGN_CENTER, UI_ALIGN_CENTER};
@@ -659,14 +658,19 @@ bool Scene_Match(void) {
                         ui.margins.push({btn_margin, btn_margin, btn_margin / 2, btn_margin / 2});
                         defer(ui.margins.pop());
 
+
                         std::visit(
                             [&](const auto &p) {
                                 using T = std::decay_t<decltype(p)>;
 
                                 if constexpr (std::is_same_v<T, Game::Priority_Prompt>) {
                                     w.styles.push(theme::Label_Title(match_font));
-                                    w.Label("Priority");
+                                    w.Label("Priority").box->size = {UI_Size_Fit(), UI_Size_Text(5)};
                                     w.styles.pop();
+
+                                    UI_Signal scroll = w.Scroll_Begin();
+                                    scroll.box->flags |= UI_BOX_FLAG_CLIP;
+                                    scroll.box->elem_align = UI_ALIGN_CENTER;
 
                                     ui.sizes.push({UI_Size_Text(2), UI_Size_Text(2)});
 
@@ -769,6 +773,11 @@ bool Scene_Match(void) {
 
                                     w.Spacer(UI_Size_Pixels(4));
 
+                                    ui.sizes.pop();
+                                    w.Scroll_End(); /*Scroll begin like 100 lines up :)*/
+
+                                    ui.sizes.push({UI_Size_Text(1), UI_Size_Text(1)});
+                                    defer (ui.sizes.pop());
                                     w.styles.push(theme::Button_Primary());
                                     if (w.Button("Pass").flags & UI_SIG_LEFT_RELEASED) {
                                         Send_And_Clear(game_state, gid, pid,
@@ -776,7 +785,6 @@ bool Scene_Match(void) {
                                     }
                                     w.styles.pop();
 
-                                    ui.sizes.pop();
                                 } else if constexpr (std::is_same_v<T, Game::Yes_No_Prompt>) {
                                     w.styles.push(theme::Label_Title(match_font));
                                     w.Label(p.question.empty() ? "Choose" : p.question);

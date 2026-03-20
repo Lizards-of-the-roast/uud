@@ -62,10 +62,37 @@ bool Scene_Login(void) {
         if (state.scene == Scene::Exit)
             return true;
         state.Update_Delta_Time();
+        bool enter_pressed = false;
         for (SDL_Event event; SDL_PollEvent(&event);) {
             ui.Pass_Event(event);
             if (Handle_Window_Event(event))
                 return true;
+            switch(event.type)
+            {
+                case SDL_EVENT_KEY_UP:
+                    switch (event.key.key)
+                    {
+                        case SDLK_TAB:
+                        {
+                            UI_Box *focused = ui.Get_Box(ui.focused);
+                            if (!focused)
+                                break;
+                            for (UI_Box *b = focused->next_sibling; b; b = b->next_sibling)
+                            {
+                                if (b->flags & UI_BOX_FLAG_TEXTINPUT)
+                                {
+                                    ui.focused = b->id;
+                                    break;
+                                }
+                            }
+                            break;
+                        }
+                        case SDLK_RETURN:
+                            enter_pressed = true;
+                            break;
+                    }
+                    break;
+            }
         }
 
         if (!auto_login_attempted) {
@@ -204,7 +231,7 @@ bool Scene_Login(void) {
                     w.styles.pop();
                 } else {
                     UI_Signal login_btn = w.Button("Login");
-                    if (login_btn.flags & UI_SIG_LEFT_RELEASED) {
+                    if (login_btn.flags & UI_SIG_LEFT_RELEASED || enter_pressed) {
                         const char *user =
                             username_sig.box->label ? username_sig.box->label->text : "";
                         const char *pass =
